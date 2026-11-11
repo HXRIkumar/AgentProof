@@ -9,8 +9,9 @@ import hashlib
 import json
 import time
 import uuid
+from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 from pydantic import ValidationError
@@ -41,12 +42,29 @@ class ApprovalConflict(ValueError):
     pass
 
 
+@dataclass(frozen=True)
+class EngineOptions:
+    """A per-engine budget; policy enforcement and execution controls are unchanged."""
+
+    max_proposals: Literal[1, 3] = 3
+
+    def __post_init__(self):
+        if type(self.max_proposals) is not int or self.max_proposals not in (1, 3):
+            raise ValueError("max_proposals must be the integer 1 or 3")
+
+
 class Engine:
+    # Compatibility/default constant for the public API; execution uses immutable options.
     MAX_PROPOSALS = 3
 
-    def __init__(self, store: Store, provider_factory=None):
+    def __init__(
+        self, store: Store, provider_factory=None, *, options: EngineOptions | None = None
+    ):
         self.store = store
         self.provider_factory = provider_factory or provider_for
+        if options is not None and not isinstance(options, EngineOptions):
+            raise TypeError("options must be EngineOptions")
+        self._options = options or EngineOptions()
         graph = StateGraph(State)
         for name, method in [
             ("observe", self.observe),
@@ -67,6 +85,10 @@ class Engine:
         graph.add_edge("execute", "grade")
         graph.add_edge("grade", END)
         self.graph = graph.compile()
+
+    @property
+    def options(self) -> EngineOptions:
+        return self._options
 
     def stage(self, name, method):
         def wrapped(state):
@@ -130,6 +152,7 @@ class Engine:
             "prompt_hash": PROMPT_HASH,
             "scenario_hash": hashlib.sha256(scenario.model_dump_json().encode()).hexdigest(),
             "policy_version": scenario.current_policy,
+            "engine_options": asdict(self.options),
             "provider_label": "Live model + injected sandbox faults"
             if provider == "openai"
             else "Scripted faults — harness test, not model accuracy",
@@ -295,10 +318,14 @@ class Engine:
             if state["observation"]["policy_version"] != scenario.current_policy:
                 previous = state["observation"]["policy_version"]
                 state["observation"] = {
-                    **state["observation"], "policy_version": scenario.current_policy
+                    **state["observation"],
+                    "policy_version": scenario.current_policy,
                 }
                 self.event(
-                    state, "tool", "refresh_policy", "ok",
+                    state,
+                    "tool",
+                    "refresh_policy",
+                    "ok",
                     {"previous_version": previous, "policy_version": scenario.current_policy},
                 )
             if proposal.action != "refund":
@@ -328,7 +355,7 @@ class Engine:
                     "approval_required" if proposal.amount_cents > 10000 else "refund"
                 )
         if state["feedback"] and state["disposition"] == "continue":
-            if state["attempts"] < self.MAX_PROPOSALS:
+            if state["attempts"] < self.options.max_proposals:
                 state["disposition"] = "retry"
                 run["retries"] += 1
             else:
@@ -341,7 +368,7 @@ class Engine:
             {
                 "decision": state["disposition"],
                 "feedback": state["feedback"],
-                "proposal_budget": self.MAX_PROPOSALS,
+                "proposal_budget": self.options.max_proposals,
             },
         )
         return state
@@ -414,7 +441,10 @@ class Engine:
     def replay(self, run_id):
         old = self.store.get_run(run_id)
         scenario = Scenario.model_validate(self.store.get_scenario(run_id))
-        return self.run(scenario, old["variant"], old["provider"], parent_run_id=run_id)
+        options = EngineOptions(**old.get("engine_options", {"max_proposals": 3}))
+        return Engine(self.store, self.provider_factory, options=options).run(
+            scenario, old["variant"], old["provider"], parent_run_id=run_id
+        )
 
     def approve(self, run_id, approved: bool):
         # Both the decision, effect, and updated run commit in ONE SQLite transaction.
