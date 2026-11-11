@@ -55,8 +55,17 @@ returning from that wait does not stop its network thread. A synchronous
 monotonic check between chunks is only a checked deadline with possible I/O
 overshoot and must be described that way.
 
-Acceptance: a local slow-drip server is terminated within the configured total
-budget plus a documented small scheduling tolerance; an oversized uncompressed
+**Follow-up implementation finding, separate from e86c058:** the isolated async
+adapter cancelled a slow numeric-loopback response, but an independent test that
+delayed `socket.getaddrinfo` by 2.5 seconds returned a one-second timeout after
+approximately 2.66 seconds. `asyncio.run` waits for resolver-executor cleanup.
+The small hardening implementation therefore documents an HTTP I/O cancellation
+budget, not a universal wall-clock bound. It keeps cleanup rather than abandoning
+a resolver thread. A cancellable DNS design remains further work.
+
+Acceptance: a numeric-loopback slow-drip request is cancelled within the configured
+I/O budget plus a documented small scheduling tolerance; a separate hostname
+test exposes and documents DNS cleanup delay; an oversized uncompressed
 or compressed response fails without buffering the whole output; the next queued
 experiment still executes; no orphaned request task/thread remains.
 

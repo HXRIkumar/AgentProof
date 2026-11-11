@@ -20,9 +20,19 @@ Checked on 12 November 2026, Apple M4, 24 GB unified memory, macOS 26.5.1.
 - Fixture comparison against v0.1 passed with no per-case regression. Fixture
   counts remain 15/24 baseline and 24/24 guarded; this is not model accuracy.
 
-Live before/after evaluation, container validation and remote CI are separate
-checks. Their final results will be recorded after completion; none is inferred
-from the unit tests above.
+- GitHub Actions run `43110489027` passed on commit `00931a8`: Python, web build,
+  classic and asynchronous browser workflows, fixture/challenge/comparison gates,
+  and a separate production-container job.
+- The Linux CI container built from the repository Dockerfile, passed 48 original
+  fixture trials and 60 challenge trials, then retained the exact 60 challenge
+  records across a container restart. Evidence is attached to that Actions run.
+- A local Docker Desktop build hit a BuildKit connection error while resolving
+  base images. A cached container could reach the network; local image-build
+  verification was not substituted for the successful Linux CI build. Existing
+  unrelated containers were preserved.
+
+Live before/after evaluation remains in progress at this checkpoint. Its final
+results will be recorded after completion; none is inferred from unit tests.
 
 ## Published version 0.1 checks
 

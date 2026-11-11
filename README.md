@@ -149,6 +149,13 @@ valid requests were still incorrectly refused. The runtime used more tokens and
 had higher tail latency. This is a measured development-suite result with injected
 faults, not a general LLM accuracy claim. [Full results and raw evidence](reports/LIVE_FINDINGS.md).
 
+A later frozen 30-case challenge exposed substantially more over-refusal. Bounded
+factual correction and policy refresh improved guarded outcomes from **32/60 to
+54/60**, with no per-case regressions and all defined effect checks passing.
+Reported tokens increased **29.8%**; six trials still failed. These are authored
+development cases, and host activity limits latency comparisons.
+[Challenge results, failures and exact source fingerprints](reports/CHALLENGE_FINDINGS.md).
+
 ## Architecture
 
 ```mermaid
