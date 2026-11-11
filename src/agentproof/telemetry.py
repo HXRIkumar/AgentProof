@@ -6,6 +6,8 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
+from . import __version__
+
 
 @lru_cache(maxsize=1)
 def tracer():
@@ -18,4 +20,4 @@ def tracer():
             BatchSpanProcessor(OTLPSpanExporter(endpoint=endpoint.rstrip("/") + "/v1/traces"))
         )
         trace.set_tracer_provider(provider)
-    return trace.get_tracer("agentproof.runtime", "0.1.0")
+    return trace.get_tracer("agentproof.runtime", __version__)

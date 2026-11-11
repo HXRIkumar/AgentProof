@@ -958,7 +958,7 @@ export default function App() {
             Synthetic orders. Simulated refunds. Every trial starts with fresh
             state.
           </p>
-          <span className="version mono">AgentProof / v0.3</span>
+          <span className="version mono">AgentProof / v0.4</span>
         </div>
       </aside>
       <main id="main" className="main-content">

@@ -1,5 +1,10 @@
 # Product review: make release decisions from evidence
 
+Historical proposal against v0.2. The reference selector, strict comparison API,
+case-level evidence panes and immutable response snapshot are implemented in
+v0.3 and retained in v0.4. See the current README and browser checks; the prose
+below records the original design rationale rather than the current feature gap.
+
 Reviewed 12 November 2026 against the v0.2 workbench, its browser verification
 screenshots, the experiment API and the existing report comparator. These are
 proposed improvements, not implemented features or a change to the live-run

@@ -61,6 +61,10 @@ approval or experiment API publicly.
 - Release-to-release comparisons that reject incomplete evidence and reveal per-case regressions.
 - Side-by-side traces, checks and ledger snapshots for both versions of a changed case.
 - Actual model requests and token counts when a live provider is configured.
+- Bounded response diagnostics: termination reason, usage availability, output
+  fingerprint and parse category, without retaining raw completions.
+- A separately implemented rules-only control that tests whether inference is needed.
+- A real localhost HTTP service lab for lost acknowledgements and persisted idempotency.
 
 The guarded agent does not become a better model. Its execution environment
 enforces explicit business constraints. That distinction is central to this project.
@@ -186,6 +190,37 @@ This is small synthetic verification, not a public benchmark or broad reliabilit
 guarantee. [Independent provenance and results](reports/INDEPENDENT_VERIFICATION_FINDINGS.md).
 
 ![Actual saved live evidence compared in the console](docs/screenshots/live-release-comparison.png)
+
+## Test the simpler alternative
+
+For this fully structured refund policy, a model is unnecessary. A rules-only
+control matched the model on **66/66 applicable original trials** and completed
+**56/56 challenge trials versus 50/56 for the guarded model**, with zero inference
+requests. Two deliberately injected model-provider faults per suite are excluded
+and individually disclosed; ordinary live grounding and adversarial-note cases
+remain included. [Rules control and interpretation](reports/RULES_REFERENCE_FINDINGS.md).
+
+This is an evaluation workbench for inspecting model workflows, not a claim that
+all business rules should use an LLM. Choosing ordinary code when it is sufficient
+is one of the project's findings.
+
+## Cross a real service boundary
+
+```sh
+uv run python scripts/remote_lab.py --output-dir artifacts/my-remote-lab
+```
+
+A separate localhost process owns its own SQLite ledger. The lab commits a
+synthetic refund, closes the response socket, then reconciles or retries with the
+same operation key. It tests process restart, concurrent requests, conflicting
+arguments and unresolved ambiguity. An intentionally unsafe new-key retry creates
+two effects; the same-key path retains one. Independent database inspection
+checks each result. [Protocol](docs/REMOTE_TOOL_LAB.md) ·
+[Saved six-scenario evidence](reports/remote-tool-lab-v1/report.md).
+
+This lab makes no model calls and uses no payment provider. Its results are
+separate from the model studies, and its synthetic customer identity is not
+production authentication.
 
 ## Architecture
 

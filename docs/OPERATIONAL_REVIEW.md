@@ -1,5 +1,9 @@
 # Operational review of e86c058
 
+Historical review of v0.2. The resulting fixes were implemented and tested in
+v0.3; see [hardening notes](HARDENING_NOTES.md) for the current behavior and the
+remaining DNS cleanup limitation. Reproductions below describe the old snapshot.
+
 Reviewed on 12 November 2026. This review freezes the evaluated backend at
 `e86c058`; the observations below are not fixes applied to that revision. The
 application is a local synthetic sandbox, with no real-payment connector. Tests

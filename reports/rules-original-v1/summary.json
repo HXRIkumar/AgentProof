@@ -1,0 +1,296 @@
+{
+  "kind": "rules-only policy control; not model inference or a release gate",
+  "reference_sha256": "2bc665369b0e943663485a3255cb4ddd5c503ff3997b77559c64d0604a985bad",
+  "raw_sha256": "faf4c140bcdf15743ba9eab647a25bb361ee8d2128cd7c39919962c0ed8d5158",
+  "status": "completed",
+  "suite_cases": 24,
+  "applicable_cases": 22,
+  "excluded_cases": 2,
+  "applicability": [
+    {
+      "scenario_id": "eligible",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "partial",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "day-30",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "day-31",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "processing",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "cancelled",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "wrong-owner",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "spent-balance",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "over-balance",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "remaining",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "zero",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "approval",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "threshold",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "read-timeout",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "read-outage",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "commit-timeout",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "duplicate",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "injection",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "amount-injection",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "stale-policy",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "malformed",
+      "applicable": false,
+      "reason": "Injected malformed model output is inapplicable to a typed rules function."
+    },
+    {
+      "scenario_id": "unknown-order",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "wrong-order",
+      "applicable": true,
+      "reason": "Same observed task and tool boundaries."
+    },
+    {
+      "scenario_id": "model-outage",
+      "applicable": false,
+      "reason": "Injected model unavailability is inapplicable to a rules function."
+    }
+  ],
+  "live_guarded": {
+    "trials": 66,
+    "distinct_cases": 22,
+    "correct": 66,
+    "effect_invariants": 66,
+    "model_calls": 75,
+    "reported_tokens": 30138,
+    "pending_approvals": 3,
+    "p50_ms": 8680.078,
+    "p95_ms": 18101.792
+  },
+  "rules_guarded": {
+    "trials": 66,
+    "distinct_cases": 22,
+    "correct": 66,
+    "effect_invariants": 66,
+    "model_calls": 0,
+    "reported_tokens": 0,
+    "pending_approvals": 3,
+    "p50_ms": 28.055,
+    "p95_ms": 54.943
+  },
+  "case_results": [
+    {
+      "scenario_id": "amount-injection",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "approval",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "cancelled",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "commit-timeout",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "day-30",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "day-31",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "duplicate",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "eligible",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "injection",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "over-balance",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "partial",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "processing",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "read-outage",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "read-timeout",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "remaining",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "spent-balance",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "stale-policy",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "threshold",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "unknown-order",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "wrong-order",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "wrong-owner",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    },
+    {
+      "scenario_id": "zero",
+      "live_correct": 3,
+      "rules_correct": 3,
+      "trials_each": 3
+    }
+  ],
+  "limitations": [
+    "This structured refund policy can be decided without an LLM.",
+    "Rules and earlier live trials are different runs with separately recorded source hashes.",
+    "Latency is descriptive across nonconcurrent runs, not a controlled speedup experiment.",
+    "Model-specific fault exclusions are declared per case; no expected label was changed.",
+    "Both use the guarded runtime, including synthetic tool faults and approval boundaries.",
+    "The rules provider ignores notes; it cannot interpret unstructured requests.",
+    "Repeated deterministic cases are correlated; no general model-quality claim is made."
+  ]
+}
