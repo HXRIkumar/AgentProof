@@ -5,9 +5,13 @@ import hashlib
 import json
 import math
 import os
+import threading
+from dataclasses import asdict, dataclass
+from typing import Literal
 from urllib.parse import urlparse
 
 import httpx
+from pydantic import ValidationError
 
 from .models import Proposal
 
@@ -28,6 +32,64 @@ PROMPT_HASH = hashlib.sha256(SYSTEM_PROMPT.encode()).hexdigest()
 
 class ProviderFailure(Exception):
     pass
+
+
+ParseCategory = Literal["valid", "empty", "invalid_json", "schema_validation", "not_attempted"]
+
+
+@dataclass(frozen=True, slots=True)
+class ResponseDiagnostics:
+    """Bounded response facts only: no generated text, arbitrary reasons or headers."""
+
+    http_status: int | None = None
+    finish_reason: Literal[
+        "stop",
+        "length",
+        "tool_calls",
+        "content_filter",
+        "function_call",
+        "missing",
+        "unknown",
+        "unavailable",
+    ] = "unavailable"
+    usage_present: bool | None = None
+    usage_known: bool = False
+    usage_status: Literal[
+        "reported", "missing", "missing_total_tokens", "invalid", "unavailable"
+    ] = "unavailable"
+    content_utf8_bytes: int | None = None
+    content_sha256: str | None = None
+
+
+def collect_response_diagnostics(adapter, parse_category: ParseCategory) -> dict:
+    """Consume this thread's last response once, preserving existing provider tuple APIs."""
+    consume = getattr(adapter, "consume_response_diagnostics", None)
+    diagnostic = consume() if callable(consume) else None
+    if not isinstance(diagnostic, ResponseDiagnostics):
+        return {}
+    return {"response_diagnostics": {**asdict(diagnostic), "parse_category": parse_category}}
+
+
+def proposal_parse_category(raw: str, error: ValueError) -> ParseCategory:
+    """Classify the actual parser failure using stable error codes, never provider guesses."""
+    payload = raw.strip()
+    if payload.startswith("```") and payload.endswith("```"):
+        payload = (
+            payload.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+            if "\n" in payload
+            else payload[3:-3].strip()
+        )
+    if not payload:
+        return "empty"
+    if isinstance(error, ValidationError):
+        errors = error.errors(include_url=False, include_context=False, include_input=False)
+        return (
+            "invalid_json"
+            if any(item["type"] == "json_invalid" for item in errors)
+            else "schema_validation"
+        )
+    # The existing parser's other ValueError is a malformed fenced-JSON wrapper.
+    return "invalid_json"
 
 
 class ScriptedProvider:
@@ -127,6 +189,70 @@ class LiveProvider:
         if thinking not in ("", "true", "false"):
             raise ValueError("AGENTPROOF_DISABLE_THINKING must be true or false")
         self.disable_thinking = thinking == "true"
+        # propose() is synchronous. Per-instance, per-thread state isolates simultaneous
+        # callers without changing tuple[str, int] or sharing a process-global last response.
+        self._response_state = threading.local()
+
+    @property
+    def response_diagnostics(self) -> ResponseDiagnostics | None:
+        return getattr(self._response_state, "value", None)
+
+    def consume_response_diagnostics(self) -> ResponseDiagnostics | None:
+        diagnostic = self.response_diagnostics
+        self._response_state.value = None
+        return diagnostic
+
+    def _capture_completion_metadata(self, data):
+        previous = self.response_diagnostics
+        if not isinstance(data, dict):
+            return
+        choices = data.get("choices")
+        choice = choices[0] if isinstance(choices, list) and choices else None
+        reason = choice.get("finish_reason") if isinstance(choice, dict) else None
+        known_reasons = {"stop", "length", "tool_calls", "content_filter", "function_call"}
+        finish_reason = (
+            "unavailable"
+            if not isinstance(choice, dict)
+            else "missing"
+            if reason is None
+            else reason
+            if isinstance(reason, str) and reason in known_reasons
+            else "unknown"
+        )
+        usage_present = "usage" in data
+        usage = data.get("usage")
+        total = usage.get("total_tokens") if isinstance(usage, dict) else None
+        usage_known = type(total) is int and total >= 0
+        usage_status = (
+            "missing"
+            if not usage_present
+            else "invalid"
+            if not isinstance(usage, dict)
+            else "missing_total_tokens"
+            if "total_tokens" not in usage
+            else "reported"
+            if usage_known
+            else "invalid"
+        )
+        message = choice.get("message") if isinstance(choice, dict) else None
+        content = message.get("content") if isinstance(message, dict) else None
+        encoded = None
+        if isinstance(content, str):
+            try:
+                encoded = content.encode("utf-8")
+            except UnicodeEncodeError:
+                # Preserve the parser/provider's existing behavior for invalid Unicode.
+                # Do not invent a UTF-8 fingerprint by silently replacing characters.
+                pass
+        self._response_state.value = ResponseDiagnostics(
+            http_status=previous.http_status if previous else None,
+            finish_reason=finish_reason,
+            usage_present=usage_present,
+            usage_known=usage_known,
+            usage_status=usage_status,
+            content_utf8_bytes=len(encoded) if encoded is not None else None,
+            content_sha256=hashlib.sha256(encoded).hexdigest() if encoded is not None else None,
+        )
 
     async def _read_response(self, client, body, headers):
         async with client.stream(
@@ -137,6 +263,9 @@ class LiveProvider:
             timeout=self.timeout,
             follow_redirects=False,
         ) as response:
+            self._response_state.value = ResponseDiagnostics(
+                http_status=response.status_code if 100 <= response.status_code <= 599 else None
+            )
             response.raise_for_status()
             # Avoid decompressing an unbounded object before a decoded-byte check.
             # Compatible servers are asked for identity; compressed responses fail closed.
@@ -170,6 +299,7 @@ class LiveProvider:
     def propose(
         self, observation: dict, feedback: str | None = None, fault: str = "none", attempt: int = 0
     ) -> tuple[str, int]:
+        self._response_state.value = None
         # Provider faults are kept deterministic in live mode too; do not charge for injected failures.
         if fault == "model_outage":
             raise ProviderFailure("Injected provider timeout")
@@ -203,6 +333,7 @@ class LiveProvider:
         try:
             # The engine calls providers from its dedicated synchronous worker thread.
             data = asyncio.run(self._request(body, headers))
+            self._capture_completion_metadata(data)
             content = data["choices"][0]["message"]["content"]
             if not isinstance(content, str):
                 raise TypeError("Model response content must be text")

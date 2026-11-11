@@ -17,7 +17,14 @@ from pydantic import ValidationError
 
 from .grading import apply_grade
 from .models import Proposal, Scenario
-from .providers import PROMPT_HASH, ProviderFailure, parse_proposal, provider_for
+from .providers import (
+    PROMPT_HASH,
+    ProviderFailure,
+    collect_response_diagnostics,
+    parse_proposal,
+    proposal_parse_category,
+    provider_for,
+)
 from .store import Store
 from .telemetry import tracer
 
@@ -208,6 +215,7 @@ class Engine:
         ):
             run["model_calls"] += 1
         started = time.perf_counter()
+        raw = None
         try:
             raw, tokens = state["provider_object"].propose(
                 state["observation"],
@@ -223,7 +231,11 @@ class Engine:
                 "proposal",
                 "propose_action",
                 "ok",
-                {"attempt": attempt + 1, "proposal": state["proposal"].model_dump()},
+                {
+                    "attempt": attempt + 1,
+                    "proposal": state["proposal"].model_dump(),
+                    **collect_response_diagnostics(state["provider_object"], "valid"),
+                },
                 (time.perf_counter() - started) * 1000,
             )
         except (ProviderFailure, ValidationError, ValueError) as exc:
@@ -242,6 +254,12 @@ class Engine:
                     "attempt": attempt + 1,
                     "error": type(exc).__name__,
                     "feedback": state["feedback"],
+                    **collect_response_diagnostics(
+                        state["provider_object"],
+                        "not_attempted"
+                        if raw is None or isinstance(exc, ProviderFailure)
+                        else proposal_parse_category(raw, exc),
+                    ),
                 },
                 (time.perf_counter() - started) * 1000,
             )
@@ -295,10 +313,14 @@ class Engine:
             if state["observation"]["policy_version"] != scenario.current_policy:
                 previous = state["observation"]["policy_version"]
                 state["observation"] = {
-                    **state["observation"], "policy_version": scenario.current_policy
+                    **state["observation"],
+                    "policy_version": scenario.current_policy,
                 }
                 self.event(
-                    state, "tool", "refresh_policy", "ok",
+                    state,
+                    "tool",
+                    "refresh_policy",
+                    "ok",
                     {"previous_version": previous, "policy_version": scenario.current_policy},
                 )
             if proposal.action != "refund":
