@@ -41,6 +41,7 @@ jobs:
           uv run --with playwright==1.64.0 python web/qa/browser_smoke.py
           uv run --with playwright==1.64.0 python web/qa/async_smoke.py
           uv run --with playwright==1.64.0 python web/qa/comparison_smoke.py
+          uv run --with playwright==1.64.0 python web/qa/archive_smoke.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -60,6 +61,30 @@ jobs:
             curl -fsS http://127.0.0.1:8010/api/ready && break
             sleep 1
           done
+          python3 - <<'PY'
+          import hashlib, json, urllib.request
+          from pathlib import Path
+          origin = 'http://127.0.0.1:8010'
+          def read(path):
+              return json.load(urllib.request.urlopen(origin + path))
+          assert read('/api/experiments') == []
+          assert read('/api/config')['live_configured'] is False
+          catalog = read('/api/evidence')
+          assert len(catalog) == 5 and all(item['available'] for item in catalog)
+          for item in catalog:
+              envelope = read('/api/evidence/' + item['id'])
+              raw = urllib.request.urlopen(origin + envelope['archive']['download_url']).read()
+              assert hashlib.sha256(raw).hexdigest() == item['sha256']
+              assert envelope['archive']['read_only'] is True
+              assert envelope['experiment']['summary']['total_runs'] == item['trial_count']
+          assert read('/api/experiments') == []
+          Path('artifacts/container-archive.json').write_text(json.dumps({
+              'archives': catalog, 'workspace_experiments': 0,
+              'live_provider_configured': False, 'status': 'passed'
+          }, indent=2))
+          print('Empty container database can inspect all five hash-verified historical reports without a model')
+          PY
+          docker exec agentproof-ci /app/.venv/bin/python -c "import os,sqlite3; db=sqlite3.connect(os.environ['AGENTPROOF_DB']); assert db.execute('SELECT COUNT(*) FROM runs').fetchone()[0] == 0; assert db.execute('SELECT COUNT(*) FROM experiments').fetchone()[0] == 0; print('Archive inspection left the container run journal empty')"
           python3 scripts/benchmark.py --background --output artifacts/container-fixture --require-gate
           python3 scripts/benchmark.py --background --suite examples/challenge-suite-v1.json --output artifacts/container-challenge --require-gate
           docker restart agentproof-ci
