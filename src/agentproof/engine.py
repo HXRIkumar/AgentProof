@@ -130,8 +130,10 @@ class Engine:
     ) -> dict:
         if variant not in ("baseline", "guarded"):
             raise ValueError("Unknown variant")
-        if provider not in ("scripted", "openai"):
+        if provider not in ("scripted", "openai", "rules"):
             raise ValueError("Unknown provider")
+        if provider == "rules" and scenario.fault in ("malformed", "model_outage"):
+            raise ValueError("Rules-only policy does not simulate model-provider faults")
         adapter = self.provider_factory(provider)
         run = {
             "id": uuid.uuid4().hex,
@@ -156,13 +158,17 @@ class Engine:
             "final_state": {},
             "parent_run_id": parent_run_id,
             "created_at": now(),
-            "prompt_hash": PROMPT_HASH,
+            "prompt_hash": None if provider == "rules" else PROMPT_HASH,
             "scenario_hash": hashlib.sha256(scenario.model_dump_json().encode()).hexdigest(),
             "policy_version": scenario.current_policy,
             "engine_options": asdict(self.options),
             "provider_label": "Live model + injected sandbox faults"
             if provider == "openai"
-            else "Scripted faults — harness test, not model accuracy",
+            else (
+                "Rules-only policy — no model inference"
+                if provider == "rules"
+                else "Scripted faults — harness test, not model accuracy"
+            ),
         }
         self.store.save_run(run, scenario.model_dump())
         initial = State(

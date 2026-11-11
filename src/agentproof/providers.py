@@ -360,7 +360,15 @@ class LiveProvider:
 
 
 def provider_for(name: str):
-    return ScriptedProvider() if name == "scripted" else LiveProvider()
+    if name == "scripted":
+        return ScriptedProvider()
+    if name == "openai":
+        return LiveProvider()
+    if name == "rules":
+        from .rules import RulesProvider
+
+        return RulesProvider()
+    raise ValueError("Unknown provider")
 
 
 def parse_proposal(raw: str) -> Proposal:
