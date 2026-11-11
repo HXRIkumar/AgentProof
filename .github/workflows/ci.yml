@@ -26,7 +26,7 @@ jobs:
         run: |
           .venv/bin/uvicorn agentproof.api:app --port 8010 > /tmp/agentproof.log 2>&1 &
           for attempt in $(seq 1 30); do
-            curl -fsS http://127.0.0.1:8010/api/health && break
+            curl -fsS http://127.0.0.1:8010/api/ready && break
             sleep 1
           done
           uv run python scripts/benchmark.py --output artifacts/ci-fixture --require-gate
@@ -40,6 +40,7 @@ jobs:
           uv run --with playwright==1.64.0 python -m playwright install --with-deps chromium
           uv run --with playwright==1.64.0 python web/qa/browser_smoke.py
           uv run --with playwright==1.64.0 python web/qa/async_smoke.py
+          uv run --with playwright==1.64.0 python web/qa/comparison_smoke.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -56,14 +57,14 @@ jobs:
           mkdir -p artifacts
           docker run -d --name agentproof-ci -p 127.0.0.1:8010:8010 agentproof:ci
           for attempt in $(seq 1 30); do
-            curl -fsS http://127.0.0.1:8010/api/health && break
+            curl -fsS http://127.0.0.1:8010/api/ready && break
             sleep 1
           done
           python3 scripts/benchmark.py --background --output artifacts/container-fixture --require-gate
           python3 scripts/benchmark.py --background --suite examples/challenge-suite-v1.json --output artifacts/container-challenge --require-gate
           docker restart agentproof-ci
           for attempt in $(seq 1 30); do
-            curl -fsS http://127.0.0.1:8010/api/health && break
+            curl -fsS http://127.0.0.1:8010/api/ready && break
             sleep 1
           done
           python3 - <<'PY'

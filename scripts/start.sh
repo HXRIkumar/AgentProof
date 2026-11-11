@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -eu
 cd "$(dirname "$0")/.."
+if ! command -v uv >/dev/null && [ -x "$HOME/.local/bin/uv" ]; then
+  export PATH="$HOME/.local/bin:$PATH"
+fi
 command -v uv >/dev/null || { echo 'Install uv from https://docs.astral.sh/uv/ first.'; exit 1; }
 command -v node >/dev/null || { echo 'Install Node.js 22 or later first.'; exit 1; }
 uv sync --frozen

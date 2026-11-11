@@ -59,6 +59,7 @@ approval or experiment API publicly.
 - Background experiments with live progress, bounded queues and cancellation after the current trial.
 - Browser import of custom JSON suites, including clear schema errors and a downloadable example.
 - Release-to-release comparisons that reject incomplete evidence and reveal per-case regressions.
+- Side-by-side traces, checks and ledger snapshots for both versions of a changed case.
 - Actual model requests and token counts when a live provider is configured.
 
 The guarded agent does not become a better model. Its execution environment
@@ -101,7 +102,10 @@ used; set `AGENTPROOF_API_KEY` for hosted providers. The adapter uses bounded
 timeouts, strict proposal validation and a fixed proposal-attempt limit.
 The revision above identifies the tested weights; set the revision to the
 weights you actually load. It is recorded metadata, not a command that pins the
-inference server's download. Network timeouts limit inactivity, not total wall time.
+inference server's download. The HTTP I/O cancellation deadline spans connection,
+headers and body; DNS cleanup can extend elapsed time. Responses are capped at
+1 MiB and must use identity encoding. See [operational limits](docs/HARDENING_NOTES.md)
+for the tested boundaries and the explicit DNS limitation.
 
 ## Evaluate and export evidence
 
@@ -132,6 +136,15 @@ exported ledger effects, and fails on any guarded case regression even if the
 aggregate improves. Its per-case gate is stricter than the single-experiment UI
 gate. Cost and latency changes are reported, not automatically certified acceptable.
 
+In the console, open **Release comparison**, select a completed reference and
+compare it with the current candidate. Filter regressions or improvements, then
+inspect both versions' traces and ledger snapshots. Repeat selectors are
+independent: trial ordering does not establish matched independent samples.
+The inspector uses the exact snapshots graded by that comparison, with a capture
+timestamp. Comparison makes no new model calls and does not alter either run.
+
+![An aggregate improvement that correctly fails because one case regressed](docs/screenshots/release-comparison.png)
+
 Custom suites use the typed scenario schema exposed in `/api/docs`. Expected
 outcomes are evaluator labels and are never included in model observations.
 Suite authors control those labels; review them before interpreting a pass rate.
@@ -139,6 +152,10 @@ The [30-case challenge suite](docs/CHALLENGE_SUITE.md) was frozen before recover
 changes; its provenance is documented. It is an authored development set, not a
 blind held-out benchmark. Requested amounts support up to 1,000,000 cents;
 negative requests are allowed as deliberate rejection tests.
+
+The local API accepts only loopback Host names and limits request bodies to
+1 MiB. `/api/health` reports liveness; `/api/ready` additionally checks the worker
+and database. These controls do not provide user authentication or tenant isolation.
 
 ## First measured live result
 

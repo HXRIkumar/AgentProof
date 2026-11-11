@@ -8,7 +8,7 @@ services:
     environment:
       AGENTPROOF_DB: /data/agentproof.sqlite
     healthcheck:
-      test: ["CMD", "/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8010/api/health')"]
+      test: ["CMD", "/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8010/api/ready')"]
       interval: 15s
       timeout: 5s
       retries: 3
