@@ -157,7 +157,7 @@ The local API accepts only loopback Host names and limits request bodies to
 1 MiB. `/api/health` reports liveness; `/api/ready` additionally checks the worker
 and database. These controls do not provide user authentication or tenant isolation.
 
-## First measured live result
+## Measured live results
 
 A local Qwen3.5-4B run completed **144 trials**: 24 authored scenarios, three
 repetitions and two strategies. Correct outcomes were **45/72 baseline versus
@@ -172,6 +172,20 @@ factual correction and policy refresh improved guarded outcomes from **32/60 to
 Reported tokens increased **29.8%**; six trials still failed. These are authored
 development cases, and host activity limits latency comparisons.
 [Challenge results, failures and exact source fingerprints](reports/CHALLENGE_FINDINGS.md).
+
+The original-suite regression subsequently improved from **66/72 to 72/72**
+guarded correct outcomes, using six additional HTTP attempts and 10.3% more
+reported tokens. The unchanged baseline remained 45/72 correct.
+[Original regression evidence](reports/ORIGINAL_REGRESSION_FINDINGS.md).
+
+A separate author then created 24 verification cases from only the policy and
+schema, without seeing the implementation, prompts or existing results. Against
+the already frozen implementation, guarded outcomes were **48/48 correct**
+versus **20/48 baseline**, with all defined guarded effect checks passing.
+This is small synthetic verification, not a public benchmark or broad reliability
+guarantee. [Independent provenance and results](reports/INDEPENDENT_VERIFICATION_FINDINGS.md).
+
+![Actual saved live evidence compared in the console](docs/screenshots/live-release-comparison.png)
 
 ## Architecture
 

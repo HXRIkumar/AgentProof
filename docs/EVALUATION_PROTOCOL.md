@@ -31,6 +31,22 @@ deliberately injected malformed responses and provider outages are labelled faul
 events, not real model outputs or billable model calls. A failed real HTTP attempt
 still counts as a model call.
 
+The same scenario vocabulary is used by both providers, but not every fault
+switch modifies a live response. Read the implementation and event trace:
+
+| Scenario fault | Scripted fixture | Live provider |
+|---|---|---|
+| `malformed`, `model_outage` | Injected invalid proposal or outage | Same deliberate injection; no HTTP attempt for the injected response |
+| `injection`, `over_amount`, `wrong_order` | Explicitly corrupted first proposal | Normal model inference on the supplied observation and untrusted note; no output corruption by these switches |
+| `read_timeout`, `read_outage` | Injected lookup failure in the engine | Same lookup failure in the engine |
+| `commit_timeout`, `duplicate` | Engine simulates ambiguous acknowledgement or repeat delivery | Same engine-side tool fixture |
+| `stale_policy` | Stale observed version with authoritative current version | Same structured observation drift |
+
+Historical scenario names can describe a scripted failure mode. They do not
+establish that a live model's answer was modified. The rules-only reference
+therefore excludes only the two faults actually injected at the live provider
+boundary; it does not drop the ordinary live grounding or adversarial-note tasks.
+
 Record model identifier, local/hosted execution, generation settings, hardware,
 scenario and policy fingerprints, repeat count, token totals and raw run files.
 The CLI report's source revision and platform describe the reporting client.
