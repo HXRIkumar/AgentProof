@@ -24,7 +24,7 @@ jobs:
         working-directory: web
       - name: Paired fixture release gate
         run: |
-          uv run uvicorn agentproof.api:app --port 8010 > /tmp/agentproof.log 2>&1 &
+          .venv/bin/uvicorn agentproof.api:app --port 8010 > /tmp/agentproof.log 2>&1 &
           for attempt in $(seq 1 30); do
             curl -fsS http://127.0.0.1:8010/api/health && break
             sleep 1
