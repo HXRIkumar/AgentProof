@@ -140,6 +140,8 @@ model calls. See [evaluation protocol](docs/EVALUATION_PROTOCOL.md).
 `--background` prints the persisted experiment ID and polls progress. If the
 client disconnects, reconnect with `--experiment-id`; the server owns the job.
 Existing output files are protected unless `--overwrite` is explicit.
+The comparison command also protects existing derived reports and refuses to
+overwrite either raw input, even when `--overwrite` is supplied.
 The comparison command checks compatible inputs and model settings, regrades
 exported ledger effects, and fails on any guarded case regression even if the
 aggregate improves. Its per-case gate is stricter than the single-experiment UI
