@@ -1,5 +1,7 @@
 # AgentProof
 
+[![Engineering checks](https://github.com/HXRIkumar/AgentProof/actions/workflows/ci.yml/badge.svg)](https://github.com/HXRIkumar/AgentProof/actions/workflows/ci.yml)
+
 **A release-testing workbench for policy-gated AI agent workflows.**
 
 An agent can produce a convincing answer and still take the wrong action.
@@ -148,7 +150,9 @@ the comparison inspectable. Optional OTLP export is configured using
 
 [Five-minute demonstration and architecture questions](docs/INTERVIEW_GUIDE.md) ·
 [Research and technology decisions](docs/RESEARCH.md) ·
-[Evaluation methodology](docs/EVALUATION_PROTOCOL.md)
+[Evaluation methodology](docs/EVALUATION_PROTOCOL.md) ·
+[Engineering tradeoffs](docs/ENGINEERING_NOTES.md) ·
+[Verification record](docs/VERIFICATION.md)
 
 Inspired by outcome-oriented agent evaluation work, including
 [Anthropic's evaluation guide](https://www.anthropic.com/research/demystifying-evals-for-ai-agents)
