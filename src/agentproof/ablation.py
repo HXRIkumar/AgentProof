@@ -293,7 +293,62 @@ def _percentile(values, quantile):
     return sorted(values)[max(0, math.ceil(len(values) * quantile) - 1)] if values else None
 
 
-def _metrics(runs, scenarios):
+def _model_attempt_events(run, scenario):
+    """Exclude the known non-network injections, not failed actual HTTP attempts."""
+    if run["provider"] != "openai" or scenario.fault == "model_outage":
+        return []
+    return [
+        event
+        for event in run["events"]
+        if event["name"] == "propose_action"
+        and not (scenario.fault == "malformed" and event["detail"]["attempt"] == 1)
+    ]
+
+
+def _usage_gap(event):
+    """A known usage field counts only if the provider returned its token tuple."""
+    detail = event["detail"]
+    diagnostic = detail.get("response_diagnostics")
+    if not isinstance(diagnostic, dict):
+        return "missing_response_diagnostics"
+    if (
+        detail.get("error") == "ProviderFailure"
+        or diagnostic.get("parse_category") == "not_attempted"
+    ):
+        return "rejected_response_wrapper"
+    if (
+        type(diagnostic.get("http_status")) is not int
+        or not 200 <= diagnostic["http_status"] < 300
+        or diagnostic.get("parse_category")
+        not in ("valid", "empty", "invalid_json", "schema_validation")
+    ):
+        return "unavailable_response_accounting"
+    if (
+        diagnostic.get("usage_present") is not True
+        or diagnostic.get("usage_known") is not True
+        or diagnostic.get("usage_status") != "reported"
+    ):
+        return "unknown_reported_usage"
+    return None
+
+
+def _metrics(runs, scenarios, *, metadata_aware=False):
+    gaps = defaultdict(int)
+    incomplete_trials = 0
+    uncertain_trials = 0
+    for run in runs:
+        run_gaps = [
+            gap
+            for event in _model_attempt_events(run, scenarios[run["scenario_id"]])
+            if metadata_aware and (gap := _usage_gap(event)) is not None
+        ]
+        for gap in run_gaps:
+            gaps[gap] += 1
+        incomplete_trials += bool(run_gaps)
+        uncertain_trials += bool(
+            run_gaps or (run["model_calls"] > 0 and run["token_usage"] == 0)
+        )
+    model_calls = sum(r["model_calls"] for r in runs)
     return {
         "trials": len(runs),
         "correct": sum(r["passed"] for r in runs),
@@ -305,12 +360,25 @@ def _metrics(runs, scenarios):
             and r["outcome"] in ("rejected", "escalated")
             for r in runs
         ),
-        "model_calls": sum(r["model_calls"] for r in runs),
+        "model_calls": model_calls,
         "proposal_attempts": sum(r["proposal_calls"] for r in runs),
         "reported_tokens": sum(r["token_usage"] for r in runs),
         "model_trials_with_zero_reported_tokens": sum(
             r["model_calls"] > 0 and r["token_usage"] == 0 for r in runs
         ),
+        "model_trials_with_uncertain_usage": uncertain_trials,
+        "token_usage_coverage": {
+            "policy": "not_applicable_no_model_calls"
+            if not model_calls
+            else "per_response_diagnostics"
+            if metadata_aware
+            else "legacy_aggregate_only",
+            "actual_model_attempts": model_calls,
+            "accounted_attempts": model_calls - sum(gaps.values()) if metadata_aware else None,
+            "incomplete_attempts": sum(gaps.values()) if metadata_aware else None,
+            "trials_with_incomplete_accounting": incomplete_trials if metadata_aware else None,
+            "gap_reasons": dict(gaps),
+        },
         "retries": sum(r["retries"] for r in runs),
         "p50_ms": _percentile([r["latency_ms"] for r in runs], 0.5),
         "p95_ms": _percentile([r["latency_ms"] for r in runs], 0.95),
@@ -564,6 +632,23 @@ def analyse_ablation(document):
             raise AblationError("A completed study cannot also contain a terminal execution error")
         if document["status"] not in ("running", "completed", "interrupted", "failed"):
             raise AblationError("Unknown study status")
+        # One response with diagnostics establishes the newer evidence format for
+        # the whole study. A different trial with no response may be a transport
+        # failure, not legacy evidence with implicitly complete token accounting.
+        metadata_aware = any(
+            "response_diagnostics" in event["detail"]
+            for record in records
+            for event in _model_attempt_events(
+                record["run"], cases[(record["suite_id"], record["scenario_id"])]
+            )
+        )
+        usage_policy = (
+            "not_applicable_no_model_calls"
+            if config["provider"] == "scripted"
+            else "per_response_diagnostics"
+            if metadata_aware
+            else "legacy_aggregate_only"
+        )
         rows = {}
         reasons = (
             [] if complete else ["Study is incomplete; partial evidence cannot support adoption"]
@@ -573,7 +658,9 @@ def analyse_ablation(document):
             suite_cases = {c["id"]: Scenario.model_validate(c) for c in suite["scenarios"]}
             row = {
                 arm: _metrics(
-                    [r for cid in suite_cases for r in groups[(suite["id"], cid, arm)]], suite_cases
+                    [r for cid in suite_cases for r in groups[(suite["id"], cid, arm)]],
+                    suite_cases,
+                    metadata_aware=metadata_aware,
                 )
                 for arm in ARMS
             }
@@ -596,13 +683,15 @@ def analyse_ablation(document):
                     reasons.append(f"Effect-invariant failure in {suite['id']}/{arm}")
             a, b = row["A1"], row["A3"]
             unknown_tokens = (
-                a["model_trials_with_zero_reported_tokens"]
-                + b["model_trials_with_zero_reported_tokens"]
+                a["model_trials_with_uncertain_usage"]
+                + b["model_trials_with_uncertain_usage"]
             )
             row["token_efficiency_evidence"] = (
-                "uncertain_zero_or_missing_usage"
+                "uncertain_zero_or_incomplete_response_usage"
                 if unknown_tokens
-                else "reported_totals_only"
+                else "reported_usage_for_all_model_attempts"
+                if metadata_aware and a["model_calls"] + b["model_calls"]
+                else "legacy_aggregate_only"
                 if a["model_calls"] + b["model_calls"]
                 else "not_applicable_no_model_calls"
             )
@@ -620,7 +709,7 @@ def analyse_ablation(document):
             rows[suite["id"]] = row
             if complete and unknown_tokens:
                 efficiency.append(
-                    f"{suite['id']}: token efficiency is uncertain; {unknown_tokens} model trials have zero or missing reported usage"
+                    f"{suite['id']}: token efficiency is uncertain; {unknown_tokens} model trials have zero reported totals or incomplete response accounting"
                 )
             if (
                 complete
@@ -635,6 +724,7 @@ def analyse_ablation(document):
         return {
             "kind": "proposal-budget ablation; not a release comparison",
             "provider": config["provider"],
+            "usage_analysis_policy": usage_policy,
             "evidence_kind": "Scripted integration fixtures — not LLM accuracy"
             if config["provider"] == "scripted"
             else "Live local-model evaluation with injected sandbox faults",
@@ -655,7 +745,9 @@ def analyse_ablation(document):
                 "One versus three proposal opportunities with the same composite correction path; not equal compute or an isolated wording effect.",
                 "Authored related tasks and temperature-zero repeats are correlated; no claim of statistical significance or generalization.",
                 "Challenge cases were authored with knowledge of earlier failures; they are not blind held out.",
-                "Only reported token totals are available; absent provider telemetry cannot be distinguished from zero. No monetary cost is estimated.",
+                "Per-response diagnostics, when present, must account for every actual model attempt. Unknown usage and rejected response wrappers block the combined efficiency rule, not correctness grading.",
+                "Legacy exports without response diagnostics retain the historical reported-total rule and are labelled aggregate-only. Positive totals do not establish complete usage coverage; historical records are not rewritten.",
+                "Reported usage is provider telemetry, not attested accounting. Zero totals remain conservative uncertainty even when explicitly reported. No monetary cost is estimated.",
                 "Warm-up is excluded from trial metrics and recorded separately. Human approval remains a zero-effect stop.",
                 "Hashes and operator-supplied model revisions support reproduction, not cryptographic attestation of model identity or evidence.",
             ],
@@ -679,6 +771,8 @@ def write_analysis(raw_path):
         "",
         f"Status: **{report['status']}**; {report['finished_trials']}/{report['planned_trials']} trials finished.",
         "",
+        f"Token accounting policy: **{report['usage_analysis_policy']}**.",
+        "",
     ]
     for name, row in report["suites"].items():
         lines += [
@@ -699,6 +793,8 @@ def write_analysis(raw_path):
         ]
         lines += [
             "",
+            f"Token efficiency evidence: **{row['token_efficiency_evidence']}**.",
+            "",
             f"Additional correct outcomes: {row['additional_correct']}. Additional calls per additional correct outcome: {row['additional_calls_per_additional_correct']}.",
             "",
         ]
@@ -707,6 +803,8 @@ def write_analysis(raw_path):
         "## Decision",
         "",
         f"Correctness benefit supported: **{decision['correctness_supported']}**.",
+        "",
+        f"Passes declared study rules under the accounting policy above: **{decision['passes_declared_study_rules']}**.",
         "",
     ]
     lines += ["- " + reason for reason in decision["reasons"] + decision["efficiency_flags"]]

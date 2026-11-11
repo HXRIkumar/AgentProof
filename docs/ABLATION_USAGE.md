@@ -79,9 +79,95 @@ results too; more attempts also consume more compute.
 Exit status 0 means a complete valid study, not a favorable scientific result;
 read the adoption decision. Status 2 means invalid/incomplete/failed work, and
 130 means an orderly interruption. Scripted results test the harness, not LLM
-accuracy. Missing provider usage cannot be distinguished from zero reported
-tokens, so token coverage remains uncertain and no monetary cost is inferred.
-Any live trial with actual requests and zero reported tokens makes token
-efficiency explicitly uncertain and prevents a combined efficiency-rule pass;
-correctness results remain reported separately. Positive reported totals still
-do not prove complete per-request billing coverage.
+accuracy. The accounting policy below separates current response metadata from
+historical aggregate-only evidence. No monetary cost is inferred.
+
+## Token accounting across retries
+
+Proposal-budget ablation reports now distinguish per-response accounting from
+older aggregate-only evidence. This is an analysis change: it does not change
+model requests, prompts, token limits, proposal budgets, retries, correctness
+grading or the provider's `tuple[str, int]` interface. It makes no model calls.
+
+### Why a positive trial total is insufficient
+
+A trial can make two actual requests. Its first response can omit usage while
+its second reports ten tokens. The trial then records ten reported tokens, even
+though the first request's usage is unknown. Checking only whether the trial's
+total is zero misses this gap. A rejected response wrapper creates a similar
+problem: diagnostics can expose a usage field, but the provider raises before
+returning the tuple that contributes tokens to the run total.
+
+The analysis therefore checks each actual model-attempt event when response
+diagnostics are available. These diagnostics contain usage availability and
+parser status, not the token count of each response or raw generated text.
+The analysis cannot reconstruct missing totals or independently attest the
+provider's reported accounting.
+
+### Current metadata-aware policy
+
+If any actual model attempt in the study has a `response_diagnostics` field,
+the whole study uses `per_response_diagnostics`. All actual attempts must then
+have accounting evidence. This prevents a trial with no response after a
+connection failure from being misclassified as older aggregate-only evidence.
+Deterministic provider-fault injections are excluded because they make no HTTP
+request. Read failures that prevent any model attempt also need no model usage.
+
+An actual attempt has incomplete accounting when:
+
+- Its response diagnostics are absent or malformed.
+- Usage is absent, invalid, missing its total, or otherwise unknown.
+- The HTTP status or parser category cannot establish the response path.
+- Proposal parsing was not attempted, or the recorded error is `ProviderFailure`.
+  Even a valid usage field in a rejected wrapper does not establish that its
+  count was added to the run total.
+
+A proposal that fails JSON or schema validation can still have accounted usage:
+the provider returned its token tuple before the proposal parser rejected the
+content. Empty content is handled the same way. These failures remain failures
+for workflow purposes; accounting and task correctness are separate questions.
+
+Each arm reports `token_usage_coverage`: the policy, actual request count,
+accounted and incomplete attempt counts, affected trial count and fixed reason
+categories. A study with any incomplete attempt cannot pass
+`adoption.passes_declared_study_rules`. Its correctness result remains separately
+available as `adoption.correctness_supported`. Additional reported tokens per
+additional correct outcome are withheld when usage is uncertain; reported totals
+remain visible rather than being replaced with guessed values.
+
+The historical conservative zero-total check remains in force. An explicitly
+reported zero is distinguishable from missing metadata, but it still does not
+establish free inference or pass the token-efficiency rule for that trial.
+Complete response coverage means every attempt supplied the required accounting
+metadata; it is not a guarantee that provider token totals are accurate.
+
+### Historical exports and the frozen study
+
+An entirely older export with no per-response diagnostics uses
+`legacy_aggregate_only`. Its per-attempt accounted/incomplete counts are null,
+not fabricated zeros. The JSON and Markdown reports display this policy and
+state that positive aggregate totals do not establish complete usage coverage.
+
+For these exports, the predeclared historical rule is retained: zero reported
+trial totals create uncertainty, more than 50% additional reported tokens raises
+an efficiency flag, and the existing latency and correctness rules still apply.
+A historical report can therefore pass its declared rules while remaining
+aggregate-only. That result describes the old reported-total policy; it does
+not certify the stronger per-response coverage requirement. The analysis does
+not retroactively change the experiment's design or imply that missing historical
+telemetry was collected.
+
+Raw exports are never rewritten by analysis. Re-analysis creates derived summary
+and Markdown files with the selected accounting policy. Frozen study data and
+the separately frozen ablation checkout remain unchanged. The warm-up remains
+excluded from trial efficiency metrics and recorded separately; this change
+does not invent response diagnostics for historical warm-up records.
+
+### Verification
+
+The integration tests use deterministic fixture executions and HTTP MockTransport
+responses only. They exercise mixed known/missing usage, missing diagnostics in
+another trial, malformed usage, rejected wrappers with known usage, JSON parsing
+failures with counted tokens, injected non-network faults, explicit zero totals,
+and legacy re-analysis without changing raw bytes. No real-model calls or
+independent verification cases are used.
