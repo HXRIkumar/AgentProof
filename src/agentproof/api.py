@@ -12,13 +12,14 @@ from contextlib import asynccontextmanager, closing
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from . import __version__
 from .comparison import ComparisonError, compare_reports
 from .engine import ApprovalConflict, Engine, now
+from .evidence import EvidenceError, EvidenceLibrary
 from .jobs import ExperimentWorker
 from .middleware import RequestBodyLimitMiddleware
 from .models import ApprovalRequest, ComparisonRequest, ExperimentRequest, Scenario
@@ -99,7 +100,9 @@ def summarize(
     return summary
 
 
-def create_app(db_path: str | Path | None = None, provider_factory=None) -> FastAPI:
+def create_app(
+    db_path: str | Path | None = None, provider_factory=None, *, evidence_root: Path | None = None
+) -> FastAPI:
     # Snapshot at app construction, not request time; no hostnames, usernames or absolute paths.
     source_hash = hashlib.sha256()
     for module in sorted(Path(__file__).parent.glob("*.py")):
@@ -140,6 +143,7 @@ def create_app(db_path: str | Path | None = None, provider_factory=None) -> Fast
     engine = Engine(store, provider_factory)
     execution_lock = threading.Lock()
     application.state.store, application.state.engine = store, engine
+    evidence_library = EvidenceLibrary(evidence_root)
     max_queued = max(1, min(100, int(os.getenv("AGENTPROOF_MAX_QUEUED", "8"))))
 
     def find_run(run_id):
@@ -381,6 +385,37 @@ def create_app(db_path: str | Path | None = None, provider_factory=None) -> Fast
                 )
             time.sleep(0.05)
         return find_experiment(experiment_id)
+
+    @application.get("/api/evidence")
+    def evidence_catalog():
+        return JSONResponse(evidence_library.catalog(), headers={"Cache-Control": "no-store"})
+
+    def verified_evidence(archive_id):
+        try:
+            return evidence_library.load(archive_id)
+        except KeyError:
+            raise HTTPException(404, "Recorded evidence not found") from None
+        except EvidenceError as exc:
+            raise HTTPException(422, str(exc)) from None
+
+    @application.get("/api/evidence/{archive_id}")
+    def evidence_get(archive_id: str):
+        _, envelope = verified_evidence(archive_id)
+        document = envelope["experiment"]
+        document["summary"] = summarize(
+            document["runs"], document["provider"], status=document["status"],
+            expected_run_count=len(document["scenarios"]) * document["configuration"]["repeats"] * 2,
+        )
+        return JSONResponse(envelope, headers={"Cache-Control": "no-store"})
+
+    @application.get("/api/evidence/{archive_id}/download")
+    def evidence_download(archive_id: str):
+        raw, envelope = verified_evidence(archive_id)
+        return Response(
+            raw, media_type="application/json",
+            headers={"Content-Disposition": f'attachment; filename="agentproof-{archive_id}.json"',
+                     "Cache-Control": "no-store", "ETag": '"' + envelope["archive"]["sha256"] + '"'},
+        )
 
     @application.get("/api/experiments")
     def experiments():

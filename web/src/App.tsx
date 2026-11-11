@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import {
   Activity,
+  BookOpen,
+  LockKeyhole,
   ArrowDownToLine,
   ArrowRight,
   Check,
@@ -38,6 +40,10 @@ import type {
   Config,
   CustomScenario,
   Experiment,
+  ExperimentSource,
+  EvidenceCatalogItem,
+  EvidenceEnvelope,
+  RecordedEvidence,
   Run,
   Scenario,
   VariantSummary,
@@ -408,6 +414,7 @@ function RunInspector({
   run,
   busy,
   replayBlocked,
+  readOnly = false,
   onReplay,
   onApprove,
   onClose,
@@ -415,6 +422,7 @@ function RunInspector({
   run: Run;
   busy: boolean;
   replayBlocked: boolean;
+  readOnly?: boolean;
   onReplay: () => void;
   onApprove: (approved: boolean) => void;
   onClose: () => void;
@@ -442,6 +450,9 @@ function RunInspector({
         <RunStatus run={run} />
         <ProviderBadge provider={run.provider} />
         <span className="mono">{run.id.slice(0, 8)}</span>
+        {readOnly && (
+          <span className="archive-read-only">Read-only record</span>
+        )}
       </div>
       {run.parent_run_id && (
         <div className="replay-note">
@@ -472,7 +483,19 @@ function RunInspector({
           <span>Tokens</span>
         </div>
       </div>
-      {run.status === "awaiting_approval" && (
+      {readOnly && run.status === "awaiting_approval" && (
+        <div className="historical-approval">
+          <LockKeyhole size={17} />
+          <div>
+            <b>Historically pending approval</b>
+            <p>
+              This record stopped before a refund was executed. Its decision and
+              ledger are preserved; approval is unavailable here.
+            </p>
+          </div>
+        </div>
+      )}
+      {!readOnly && run.status === "awaiting_approval" && (
         <div className="approval-box">
           <ShieldCheck size={18} />
           <div>
@@ -586,25 +609,27 @@ function RunInspector({
           </>
         )}
       </div>
-      <div className="inspector-footer">
-        <button
-          className="button"
-          disabled={busy || replayBlocked}
-          onClick={onReplay}
-        >
-          {busy ? (
-            <LoaderCircle size={14} className="spin" />
-          ) : (
-            <RotateCcw size={14} />
-          )}
-          Replay in fresh sandbox
-        </button>
-        <small>
-          {replayBlocked
-            ? "Replay is available after the active experiment finishes."
-            : "Re-executes the scenario and strategy."}
-        </small>
-      </div>
+      {!readOnly && (
+        <div className="inspector-footer">
+          <button
+            className="button"
+            disabled={busy || replayBlocked}
+            onClick={onReplay}
+          >
+            {busy ? (
+              <LoaderCircle size={14} className="spin" />
+            ) : (
+              <RotateCcw size={14} />
+            )}
+            Replay in fresh sandbox
+          </button>
+          <small>
+            {replayBlocked
+              ? "Replay is available after the active experiment finishes."
+              : "Re-executes the scenario and strategy."}
+          </small>
+        </div>
+      )}
     </section>
   );
 }
@@ -613,6 +638,17 @@ export default function App() {
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [config, setConfig] = useState<Config | null>(null);
   const [history, setHistory] = useState<Experiment[]>([]);
+  const [source, setSource] = useState<ExperimentSource | null>(null);
+  const sourceRef = useRef<ExperimentSource | null>(null);
+  const [archive, setArchive] = useState<RecordedEvidence | null>(null);
+  const [library, setLibrary] = useState<EvidenceCatalogItem[]>([]);
+  const [archiveError, setArchiveError] = useState("");
+  const [selectionPending, setSelectionPending] = useState(false);
+  const readOnly = source?.kind === "archive";
+  function selectSource(next: ExperimentSource) {
+    sourceRef.current = next;
+    setSource(next);
+  }
   const [experiment, setExperiment] = useState<Experiment | null>(null);
   const [selectedRun, setSelectedRun] = useState<Run | null>(null);
   const [loading, setLoading] = useState(true);
@@ -629,6 +665,8 @@ export default function App() {
 
   async function openExperiment(id: string) {
     const version = ++selectionVersion.current;
+    ++inspectorVersion.current;
+    setSelectionPending(true);
     setError("");
     setNotice("");
     setSyncError("");
@@ -637,6 +675,8 @@ export default function App() {
         `/experiments/${encodeURIComponent(id)}`,
       );
       if (version !== selectionVersion.current) return;
+      selectSource({ kind: "workspace", id });
+      setArchive(null);
       setExperiment(result);
       setSelectedRun(null);
       setComposer(false);
@@ -647,21 +687,74 @@ export default function App() {
       setError(
         err instanceof Error ? err.message : "Unable to load experiment.",
       );
+    } finally {
+      if (version === selectionVersion.current) setSelectionPending(false);
+    }
+  }
+  async function openArchive(archiveId: string) {
+    const version = ++selectionVersion.current;
+    ++inspectorVersion.current;
+    setSelectionPending(true);
+    setError("");
+    setNotice("");
+    setSyncError("");
+    try {
+      const result = await api<EvidenceEnvelope>(
+        `/evidence/${encodeURIComponent(archiveId)}`,
+      );
+      if (version !== selectionVersion.current) return;
+      selectSource({ kind: "archive", archiveId });
+      setArchive(result.archive);
+      setExperiment(result.experiment);
+      setSelectedRun(null);
+      setComposer(false);
+      setSearch("");
+      setFilter("all");
+    } catch (err) {
+      if (version === selectionVersion.current)
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Recorded evidence could not be opened.",
+        );
+    } finally {
+      if (version === selectionVersion.current) setSelectionPending(false);
     }
   }
   async function initialize() {
     setLoading(true);
     setError("");
+    const version = selectionVersion.current;
     try {
-      const [newScenarios, newConfig, experiments] = await Promise.all([
-        api<Scenario[]>("/scenarios"),
-        api<Config>("/config"),
-        api<Experiment[]>("/experiments"),
-      ]);
+      const [newScenarios, newConfig, experiments, recorded] =
+        await Promise.all([
+          api<Scenario[]>("/scenarios"),
+          api<Config>("/config"),
+          api<Experiment[]>("/experiments"),
+          api<EvidenceCatalogItem[]>("/evidence").catch(() => {
+            setArchiveError(
+              "Recorded evidence is unavailable. Workspace experiments are still available.",
+            );
+            return [];
+          }),
+        ]);
+      setLibrary(recorded);
+      if (recorded.length) setArchiveError("");
       setScenarios(newScenarios);
       setConfig(newConfig);
       setHistory(experiments);
-      if (experiments.length) await openExperiment(experiments[0].id);
+      if (
+        version === selectionVersion.current &&
+        sourceRef.current?.kind !== "archive" &&
+        experiments.length
+      ) {
+        const previous =
+          sourceRef.current?.kind === "workspace" ? sourceRef.current.id : null;
+        await openExperiment(
+          experiments.find((item) => item.id === previous)?.id ??
+            experiments[0].id,
+        );
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Unable to connect to the API.",
@@ -674,7 +767,9 @@ export default function App() {
     void initialize();
   }, []);
 
-  const selectedActive = Boolean(experiment && isActive(experiment.status));
+  const selectedActive = Boolean(
+    source?.kind === "workspace" && experiment && isActive(experiment.status),
+  );
   const historyActive = history.some((item) => isActive(item.status));
   useEffect(() => {
     if (busy || (!selectedActive && !historyActive)) return;
@@ -715,6 +810,7 @@ export default function App() {
       } catch (err) {
         if (
           !stopped &&
+          version === selectionVersion.current &&
           !(err instanceof DOMException && err.name === "AbortError")
         )
           setSyncError(
@@ -742,6 +838,10 @@ export default function App() {
         body,
       );
       ++selectionVersion.current;
+      ++inspectorVersion.current;
+      selectSource({ kind: "workspace", id: result.id });
+      setArchive(null);
+      setSelectionPending(false);
       setExperiment(result);
       setSelectedRun(null);
       setComposer(false);
@@ -764,7 +864,13 @@ export default function App() {
     }
   }
   async function cancelExperiment() {
-    if (!experiment || !isActive(experiment.status)) return;
+    if (
+      sourceRef.current?.kind !== "workspace" ||
+      selectionPending ||
+      !experiment ||
+      !isActive(experiment.status)
+    )
+      return;
     const id = experiment.id;
     const version = selectionVersion.current;
     setBusy(true);
@@ -791,7 +897,12 @@ export default function App() {
     }
   }
   async function runAction(action: "replay" | "approve", approved = true) {
-    if (!selectedRun) return;
+    if (
+      sourceRef.current?.kind !== "workspace" ||
+      selectionPending ||
+      !selectedRun
+    )
+      return;
     const version = selectionVersion.current;
     const inspector = inspectorVersion.current;
     setBusy(true);
@@ -925,7 +1036,7 @@ export default function App() {
           {history.map((item) => (
             <button
               key={item.id}
-              className={`history-item ${experiment?.id === item.id ? "selected" : ""}`}
+              className={`history-item ${source?.kind === "workspace" && source.id === item.id ? "selected" : ""}`}
               onClick={() => void openExperiment(item.id)}
               disabled={busy}
             >
@@ -949,6 +1060,39 @@ export default function App() {
             </p>
           )}
         </nav>
+        <section
+          className="archive-library"
+          aria-label="Recorded evidence library"
+        >
+          <div className="archive-heading">
+            <BookOpen size={14} />
+            <span>RECORDED EVIDENCE</span>
+          </div>
+          <p>Inspect saved trials. No model needed.</p>
+          <nav className="archive-list" aria-label="Recorded evidence">
+            {library.map((item) => (
+              <button
+                key={item.id}
+                className={`archive-item ${source?.kind === "archive" && source.archiveId === item.id ? "selected" : ""}`}
+                disabled={busy || !item.available}
+                title={item.available ? item.suite_provenance : item.error}
+                aria-label={`Open recorded ${item.title}`}
+                onClick={() => void openArchive(item.id)}
+              >
+                <BookOpen size={13} />
+                <span>
+                  <b>{item.title}</b>
+                  <small>
+                    {item.available
+                      ? `${item.trial_count} trials · ${item.provider === "openai" ? "Live model" : "Scripted"}`
+                      : "Unavailable · integrity or packaging check"}
+                  </small>
+                </span>
+              </button>
+            ))}
+          </nav>
+          {archiveError && <p className="archive-error">{archiveError}</p>}
+        </section>
         <div className="sidebar-bottom">
           <div>
             <FlaskConical size={16} />
@@ -995,6 +1139,12 @@ export default function App() {
               {composer ? "Close setup" : "New experiment"}
             </button>
           </div>
+          {selectionPending && (
+            <p className="selection-loading" role="status">
+              <LoaderCircle size={14} className="spin" />
+              Loading selected evidence…
+            </p>
+          )}
           {error && (
             <div className="alert error" role="alert">
               <XCircle size={18} />
@@ -1092,6 +1242,19 @@ export default function App() {
                 <small>
                   Start with scripted fixtures. No API key required.
                 </small>
+                {library.some((item) => item.available) && (
+                  <button
+                    className="button welcome-archive"
+                    onClick={() =>
+                      void openArchive(
+                        library.find((item) => item.available)!.id,
+                      )
+                    }
+                  >
+                    <BookOpen size={15} />
+                    Inspect recorded model evidence
+                  </button>
+                )}
               </div>
               <div className="welcome-features">
                 <span>
@@ -1114,13 +1277,77 @@ export default function App() {
           )}
           {experiment && (
             <>
+              {readOnly && archive && (
+                <section
+                  className="archive-banner"
+                  aria-label="Recorded evidence provenance"
+                >
+                  <div className="archive-banner-top">
+                    <LockKeyhole size={20} />
+                    <div>
+                      <strong>
+                        Read-only · recorded{" "}
+                        {archive.provider === "openai" ? "model" : "scripted"}{" "}
+                        evidence
+                      </strong>
+                      <p>
+                        {archive.title} · {archive.trial_count} trials across{" "}
+                        {archive.distinct_cases} cases. Browsing makes no model
+                        calls.
+                      </p>
+                    </div>
+                  </div>
+                  <p className="archive-provenance">
+                    {archive.suite_provenance}
+                  </p>
+                  <details>
+                    <summary>Recorded provenance</summary>
+                    <dl>
+                      <div>
+                        <dt>Recorded</dt>
+                        <dd>
+                          {date(archive.recorded_at)} · {archive.source_version}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Model</dt>
+                        <dd>{archive.model}</dd>
+                      </div>
+                      <div>
+                        <dt>Model revision</dt>
+                        <dd>{archive.model_revision}</dd>
+                      </div>
+                      <div>
+                        <dt>Executed source SHA-256</dt>
+                        <dd>{archive.backend_source_sha256}</dd>
+                      </div>
+                      <div>
+                        <dt>Suite SHA-256</dt>
+                        <dd>{archive.suite_hash}</dd>
+                      </div>
+                      <div>
+                        <dt>Original file SHA-256</dt>
+                        <dd>{archive.sha256}</dd>
+                      </div>
+                    </dl>
+                    <p>
+                      {archive.validation} {archive.integrity_note}
+                    </p>
+                  </details>
+                </section>
+              )}
               <section className="experiment-overview">
                 <div className="experiment-title">
                   <div>
                     <div className="eyebrow mono">
-                      EXPERIMENT / {experiment.id.slice(0, 8)}
+                      {readOnly ? "RECORDED EXPERIMENT" : "EXPERIMENT"} /{" "}
+                      {experiment.id.slice(0, 8)}
                     </div>
-                    <h2>{experiment.name || "Untitled experiment"}</h2>
+                    <h2>
+                      {readOnly && archive
+                        ? archive.title
+                        : experiment.name || "Untitled experiment"}
+                    </h2>
                     <div className="experiment-meta">
                       <ProviderBadge provider={experiment.provider} />
                       <span>{date(experiment.created_at)}</span>
@@ -1134,11 +1361,15 @@ export default function App() {
                   </div>
                   <a
                     className="button"
-                    href={`/api/experiments/${encodeURIComponent(experiment.id)}/export`}
+                    href={
+                      readOnly && archive
+                        ? archive.download_url
+                        : `/api/experiments/${encodeURIComponent(experiment.id)}/export`
+                    }
                     download
                   >
                     <ArrowDownToLine size={15} />
-                    Export JSON
+                    {readOnly ? "Download recorded JSON" : "Export JSON"}
                   </a>
                 </div>
                 {experiment.status !== "completed" && (
@@ -1190,7 +1421,11 @@ export default function App() {
                       {selectedActive && (
                         <button
                           className="button small"
-                          disabled={busy || experiment.cancel_requested}
+                          disabled={
+                            busy ||
+                            selectionPending ||
+                            experiment.cancel_requested
+                          }
                           onClick={() => void cancelExperiment()}
                         >
                           Stop after current trial
@@ -1226,8 +1461,8 @@ export default function App() {
                       {selectedActive
                         ? "Evaluation in progress"
                         : experiment.summary.gate.passed
-                        ? "Checks passed"
-                        : "Review required"}
+                          ? "Checks passed"
+                          : "Review required"}
                     </strong>
                     <p>
                       {experiment.summary.gate.reasons.length
@@ -1246,7 +1481,19 @@ export default function App() {
                   </span>
                 </div>
               </section>
-              <ReleaseComparison key={experiment.id} candidate={experiment} history={history} />
+              {!readOnly && (
+                <ReleaseComparison
+                  key={`workspace:${experiment.id}`}
+                  candidate={experiment}
+                  history={history}
+                />
+              )}
+              {readOnly && (
+                <p className="archive-comparison-note">
+                  This historical snapshot is preserved. Release comparisons are
+                  available for experiments in your workspace.
+                </p>
+              )}
               <div
                 className={`results-layout ${selectedRun ? "with-inspector" : ""}`}
               >
@@ -1390,7 +1637,8 @@ export default function App() {
                   <div ref={inspectorAnchor} className="inspector-anchor">
                     <RunInspector
                       run={selectedRun}
-                      busy={busy}
+                      busy={busy || selectionPending}
+                      readOnly={readOnly}
                       replayBlocked={selectedActive || historyActive}
                       onReplay={() => void runAction("replay")}
                       onApprove={(approved) =>

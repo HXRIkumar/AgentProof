@@ -66,6 +66,42 @@ export interface Experiment {
   summary: Summary;
   runs?: Run[];
 }
+export type ExperimentSource =
+  | { kind: "workspace"; id: string }
+  | { kind: "archive"; archiveId: string };
+
+export interface RecordedEvidence {
+  id: string;
+  title: string;
+  read_only: true;
+  sha256: string;
+  source_version: string;
+  recorded_at: string;
+  provider: "openai" | "scripted";
+  model: string;
+  model_revision: string;
+  backend_source_sha256: string;
+  suite_hash: string;
+  suite_provenance: string;
+  trial_count: number;
+  distinct_cases: number;
+  integrity_note: string;
+  validation: string;
+  download_url: string;
+}
+export type EvidenceCatalogItem =
+  | (RecordedEvidence & { available: true })
+  | {
+      id: string;
+      title: string;
+      read_only: true;
+      available: false;
+      error: string;
+    };
+export interface EvidenceEnvelope {
+  archive: RecordedEvidence;
+  experiment: Experiment;
+}
 export interface CustomScenario extends Scenario {
   order?: {
     id?: string;

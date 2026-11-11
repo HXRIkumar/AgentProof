@@ -34,6 +34,11 @@ cd ..
 
 Open **http://127.0.0.1:8010**. Run the scripted suite, select a result, and
 inspect its checks, event trace and final ledger. No API key is required.
+To inspect the measured local-model results immediately, choose **Recorded
+evidence** in the sidebar. The five bundled reports retain their original
+failures, pending approvals, model revisions and source hashes. This view is
+read-only and makes no model calls; it does not import anything into your local
+experiment history. [Archive provenance and scope](docs/EVIDENCE_ARCHIVE.md).
 For frontend development, `cd web && npm run dev` starts Vite with an API proxy.
 On macOS, `scripts/open-mac.command` starts the application and opens the browser;
 keep its Terminal window open while using a server started by the launcher.

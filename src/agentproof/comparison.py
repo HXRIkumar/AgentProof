@@ -123,6 +123,15 @@ def _metrics(runs):
     }
 
 
+def validate_experiment_export(document: dict) -> dict:
+    """Validate one complete pre-approval export without modifying its contents.
+
+    Returns grouped evidence for read-only consumers. Validation is against the
+    supported refund schema and grader, not a claim of authenticity or quality.
+    """
+    return _validated_report(document)
+
+
 def compare_reports(reference: dict, candidate: dict, minimum_rate: float = .9) -> dict:
     if not math.isfinite(minimum_rate) or not 0 <= minimum_rate <= 1:
         raise ComparisonError("minimum_rate must be between zero and one")
