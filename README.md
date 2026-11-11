@@ -110,6 +110,15 @@ Custom suites use the typed scenario schema exposed in `/api/docs`. Expected
 outcomes are evaluator labels and are never included in model observations.
 Suite authors control those labels; review them before interpreting a pass rate.
 
+## First measured live result
+
+A local Qwen3.5-4B run completed **144 trials**: 24 authored scenarios, three
+repetitions and two strategies. Correct outcomes were **45/72 baseline versus
+66/72 guarded**; guarded runs passed all defined effect-invariant checks. Six
+valid requests were still incorrectly refused. The runtime used more tokens and
+had higher tail latency. This is a measured development-suite result with injected
+faults, not a general LLM accuracy claim. [Full results and raw evidence](reports/LIVE_FINDINGS.md).
+
 ## Architecture
 
 ```mermaid
