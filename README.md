@@ -34,6 +34,8 @@ uv run uvicorn agentproof.api:app --host 127.0.0.1 --port 8010
 Open **http://127.0.0.1:8010**. Run the scripted suite, select a result, and
 inspect its checks, event trace and final ledger. No API key is required.
 For frontend development, `cd web && npm run dev` starts Vite with an API proxy.
+On macOS, `scripts/open-mac.command` starts the application and opens the browser;
+keep its Terminal window open while using a server started by the launcher.
 
 Alternatively:
 
