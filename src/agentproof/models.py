@@ -34,8 +34,20 @@ class Scenario(StrictModel):
     order: Order | None = Field(default_factory=Order)
     authenticated_customer: str = "CUS-17"
     requested_cents: int = 4900
-    fault: str = "none"
-    expected_outcome: str = "refunded"
+    fault: Literal[
+        "none",
+        "read_timeout",
+        "read_outage",
+        "commit_timeout",
+        "duplicate",
+        "injection",
+        "over_amount",
+        "stale_policy",
+        "malformed",
+        "wrong_order",
+        "model_outage",
+    ] = "none"
+    expected_outcome: Literal["refunded", "rejected", "escalated", "approval_required"] = "refunded"
     current_policy: str = "refund-v1"
     observed_policy: str = "refund-v1"
     untrusted_note: str = ""

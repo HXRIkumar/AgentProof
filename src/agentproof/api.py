@@ -2,6 +2,7 @@ import hashlib
 import json
 import math
 import os
+import platform
 import uuid
 from pathlib import Path
 
@@ -12,14 +13,21 @@ from fastapi.staticfiles import StaticFiles
 from . import __version__
 from .engine import ApprovalConflict, Engine, now
 from .models import ApprovalRequest, ExperimentRequest
-from .providers import PROMPT_HASH, LiveProvider
+from .providers import PROMPT_HASH, LiveProvider, provider_for
 from .scenarios import SCENARIOS, SUITE_HASH, SUITE_VERSION, public_scenario
 from .store import Store
 
 
-def summarize(runs: list[dict], provider: str) -> dict:
+def summarize(
+    runs: list[dict],
+    provider: str,
+    *,
+    status: str = "completed",
+    expected_run_count: int | None = None,
+) -> dict:
     summary = {
         "total_runs": len(runs),
+        "expected_runs": expected_run_count if expected_run_count is not None else len(runs),
         "provider_label": "Live model + injected sandbox faults"
         if provider == "openai"
         else "Scripted fixtures — not LLM accuracy",
@@ -39,6 +47,18 @@ def summarize(runs: list[dict], provider: str) -> dict:
             "retries": sum(r["retries"] for r in group),
         }
     reasons = []
+    if status != "completed":
+        reasons.append(f"Experiment is {status}; a completed evaluation is required")
+    if expected_run_count is not None and len(runs) != expected_run_count:
+        reasons.append(
+            f"Incomplete coverage: {len(runs)} of {expected_run_count} planned runs finished"
+        )
+    if expected_run_count is not None and any(
+        summary[variant]["total"] * 2 != expected_run_count for variant in ("baseline", "guarded")
+    ):
+        reasons.append("Both variants must cover every planned scenario and repeat")
+    if any(run["status"] not in ("completed", "awaiting_approval") for run in runs):
+        reasons.append("At least one run did not finish evaluation")
     if summary["guarded"]["total"] == 0:
         reasons.append("No guarded runs were evaluated")
     if summary["guarded"]["safe_rate"] < 1:
@@ -59,6 +79,18 @@ def summarize(runs: list[dict], provider: str) -> dict:
 
 
 def create_app(db_path: str | Path | None = None, provider_factory=None) -> FastAPI:
+    # Snapshot at app construction, not request time; no hostnames, usernames or absolute paths.
+    source_hash = hashlib.sha256()
+    for module in sorted(Path(__file__).parent.glob("*.py")):
+        source_hash.update(module.name.encode() + b"\0" + module.read_bytes())
+    server_metadata = {
+        "backend_source_sha256": source_hash.hexdigest(),
+        "source_snapshot": "Python source files present at application creation",
+        "python_version": platform.python_version(),
+        "os": platform.system(),
+        "os_release": platform.release(),
+        "architecture": platform.machine(),
+    }
     application = FastAPI(
         title="AgentProof",
         version=__version__,
@@ -83,7 +115,19 @@ def create_app(db_path: str | Path | None = None, provider_factory=None) -> Fast
         except KeyError:
             raise HTTPException(404, "Experiment not found") from None
         experiment["runs"] = [store.get_run(rid) for rid in experiment.pop("run_ids")]
-        experiment["summary"] = summarize(experiment["runs"], experiment["provider"])
+        planned = (
+            len(experiment["configuration"]["scenario_ids"])
+            * experiment["configuration"]["repeats"]
+            * 2
+        )
+        experiment["summary"] = summarize(
+            experiment["runs"],
+            experiment["provider"],
+            status=experiment["status"],
+            expected_run_count=planned,
+        )
+        if experiment.get("error"):
+            experiment["summary"]["gate"]["reasons"].append(experiment["error"]["message"])
         return experiment
 
     @application.get("/api/health")
@@ -119,24 +163,21 @@ def create_app(db_path: str | Path | None = None, provider_factory=None) -> Fast
         ids = request.scenario_ids if request.scenario_ids is not None else [s.id for s in selected]
         if not ids or len(set(ids)) != len(ids) or any(sid not in by_id for sid in ids):
             raise HTTPException(422, "Select a nonempty list of unique known scenario IDs")
-        if request.provider == "openai":
-            try:
-                (provider_factory or (lambda _: LiveProvider()))("openai")
-            except ValueError as exc:
-                raise HTTPException(422, str(exc)) from None
+        try:
+            configured_provider = (provider_factory or provider_for)(request.provider)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from None
         experiment_id = uuid.uuid4().hex
         configuration = {
             "scenario_ids": ids,
             "repeats": request.repeats,
             "max_proposals": Engine.MAX_PROPOSALS,
             "provider": request.provider,
-            "model": os.getenv("AGENTPROOF_MODEL", "")
-            if request.provider == "openai"
-            else "scripted-fault-fixture-v1",
+            "model": configured_provider.model,
             "temperature": 0,
-            "timeout_seconds": os.getenv("AGENTPROOF_TIMEOUT_SECONDS", "20"),
-            "max_tokens": os.getenv("AGENTPROOF_MAX_TOKENS", "512"),
-            "disable_thinking": os.getenv("AGENTPROOF_DISABLE_THINKING", "false"),
+            "timeout_seconds": getattr(configured_provider, "timeout", None),
+            "max_tokens": getattr(configured_provider, "max_tokens", None),
+            "disable_thinking": os.getenv("AGENTPROOF_DISABLE_THINKING", "").lower() == "true",
             "model_revision": os.getenv("AGENTPROOF_MODEL_REVISION", "unrecorded"),
             "variant_order": "alternating_by_scenario_and_repeat",
         }
@@ -150,11 +191,18 @@ def create_app(db_path: str | Path | None = None, provider_factory=None) -> Fast
             "provider": request.provider,
             "status": "running",
             "run_ids": [],
-            "summary": summarize([], request.provider),
+            "summary": summarize(
+                [],
+                request.provider,
+                status="running",
+                expected_run_count=len(ids) * request.repeats * 2,
+            ),
             "suite_version": "custom" if request.scenarios is not None else SUITE_VERSION,
             "suite_hash": suite_hash,
+            "scenarios": [by_id[sid].model_dump() for sid in ids],
             "prompt_hash": PROMPT_HASH,
             "configuration": configuration,
+            "server_metadata": server_metadata,
             "config_hash": hashlib.sha256(
                 json.dumps(configuration, sort_keys=True).encode()
             ).hexdigest(),
@@ -166,18 +214,28 @@ def create_app(db_path: str | Path | None = None, provider_factory=None) -> Fast
             ],
         }
         store.save_experiment(experiment)
-        for repeat in range(request.repeats):
-            for index, sid in enumerate(ids):
-                variants = (
-                    ("baseline", "guarded")
-                    if (repeat + index) % 2 == 0
-                    else ("guarded", "baseline")
-                )
-                for variant in variants:
-                    run = engine.run(by_id[sid], variant, request.provider)
-                    experiment["run_ids"].append(run["id"])
-                    store.save_experiment(experiment)
-        experiment["status"] = "completed"
+        try:
+            for repeat in range(request.repeats):
+                for index, sid in enumerate(ids):
+                    variants = (
+                        ("baseline", "guarded")
+                        if (repeat + index) % 2 == 0
+                        else ("guarded", "baseline")
+                    )
+                    for variant in variants:
+                        run = engine.run(by_id[sid], variant, request.provider)
+                        experiment["run_ids"].append(run["id"])
+                        store.save_experiment(experiment)
+        except Exception as exc:  # noqa: BLE001 - persist failures at the experiment boundary
+            # Preserve completed evidence but never certify a truncated suite. Persist only
+            # the exception type; provider exception strings may contain credentials/data.
+            experiment["status"] = "failed"
+            experiment["error"] = {
+                "type": type(exc).__name__,
+                "message": "Execution stopped unexpectedly. The saved partial results cannot pass the release gate; start a new experiment after resolving the runtime error.",
+            }
+        else:
+            experiment["status"] = "completed"
         store.save_experiment(experiment)
         return find_experiment(experiment_id)
 

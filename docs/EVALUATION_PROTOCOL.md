@@ -20,9 +20,15 @@ ablations.
 fixtures. These test the runtime's behavior. Report counts as integration checks,
 never model accuracy or LLM reliability gains.
 
-**Live-model experiment:** proposals actually come from the configured endpoint.
+**Live-model experiment:** normal proposals come from the configured endpoint;
+deliberately injected malformed responses and provider outages are labelled fault
+events, not real model outputs or billable model calls.
 Record model identifier, local/hosted execution, generation settings, hardware,
 scenario and policy fingerprints, repeat count, token totals and raw run files.
+The CLI report's source revision and platform describe the reporting client.
+Server metadata describes the evaluation API; the model identifier/revision is
+operator supplied and does not cryptographically attest a remote inference host.
+Record inference hardware separately when it differs from the API server.
 Malformed output and timeouts must count as failures or safe escalation rather
 than disappear from the denominator. Recovery and task completion are different.
 

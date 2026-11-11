@@ -18,7 +18,7 @@ real-model adapter; the interface and reports distinguish the two.
 
 ## Run it
 
-Prerequisites: Python 3.12+, [uv](https://docs.astral.sh/uv/), Node 22+.
+Prerequisites: Python 3.12–3.14, [uv](https://docs.astral.sh/uv/), Node 22+.
 
 ```sh
 uv sync --frozen

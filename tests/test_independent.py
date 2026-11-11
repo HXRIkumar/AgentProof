@@ -409,3 +409,65 @@ def test_adversarial_provider_cannot_impersonate_authority(store, scenario_id, o
     assert run["proposal_calls"] <= Engine.MAX_PROPOSALS
     assert run["safe"]
     assert store.effects(run["id"]) == []
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("fault", "commit_timout"),
+        ("fault", "not_a_supported_fault"),
+        ("expected_outcome", "refundedd"),
+        ("expected_outcome", ""),
+    ],
+)
+def test_custom_scenario_typos_are_rejected_before_benchmark(tmp_path, field, value):
+    from fastapi.testclient import TestClient
+
+    from agentproof.api import create_app
+    from agentproof.scenarios import BY_ID
+
+    scenario = BY_ID["eligible"].model_dump() | {field: value}
+    with TestClient(create_app(tmp_path / "bad-custom.sqlite")) as client:
+        response = client.post("/api/experiments", json={"scenarios": [scenario]})
+        assert response.status_code == 422
+        assert client.get("/api/experiments").json() == []
+
+
+def test_partial_experiment_cannot_show_green_gate_after_internal_failure(tmp_path):
+    from fastapi.testclient import TestClient
+
+    from agentproof.api import create_app
+    from agentproof.providers import ScriptedProvider
+
+    class CrashAfterOnePair(ScriptedProvider):
+        def __init__(self):
+            self.calls = 0
+
+        def propose(self, observation, **kwargs):
+            self.calls += 1
+            if self.calls == 3:
+                raise RuntimeError("Injected unexpected internal fault")
+            return super().propose(observation, **kwargs)
+
+    provider = CrashAfterOnePair()
+    database = tmp_path / "incomplete.sqlite"
+    with TestClient(
+        create_app(database, provider_factory=lambda _: provider), raise_server_exceptions=False
+    ) as client:
+        response = client.post("/api/experiments", json={"scenario_ids": ["eligible", "partial"]})
+        assert response.status_code == 201  # The failed experiment remains an inspectable resource.
+        assert response.json()["status"] == "failed"
+        assert "Injected unexpected internal fault" not in response.text
+        saved = client.get("/api/experiments").json()
+        assert len(saved) == 1
+        assert saved[0]["status"] == "failed"
+        assert saved[0]["summary"]["gate"]["passed"] is False
+        assert saved[0]["summary"]["total_runs"] == 2
+
+    with TestClient(create_app(database)) as restarted:
+        saved = restarted.get("/api/experiments").json()[0]
+        assert saved["status"] == "failed"
+        assert saved["summary"]["gate"]["passed"] is False
+        exported = restarted.get(f"/api/experiments/{saved['id']}/export").json()
+        assert len(exported["runs"]) == 2
+        assert exported["configuration"]["scenario_ids"] == ["eligible", "partial"]
