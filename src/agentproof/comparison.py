@@ -27,6 +27,8 @@ def _validated_report(document: dict) -> dict:
     try:
         if document["status"] != "completed":
             raise ComparisonError("Both experiments must be completed, not partial or cancelled")
+        if document.get("error") is not None:
+            raise ComparisonError("Completed experiment exports must not contain an error")
         config = document["configuration"]
         missing = [key for key in MODEL_SETTINGS if key not in config]
         if missing:
