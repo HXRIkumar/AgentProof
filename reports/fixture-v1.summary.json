@@ -1,8 +1,8 @@
 {
-  "created_at": "2026-11-11T21:14:08.575166+00:00",
+  "created_at": "2026-11-11T21:22:48.860819+00:00",
   "evidence_kind": "scripted integration test",
-  "raw_sha256": "8ceb5ffb7301f4370e765fa5aabf63e34a5d24ad69475ed0a5d55322ba846e01",
-  "source_revision": "uncommitted-development",
+  "raw_sha256": "7160337d55014a086536e446cb5e89422fb3a8e4265e68147ba83127221d36bf",
+  "source_revision": "b8b4b48d5c6efbbf61c36626bc11d4295db94f8f",
   "working_tree_dirty": true,
   "platform": "macOS-26.5.1-arm64-arm-64bit",
   "requested": {
@@ -26,8 +26,8 @@
         0.5083,
         0.8509
       ],
-      "p50_ms": 4.04,
-      "p95_ms": 5.91,
+      "p50_ms": 3.85,
+      "p95_ms": 6.49,
       "model_calls": 0,
       "tokens": 0,
       "retries": 1,
@@ -48,8 +48,8 @@
         0.862,
         1.0
       ],
-      "p50_ms": 4.44,
-      "p95_ms": 7.71,
+      "p50_ms": 4.13,
+      "p95_ms": 6.36,
       "model_calls": 0,
       "tokens": 0,
       "retries": 9,

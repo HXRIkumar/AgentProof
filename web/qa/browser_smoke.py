@@ -17,7 +17,7 @@ output = Path(os.environ.get("SCREENSHOT_DIR", str(root / "docs/screenshots")))
 output.mkdir(parents=True, exist_ok=True)
 
 with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True, channel="chrome")
+    browser = p.chromium.launch(headless=True, channel=os.environ.get("PLAYWRIGHT_CHANNEL", "chrome"))
     context = browser.new_context(viewport={"width": 1440, "height": 900}, device_scale_factor=1)
     page = context.new_page()
     errors = []

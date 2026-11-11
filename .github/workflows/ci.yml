@@ -11,6 +11,7 @@ jobs:
         with:
           version: '0.11.19'
           python-version: '3.12'
+          enable-cache: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -29,6 +30,13 @@ jobs:
             sleep 1
           done
           uv run python scripts/benchmark.py --output artifacts/ci-fixture --require-gate
+      - name: Browser workflow regression
+        env:
+          PLAYWRIGHT_CHANNEL: chromium
+          SCREENSHOT_DIR: artifacts/browser
+        run: |
+          uv run --with playwright==1.64.0 python -m playwright install --with-deps chromium
+          uv run --with playwright==1.64.0 python web/qa/browser_smoke.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
