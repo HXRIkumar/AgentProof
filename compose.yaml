@@ -1,0 +1,16 @@
+services:
+  agentproof:
+    build: .
+    ports:
+      - "127.0.0.1:8010:8010"
+    volumes:
+      - agentproof-data:/data
+    environment:
+      AGENTPROOF_DB: /data/agentproof.sqlite
+    healthcheck:
+      test: ["CMD", "/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8010/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+volumes:
+  agentproof-data:

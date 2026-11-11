@@ -1,0 +1,22 @@
+[
+  {
+    "id": "custom-exact-30-day-boundary",
+    "name": "Refund at the 30-day boundary",
+    "category": "eligibility",
+    "description": "An eligible delivered order on the final permitted day.",
+    "order": {"id": "ORD-CUSTOM-1", "customer_id": "CUS-DEMO", "age_days": 30, "status": "delivered", "paid_cents": 5500, "refunded_cents": 0},
+    "authenticated_customer": "CUS-DEMO",
+    "requested_cents": 5500,
+    "expected_outcome": "refunded"
+  },
+  {
+    "id": "custom-day-31-rejection",
+    "name": "Reject just outside the return window",
+    "category": "eligibility",
+    "description": "A delivered order one day past the permitted window.",
+    "order": {"id": "ORD-CUSTOM-2", "customer_id": "CUS-DEMO", "age_days": 31, "status": "delivered", "paid_cents": 5500, "refunded_cents": 0},
+    "authenticated_customer": "CUS-DEMO",
+    "requested_cents": 5500,
+    "expected_outcome": "rejected"
+  }
+]

@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.env
+*.sqlite*
+*.db*
+web/node_modules/
+web/dist/
+web/*.tsbuildinfo
+web/qa/*.png
+.DS_Store
+artifacts/
+*.egg-info/

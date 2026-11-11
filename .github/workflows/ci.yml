@@ -1,0 +1,36 @@
+name: Agent release checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.11.19'
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: uv sync --frozen
+      - run: uv run ruff check src tests scripts
+      - run: uv run pytest -q
+      - run: npm ci && npm run build
+        working-directory: web
+      - name: Paired fixture release gate
+        run: |
+          uv run uvicorn agentproof.api:app --port 8010 > /tmp/agentproof.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8010/api/health && break
+            sleep 1
+          done
+          uv run python scripts/benchmark.py --output artifacts/ci-fixture --require-gate
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fixture-evidence
+          path: artifacts/
