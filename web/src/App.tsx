@@ -28,6 +28,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { api } from "./api";
+import ReleaseComparison from "./ReleaseComparison";
 import {
   exampleScenarios,
   MAX_IMPORT_BYTES,
@@ -957,7 +958,7 @@ export default function App() {
             Synthetic orders. Simulated refunds. Every trial starts with fresh
             state.
           </p>
-          <span className="version mono">AgentProof / v0.2</span>
+          <span className="version mono">AgentProof / v0.3</span>
         </div>
       </aside>
       <main id="main" className="main-content">
@@ -1219,7 +1220,7 @@ export default function App() {
                       ) : (
                         <ShieldX size={20} />
                       )}
-                      Suite release gate
+                      Experiment gate
                     </span>
                     <strong>
                       {selectedActive
@@ -1245,6 +1246,7 @@ export default function App() {
                   </span>
                 </div>
               </section>
+              <ReleaseComparison key={experiment.id} candidate={experiment} history={history} />
               <div
                 className={`results-layout ${selectedRun ? "with-inspector" : ""}`}
               >

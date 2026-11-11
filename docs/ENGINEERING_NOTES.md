@@ -91,7 +91,7 @@ is retained. Cancellation does not abort an in-flight provider request or undo
 an already committed effect. Cancelling a completed, failed or cancelled job
 leaves its terminal result unchanged.
 
-A graceful shutdown waits for the current bounded trial. If further trials
+A graceful shutdown waits for the current trial. If further trials
 remain, the running experiment fails with partial evidence retained; waiting jobs
 remain queued. After an abrupt process exit, the next lease-owning worker marks
 interrupted running experiments failed and drains the untouched queue. It also

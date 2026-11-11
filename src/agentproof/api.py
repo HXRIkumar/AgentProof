@@ -4,20 +4,24 @@ import json
 import math
 import os
 import platform
+import sqlite3
 import threading
 import time
 import uuid
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, closing
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from . import __version__
+from .comparison import ComparisonError, compare_reports
 from .engine import ApprovalConflict, Engine, now
 from .jobs import ExperimentWorker
-from .models import ApprovalRequest, ExperimentRequest, Scenario
+from .middleware import RequestBodyLimitMiddleware
+from .models import ApprovalRequest, ComparisonRequest, ExperimentRequest, Scenario
 from .providers import PROMPT_HASH, LiveProvider, provider_for
 from .scenarios import SCENARIOS, SUITE_HASH, SUITE_VERSION, public_scenario
 from .store import Store
@@ -126,6 +130,12 @@ def create_app(db_path: str | Path | None = None, provider_factory=None) -> Fast
         description="Local synthetic agent release-testing workbench. No real payment tools.",
         lifespan=lifespan,
     )
+    application.add_middleware(RequestBodyLimitMiddleware)
+    application.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=["localhost", "127.0.0.1", "[::1]", "testserver"],
+        www_redirect=False,
+    )
     store = Store(db_path or os.getenv("AGENTPROOF_DB", "data/agentproof.sqlite3"))
     engine = Engine(store, provider_factory)
     execution_lock = threading.Lock()
@@ -162,6 +172,28 @@ def create_app(db_path: str | Path | None = None, provider_factory=None) -> Fast
     @application.get("/api/health")
     def health():
         return {"status": "ok", "version": __version__}
+
+    @application.get("/api/ready")
+    def readiness():
+        worker_available = application.state.worker.available
+        database_available = False
+        try:
+            # Read-only open cannot accidentally recreate a deleted evidence database.
+            uri = Path(store.path).resolve().as_uri() + "?mode=ro"
+            with closing(sqlite3.connect(uri, uri=True, timeout=0.2)) as connection:
+                connection.execute("SELECT id FROM experiments LIMIT 1").fetchone()
+            database_available = True
+        except (sqlite3.Error, OSError):
+            pass
+        ready = worker_available and database_available
+        return JSONResponse(
+            {
+                "status": "ready" if ready else "not_ready",
+                "worker_available": worker_available,
+                "database_available": database_available,
+            },
+            status_code=200 if ready else 503,
+        )
 
     @application.get("/api/config")
     def config():
@@ -371,6 +403,24 @@ def create_app(db_path: str | Path | None = None, provider_factory=None) -> Fast
                 }
             )
         return results
+
+    @application.post("/api/comparisons")
+    def experiment_compare(request: ComparisonRequest):
+        reference = find_experiment(request.reference_id)
+        candidate = find_experiment(request.candidate_id)
+        captured_at = now()
+        try:
+            comparison = compare_reports(reference, candidate)
+        except ComparisonError as exc:
+            raise HTTPException(422, str(exc)) from None
+        # Return the same detached JSON snapshots that were graded. Fetching fresh
+        # details afterward could show a human approval that changed the stored run.
+        return {
+            **comparison,
+            "captured_at": captured_at,
+            "reference_snapshot": reference,
+            "candidate_snapshot": candidate,
+        }
 
     @application.get("/api/experiments/{experiment_id}")
     def experiment_get(experiment_id: str):

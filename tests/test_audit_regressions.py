@@ -1,5 +1,6 @@
 """Independent regression tests for reproduced provider, grading, and input defects."""
 
+import asyncio
 import json
 from pathlib import Path
 
@@ -24,10 +25,14 @@ def test_malformed_provider_usage_is_a_bounded_provider_failure(monkeypatch, usa
         "choices": [{"message": {"content": '{"action":"reject"}'}}],
         "usage": usage,
     }
-    with httpx.Client(
+    client = httpx.AsyncClient(
         transport=httpx.MockTransport(lambda request: httpx.Response(200, json=response))
-    ) as client, pytest.raises(ProviderFailure):
-        LiveProvider(client).propose({"order": Order().model_dump()})
+    )
+    try:
+        with pytest.raises(ProviderFailure):
+            LiveProvider(client).propose({"order": Order().model_dump()})
+    finally:
+        asyncio.run(client.aclose())
 
 
 APPROVAL_SCENARIO = Scenario(
@@ -97,9 +102,7 @@ def test_scenario_numeric_fields_reject_coercion(field, value):
 
 @pytest.fixture
 def audit_report():
-    return json.loads(
-        (Path(__file__).parents[1] / "reports/qwen35-4b-live-v1.json").read_text()
-    )
+    return json.loads((Path(__file__).parents[1] / "reports/qwen35-4b-live-v1.json").read_text())
 
 
 @pytest.mark.parametrize("metric", ["model_calls", "token_usage", "retries"])
@@ -109,7 +112,9 @@ def test_comparison_requires_integer_counts(audit_report, metric):
         compare_reports(audit_report, audit_report)
 
 
-@pytest.mark.parametrize("setting", ["max_tokens", "temperature", "timeout_seconds", "variant_order"])
+@pytest.mark.parametrize(
+    "setting", ["max_tokens", "temperature", "timeout_seconds", "variant_order"]
+)
 def test_comparison_missing_settings_on_both_reports_is_not_equivalence(audit_report, setting):
     del audit_report["configuration"][setting]
     with pytest.raises(ComparisonError):

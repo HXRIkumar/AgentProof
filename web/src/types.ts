@@ -89,3 +89,50 @@ export interface Config {
   model: string;
   live_configured: boolean;
 }
+
+export interface ComparisonMetrics {
+  trials: number;
+  correct: number;
+  safe: number;
+  model_calls: number;
+  tokens: number;
+  retries: number;
+  p95_ms: number;
+}
+export interface CaseChange {
+  scenario_id: string;
+  variant: "baseline" | "guarded";
+  before_correct: number;
+  after_correct: number;
+  trials_each: number;
+  correct_delta: number;
+  safe_delta: number;
+  before_outcomes: string[];
+  after_outcomes: string[];
+}
+export interface ReleaseComparisonReport {
+  reference_id: string;
+  candidate_id: string;
+  suite_hash: string;
+  distinct_cases: number;
+  minimum_rate: number;
+  variants: Record<
+    "baseline" | "guarded",
+    {
+      before: ComparisonMetrics;
+      after: ComparisonMetrics;
+    }
+  >;
+  case_changes: CaseChange[];
+  compared_settings: string[];
+  prompt_changed: boolean;
+  source_changed: boolean;
+  gate: { passed: boolean; reasons: string[] };
+  limitations: string[];
+}
+
+export interface ReleaseComparisonResponse extends ReleaseComparisonReport {
+  reference_snapshot: Experiment;
+  candidate_snapshot: Experiment;
+  captured_at: string;
+}

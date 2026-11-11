@@ -40,7 +40,7 @@ def test_live_provider_real_http_accounting_and_oracle_separation(tmp_path, live
         requests.append(json.loads(request.content))
         return httpx.Response(200, json=model_response())
 
-    adapter = LiveProvider(httpx.Client(transport=httpx.MockTransport(handler)))
+    adapter = LiveProvider(httpx.AsyncClient(transport=httpx.MockTransport(handler)))
     run = Engine(Store(tmp_path / "test.db"), lambda _: adapter).run(
         BY_ID["eligible"], provider="openai"
     )
@@ -62,7 +62,7 @@ def test_provider_failure_is_bounded_and_redacts_response(tmp_path, live_env):
         requests.append(request)
         return httpx.Response(429, json={"error": "secret-token-never-log-me"})
 
-    adapter = LiveProvider(httpx.Client(transport=httpx.MockTransport(handler)))
+    adapter = LiveProvider(httpx.AsyncClient(transport=httpx.MockTransport(handler)))
     run = Engine(Store(tmp_path / "test.db"), lambda _: adapter).run(
         BY_ID["eligible"], provider="openai"
     )
@@ -81,7 +81,7 @@ def test_live_http_timeout_is_bounded(tmp_path, live_env):
         requests.append(request)
         raise httpx.ReadTimeout("request timed out")
 
-    adapter = LiveProvider(httpx.Client(transport=httpx.MockTransport(handler)))
+    adapter = LiveProvider(httpx.AsyncClient(transport=httpx.MockTransport(handler)))
     run = Engine(Store(tmp_path / "test.db"), lambda _: adapter).run(
         BY_ID["eligible"], provider="openai"
     )
@@ -100,7 +100,7 @@ def test_live_http_timeout_is_bounded(tmp_path, live_env):
 )
 def test_incompatible_provider_response_fails_closed(live_env, body):
     adapter = LiveProvider(
-        httpx.Client(transport=httpx.MockTransport(lambda _: httpx.Response(200, json=body)))
+        httpx.AsyncClient(transport=httpx.MockTransport(lambda _: httpx.Response(200, json=body)))
     )
     with pytest.raises(ProviderFailure):
         adapter.propose({})
@@ -113,7 +113,7 @@ def test_malformed_json_repaired_without_counting_injection_as_api_call(tmp_path
         requests.append(json.loads(request.content))
         return httpx.Response(200, json=model_response())
 
-    adapter = LiveProvider(httpx.Client(transport=httpx.MockTransport(handler)))
+    adapter = LiveProvider(httpx.AsyncClient(transport=httpx.MockTransport(handler)))
     run = Engine(Store(tmp_path / "test.db"), lambda _: adapter).run(
         BY_ID["malformed"], provider="openai"
     )
@@ -238,7 +238,7 @@ def test_experiment_records_effective_provider_settings_and_safe_server_metadata
     monkeypatch.setenv("AGENTPROOF_MAX_TOKENS", "9000")
     monkeypatch.setenv("AGENTPROOF_TIMEOUT_SECONDS", "900")
     adapter = LiveProvider(
-        httpx.Client(
+        httpx.AsyncClient(
             transport=httpx.MockTransport(lambda _: httpx.Response(200, json=model_response()))
         )
     )
@@ -264,7 +264,7 @@ def test_malformed_usage_is_redacted_provider_failure(live_env, usage):
     body = model_response()
     body["usage"] = usage
     adapter = LiveProvider(
-        httpx.Client(transport=httpx.MockTransport(lambda _: httpx.Response(200, json=body)))
+        httpx.AsyncClient(transport=httpx.MockTransport(lambda _: httpx.Response(200, json=body)))
     )
     with pytest.raises(ProviderFailure) as error:
         adapter.propose({})
@@ -276,7 +276,7 @@ def test_token_counts_are_nonnegative_integers_without_coercion(live_env, tokens
     body = model_response()
     body["usage"] = {"total_tokens": tokens}
     adapter = LiveProvider(
-        httpx.Client(transport=httpx.MockTransport(lambda _: httpx.Response(200, json=body)))
+        httpx.AsyncClient(transport=httpx.MockTransport(lambda _: httpx.Response(200, json=body)))
     )
     with pytest.raises(ProviderFailure):
         adapter.propose({})
@@ -290,7 +290,7 @@ def test_absent_usage_or_valid_token_counts_are_supported(live_env, usage):
     else:
         body["usage"] = usage
     adapter = LiveProvider(
-        httpx.Client(transport=httpx.MockTransport(lambda _: httpx.Response(200, json=body)))
+        httpx.AsyncClient(transport=httpx.MockTransport(lambda _: httpx.Response(200, json=body)))
     )
     content, tokens = adapter.propose({})
     assert json.loads(content)["action"] == "refund"

@@ -63,3 +63,8 @@ class ExperimentRequest(StrictModel):
 
 class ApprovalRequest(StrictModel):
     approved: bool
+
+
+class ComparisonRequest(StrictModel):
+    reference_id: str = Field(min_length=1, max_length=128)
+    candidate_id: str = Field(min_length=1, max_length=128)

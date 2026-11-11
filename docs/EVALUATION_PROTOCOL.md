@@ -65,7 +65,7 @@ between trials. Changed configuration fails the experiment rather than silently
 mixing settings. Never label its partial results as a completed suite.
 
 Cancel through `POST /api/experiments/{id}/cancel`. Queued cancellation is
-immediate; running cancellation waits for the current bounded trial and preserves
+immediate; running cancellation waits for the current trial and preserves
 its results/effects. Queued jobs survive restart. An experiment interrupted while
 running becomes failed, with completed evidence retained, and is not resumed
 from a LangGraph node. Start a new experiment for complete paired coverage.
