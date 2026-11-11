@@ -1,0 +1,679 @@
+{
+  "schema_version": "agentproof-remote-tool-lab-v1",
+  "synthetic": true,
+  "model_calls": 0,
+  "passed": true,
+  "client_pid": 44205,
+  "cases": [
+    {
+      "case": "commit_then_socket_close",
+      "service_pids": [
+        44206
+      ],
+      "result": {
+        "outcome": "reconciled",
+        "operation_key": "stable-operation",
+        "receipt": {
+          "order_id": "ORD-100",
+          "customer_id": "CUS-17",
+          "amount_cents": 3100,
+          "policy_version": "refund-v1",
+          "operation_key": "stable-operation",
+          "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2",
+          "status": "committed",
+          "effect_id": "32d72e8f5ba546869268a44b5f667419",
+          "created_at": "2026-11-11T23:13:35.184564+00:00"
+        },
+        "reason": null,
+        "events": [
+          {
+            "method": "POST",
+            "attempt": 1,
+            "error": "RemoteProtocolError",
+            "operation_key": "stable-operation"
+          },
+          {
+            "method": "GET",
+            "attempt": 1,
+            "status": 200,
+            "operation_key": "stable-operation"
+          }
+        ]
+      },
+      "ledger": {
+        "effect_count": 1,
+        "total_cents": 3100,
+        "effects": [
+          {
+            "effect_id": "32d72e8f5ba546869268a44b5f667419",
+            "operation_key": "stable-operation",
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "created_at": "2026-11-11T23:13:35.184564+00:00"
+          }
+        ],
+        "orders": [
+          {
+            "id": "ORD-100",
+            "paid_cents": 9000,
+            "refunded_cents": 3100
+          },
+          {
+            "id": "ORD-HIGH",
+            "paid_cents": 20000,
+            "refunded_cents": 0
+          },
+          {
+            "id": "ORD-OLD",
+            "paid_cents": 9000,
+            "refunded_cents": 0
+          },
+          {
+            "id": "ORD-PROCESS",
+            "paid_cents": 9000,
+            "refunded_cents": 0
+          }
+        ],
+        "operations": [
+          {
+            "operation_key": "stable-operation",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2"
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "case": "service_restart_before_same_key_retry",
+      "service_pids": [
+        44207,
+        44208
+      ],
+      "first_error": "RemoteProtocolError",
+      "result": {
+        "outcome": "committed",
+        "operation_key": "restart-operation",
+        "receipt": {
+          "order_id": "ORD-100",
+          "customer_id": "CUS-17",
+          "amount_cents": 3100,
+          "policy_version": "refund-v1",
+          "operation_key": "restart-operation",
+          "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2",
+          "status": "committed",
+          "effect_id": "55548738416246828f57b327e3ea1d3c",
+          "created_at": "2026-11-11T23:13:35.377612+00:00"
+        },
+        "reason": null,
+        "events": [
+          {
+            "method": "POST",
+            "attempt": 1,
+            "status": 200,
+            "operation_key": "restart-operation"
+          }
+        ]
+      },
+      "ledger_before_restart": {
+        "effect_count": 1,
+        "total_cents": 3100,
+        "effects": [
+          {
+            "effect_id": "55548738416246828f57b327e3ea1d3c",
+            "operation_key": "restart-operation",
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "created_at": "2026-11-11T23:13:35.377612+00:00"
+          }
+        ],
+        "orders": [
+          {
+            "id": "ORD-100",
+            "paid_cents": 9000,
+            "refunded_cents": 3100
+          },
+          {
+            "id": "ORD-HIGH",
+            "paid_cents": 20000,
+            "refunded_cents": 0
+          },
+          {
+            "id": "ORD-OLD",
+            "paid_cents": 9000,
+            "refunded_cents": 0
+          },
+          {
+            "id": "ORD-PROCESS",
+            "paid_cents": 9000,
+            "refunded_cents": 0
+          }
+        ],
+        "operations": [
+          {
+            "operation_key": "restart-operation",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2"
+          }
+        ]
+      },
+      "ledger": {
+        "effect_count": 1,
+        "total_cents": 3100,
+        "effects": [
+          {
+            "effect_id": "55548738416246828f57b327e3ea1d3c",
+            "operation_key": "restart-operation",
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "created_at": "2026-11-11T23:13:35.377612+00:00"
+          }
+        ],
+        "orders": [
+          {
+            "id": "ORD-100",
+            "paid_cents": 9000,
+            "refunded_cents": 3100
+          },
+          {
+            "id": "ORD-HIGH",
+            "paid_cents": 20000,
+            "refunded_cents": 0
+          },
+          {
+            "id": "ORD-OLD",
+            "paid_cents": 9000,
+            "refunded_cents": 0
+          },
+          {
+            "id": "ORD-PROCESS",
+            "paid_cents": 9000,
+            "refunded_cents": 0
+          }
+        ],
+        "operations": [
+          {
+            "operation_key": "restart-operation",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2"
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "case": "eight_concurrent_same_key_requests",
+      "service_pids": [
+        44211
+      ],
+      "results": [
+        {
+          "outcome": "committed",
+          "operation_key": "concurrent-operation",
+          "receipt": {
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "policy_version": "refund-v1",
+            "operation_key": "concurrent-operation",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2",
+            "status": "committed",
+            "effect_id": "b0d1ab7364a94a14a1dc59f6f43018fe",
+            "created_at": "2026-11-11T23:13:35.799713+00:00"
+          },
+          "reason": null,
+          "events": [
+            {
+              "method": "POST",
+              "attempt": 1,
+              "status": 200,
+              "operation_key": "concurrent-operation"
+            }
+          ]
+        },
+        {
+          "outcome": "committed",
+          "operation_key": "concurrent-operation",
+          "receipt": {
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "policy_version": "refund-v1",
+            "operation_key": "concurrent-operation",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2",
+            "status": "committed",
+            "effect_id": "b0d1ab7364a94a14a1dc59f6f43018fe",
+            "created_at": "2026-11-11T23:13:35.799713+00:00"
+          },
+          "reason": null,
+          "events": [
+            {
+              "method": "POST",
+              "attempt": 1,
+              "status": 200,
+              "operation_key": "concurrent-operation"
+            }
+          ]
+        },
+        {
+          "outcome": "committed",
+          "operation_key": "concurrent-operation",
+          "receipt": {
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "policy_version": "refund-v1",
+            "operation_key": "concurrent-operation",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2",
+            "status": "committed",
+            "effect_id": "b0d1ab7364a94a14a1dc59f6f43018fe",
+            "created_at": "2026-11-11T23:13:35.799713+00:00"
+          },
+          "reason": null,
+          "events": [
+            {
+              "method": "POST",
+              "attempt": 1,
+              "status": 200,
+              "operation_key": "concurrent-operation"
+            }
+          ]
+        },
+        {
+          "outcome": "committed",
+          "operation_key": "concurrent-operation",
+          "receipt": {
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "policy_version": "refund-v1",
+            "operation_key": "concurrent-operation",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2",
+            "status": "committed",
+            "effect_id": "b0d1ab7364a94a14a1dc59f6f43018fe",
+            "created_at": "2026-11-11T23:13:35.799713+00:00"
+          },
+          "reason": null,
+          "events": [
+            {
+              "method": "POST",
+              "attempt": 1,
+              "status": 200,
+              "operation_key": "concurrent-operation"
+            }
+          ]
+        },
+        {
+          "outcome": "committed",
+          "operation_key": "concurrent-operation",
+          "receipt": {
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "policy_version": "refund-v1",
+            "operation_key": "concurrent-operation",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2",
+            "status": "committed",
+            "effect_id": "b0d1ab7364a94a14a1dc59f6f43018fe",
+            "created_at": "2026-11-11T23:13:35.799713+00:00"
+          },
+          "reason": null,
+          "events": [
+            {
+              "method": "POST",
+              "attempt": 1,
+              "status": 200,
+              "operation_key": "concurrent-operation"
+            }
+          ]
+        },
+        {
+          "outcome": "committed",
+          "operation_key": "concurrent-operation",
+          "receipt": {
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "policy_version": "refund-v1",
+            "operation_key": "concurrent-operation",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2",
+            "status": "committed",
+            "effect_id": "b0d1ab7364a94a14a1dc59f6f43018fe",
+            "created_at": "2026-11-11T23:13:35.799713+00:00"
+          },
+          "reason": null,
+          "events": [
+            {
+              "method": "POST",
+              "attempt": 1,
+              "status": 201,
+              "operation_key": "concurrent-operation"
+            }
+          ]
+        },
+        {
+          "outcome": "committed",
+          "operation_key": "concurrent-operation",
+          "receipt": {
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "policy_version": "refund-v1",
+            "operation_key": "concurrent-operation",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2",
+            "status": "committed",
+            "effect_id": "b0d1ab7364a94a14a1dc59f6f43018fe",
+            "created_at": "2026-11-11T23:13:35.799713+00:00"
+          },
+          "reason": null,
+          "events": [
+            {
+              "method": "POST",
+              "attempt": 1,
+              "status": 200,
+              "operation_key": "concurrent-operation"
+            }
+          ]
+        },
+        {
+          "outcome": "committed",
+          "operation_key": "concurrent-operation",
+          "receipt": {
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "policy_version": "refund-v1",
+            "operation_key": "concurrent-operation",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2",
+            "status": "committed",
+            "effect_id": "b0d1ab7364a94a14a1dc59f6f43018fe",
+            "created_at": "2026-11-11T23:13:35.799713+00:00"
+          },
+          "reason": null,
+          "events": [
+            {
+              "method": "POST",
+              "attempt": 1,
+              "status": 200,
+              "operation_key": "concurrent-operation"
+            }
+          ]
+        }
+      ],
+      "ledger": {
+        "effect_count": 1,
+        "total_cents": 3100,
+        "effects": [
+          {
+            "effect_id": "b0d1ab7364a94a14a1dc59f6f43018fe",
+            "operation_key": "concurrent-operation",
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "created_at": "2026-11-11T23:13:35.799713+00:00"
+          }
+        ],
+        "orders": [
+          {
+            "id": "ORD-100",
+            "paid_cents": 9000,
+            "refunded_cents": 3100
+          },
+          {
+            "id": "ORD-HIGH",
+            "paid_cents": 20000,
+            "refunded_cents": 0
+          },
+          {
+            "id": "ORD-OLD",
+            "paid_cents": 9000,
+            "refunded_cents": 0
+          },
+          {
+            "id": "ORD-PROCESS",
+            "paid_cents": 9000,
+            "refunded_cents": 0
+          }
+        ],
+        "operations": [
+          {
+            "operation_key": "concurrent-operation",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2"
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "case": "same_key_changed_arguments",
+      "service_pids": [
+        44211
+      ],
+      "result": {
+        "outcome": "conflict",
+        "operation_key": "concurrent-operation",
+        "receipt": null,
+        "reason": "idempotency_conflict",
+        "events": [
+          {
+            "method": "POST",
+            "attempt": 1,
+            "status": 409,
+            "operation_key": "concurrent-operation"
+          }
+        ]
+      },
+      "ledger": {
+        "effect_count": 1,
+        "total_cents": 3100,
+        "effects": [
+          {
+            "effect_id": "b0d1ab7364a94a14a1dc59f6f43018fe",
+            "operation_key": "concurrent-operation",
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "created_at": "2026-11-11T23:13:35.799713+00:00"
+          }
+        ],
+        "orders": [
+          {
+            "id": "ORD-100",
+            "paid_cents": 9000,
+            "refunded_cents": 3100
+          },
+          {
+            "id": "ORD-HIGH",
+            "paid_cents": 20000,
+            "refunded_cents": 0
+          },
+          {
+            "id": "ORD-OLD",
+            "paid_cents": 9000,
+            "refunded_cents": 0
+          },
+          {
+            "id": "ORD-PROCESS",
+            "paid_cents": 9000,
+            "refunded_cents": 0
+          }
+        ],
+        "operations": [
+          {
+            "operation_key": "concurrent-operation",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2"
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "case": "commit_hidden_by_unavailable_reconciliation",
+      "service_pids": [
+        44213
+      ],
+      "result": {
+        "outcome": "unresolved",
+        "operation_key": "unknown-operation",
+        "receipt": null,
+        "reason": "effect_state_unknown",
+        "events": [
+          {
+            "method": "POST",
+            "attempt": 1,
+            "error": "RemoteProtocolError",
+            "operation_key": "unknown-operation"
+          },
+          {
+            "method": "GET",
+            "attempt": 1,
+            "status": 503,
+            "operation_key": "unknown-operation"
+          }
+        ]
+      },
+      "ledger": {
+        "effect_count": 1,
+        "total_cents": 3100,
+        "effects": [
+          {
+            "effect_id": "bbaf947aec34442a9bb3188ecc64e433",
+            "operation_key": "unknown-operation",
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "created_at": "2026-11-11T23:13:36.093222+00:00"
+          }
+        ],
+        "orders": [
+          {
+            "id": "ORD-100",
+            "paid_cents": 9000,
+            "refunded_cents": 3100
+          },
+          {
+            "id": "ORD-HIGH",
+            "paid_cents": 20000,
+            "refunded_cents": 0
+          },
+          {
+            "id": "ORD-OLD",
+            "paid_cents": 9000,
+            "refunded_cents": 0
+          },
+          {
+            "id": "ORD-PROCESS",
+            "paid_cents": 9000,
+            "refunded_cents": 0
+          }
+        ],
+        "operations": [
+          {
+            "operation_key": "unknown-operation",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2"
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "case": "new_key_after_ambiguity_duplicates_logical_request",
+      "service_pids": [
+        44214
+      ],
+      "result": {
+        "outcome": "committed",
+        "operation_key": "naive-replacement-key",
+        "receipt": {
+          "order_id": "ORD-100",
+          "customer_id": "CUS-17",
+          "amount_cents": 3100,
+          "policy_version": "refund-v1",
+          "operation_key": "naive-replacement-key",
+          "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2",
+          "status": "committed",
+          "effect_id": "e89c1555f47e43579817f46b282d79da",
+          "created_at": "2026-11-11T23:13:36.394371+00:00"
+        },
+        "reason": null,
+        "events": [
+          {
+            "method": "POST",
+            "attempt": 1,
+            "status": 201,
+            "operation_key": "naive-replacement-key"
+          }
+        ]
+      },
+      "ledger": {
+        "effect_count": 2,
+        "total_cents": 6200,
+        "effects": [
+          {
+            "effect_id": "aa2e313b42024a8986c597602a7b13b6",
+            "operation_key": "naive-first",
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "created_at": "2026-11-11T23:13:36.379752+00:00"
+          },
+          {
+            "effect_id": "e89c1555f47e43579817f46b282d79da",
+            "operation_key": "naive-replacement-key",
+            "order_id": "ORD-100",
+            "customer_id": "CUS-17",
+            "amount_cents": 3100,
+            "created_at": "2026-11-11T23:13:36.394371+00:00"
+          }
+        ],
+        "orders": [
+          {
+            "id": "ORD-100",
+            "paid_cents": 9000,
+            "refunded_cents": 6200
+          },
+          {
+            "id": "ORD-HIGH",
+            "paid_cents": 20000,
+            "refunded_cents": 0
+          },
+          {
+            "id": "ORD-OLD",
+            "paid_cents": 9000,
+            "refunded_cents": 0
+          },
+          {
+            "id": "ORD-PROCESS",
+            "paid_cents": 9000,
+            "refunded_cents": 0
+          }
+        ],
+        "operations": [
+          {
+            "operation_key": "naive-first",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2"
+          },
+          {
+            "operation_key": "naive-replacement-key",
+            "request_hash": "ad8a6da179a80d4ae9e62c80c8bd0349ba252692ae6bb5b16e12779bd02cf8b2"
+          }
+        ]
+      },
+      "passed": true,
+      "interpretation": "Deliberately unsafe control: new keys represent distinct operations to the remote service. A passing test observes the duplicate."
+    }
+  ],
+  "source_sha256": {
+    "src/agentproof/remote_service.py": "a956947f84844cea90808593a4d71d446a760780776d22d60c489fd33305c5bf",
+    "src/agentproof/remote_client.py": "2d256ddaaf55830a9bef6ee9061023b46344e488c143f4649984a9d028976354",
+    "scripts/remote_lab.py": "0f46163a29b5409042743b1c995a0aef51acee8543820792e19d34ec9ad1490f"
+  },
+  "limitations": [
+    "Local synthetic service, no real payments or customer adoption.",
+    "Customer identity is an assertion; no production authentication.",
+    "Independent service process and database; same physical host.",
+    "Idempotency keys are retained indefinitely in this fixture.",
+    "No high-value approval execution or automatic in-flight graph recovery.",
+    "Unresolved is not rejection: an unobserved effect may already exist."
+  ]
+}
