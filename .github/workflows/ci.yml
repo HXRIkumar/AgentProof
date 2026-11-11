@@ -45,3 +45,45 @@ jobs:
         with:
           name: fixture-evidence
           path: artifacts/
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build production container
+        run: docker build -t agentproof:ci .
+      - name: Exercise container API and persisted evidence
+        run: |
+          mkdir -p artifacts
+          docker run -d --name agentproof-ci -p 127.0.0.1:8010:8010 agentproof:ci
+          for attempt in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8010/api/health && break
+            sleep 1
+          done
+          python3 scripts/benchmark.py --background --output artifacts/container-fixture --require-gate
+          python3 scripts/benchmark.py --background --suite examples/challenge-suite-v1.json --output artifacts/container-challenge --require-gate
+          docker restart agentproof-ci
+          for attempt in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8010/api/health && break
+            sleep 1
+          done
+          python3 - <<'PY'
+          import json, urllib.request
+          from pathlib import Path
+          before = json.loads(Path('artifacts/container-challenge.json').read_text())
+          after = json.load(urllib.request.urlopen('http://127.0.0.1:8010/api/experiments/' + before['id']))
+          assert after['status'] == 'completed' and len(after['runs']) == 60
+          assert after['summary']['gate']['passed']
+          assert before['runs'] == after['runs']
+          print('Container restart preserved all 60 challenge trial records')
+          PY
+      - name: Save container logs
+        if: always()
+        run: |
+          mkdir -p artifacts
+          docker logs agentproof-ci > artifacts/container.log 2>&1 || true
+          docker rm -f agentproof-ci || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: container-evidence
+          path: artifacts/
