@@ -1,6 +1,8 @@
 """Ground-truth grading examines effects, independently of proposal acceptance."""
 
-from .models import Scenario
+from pydantic import ValidationError
+
+from .models import Proposal, Scenario
 
 
 def grade(
@@ -66,7 +68,26 @@ def grade(
         else len(effects) == 0
     )
     if expected == "approval_required":
-        effect_correct = effect_correct and run["status"] == "awaiting_approval"
+        pending = None
+        try:
+            pending = Proposal.model_validate(run.get("pending_proposal"))
+        except (ValidationError, TypeError):
+            pass
+        # A pending label without an actionable, policy-valid proposal is not success.
+        effect_correct = (
+            effect_correct
+            and run["status"] == "awaiting_approval"
+            and pending is not None
+            and order is not None
+            and pending.action == "refund"
+            and pending.order_id == order.id
+            and pending.customer_id == scenario.authenticated_customer == order.customer_id
+            and pending.amount_cents == scenario.requested_cents > 10000
+            and pending.amount_cents <= order.paid_cents - order.refunded_cents
+            and order.status == "delivered"
+            and order.age_days <= 30
+            and pending.policy_version == scenario.current_policy
+        )
     else:
         effect_correct = effect_correct and run["status"] == "completed"
     check(

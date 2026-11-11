@@ -2,7 +2,29 @@
 
 Checked on 12 November 2026, Apple M4, 24 GB unified memory, macOS 26.5.1.
 
-## Executed checks
+## Version 0.2 candidate
+
+- Python: **228 tests passed**, Ruff clean. Includes independent evidence-integrity
+  checks, queue races and restart recovery, provider usage validation, actionable
+  approval grading, strict integer inputs and bounded refusal correction.
+- Web: **4 import-test groups passed**; TypeScript/Vite production build passed.
+- Real browser: background 202 submission, progress, reload recovery, selection
+  preservation, custom import, invalid-file retention, running cancellation and
+  queued cancellation passed. A cancelled run retained 18/240 completed trials;
+  a queued cancellation executed zero. Both correctly failed the gate. These are
+  scripted QA scenarios with a 120 ms delay to make cancellation observable.
+- Classic browser workflow still passed: 48 trials, filters, replay, approval,
+  export, no JavaScript errors and no mobile overflow.
+- CLI: reconnecting exported identical bytes; output overwrite protection rejected
+  a command before it submitted a new experiment.
+- Fixture comparison against v0.1 passed with no per-case regression. Fixture
+  counts remain 15/24 baseline and 24/24 guarded; this is not model accuracy.
+
+Live before/after evaluation, container validation and remote CI are separate
+checks. Their final results will be recorded after completion; none is inferred
+from the unit tests above.
+
+## Published version 0.1 checks
 
 | Check | Result |
 |---|---|

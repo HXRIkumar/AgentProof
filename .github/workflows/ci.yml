@@ -20,7 +20,7 @@ jobs:
       - run: uv sync --frozen
       - run: uv run ruff check src tests scripts
       - run: uv run pytest -q
-      - run: npm ci && npm run build
+      - run: npm ci && npm test && npm run build
         working-directory: web
       - name: Paired fixture release gate
         run: |
@@ -30,6 +30,8 @@ jobs:
             sleep 1
           done
           uv run python scripts/benchmark.py --output artifacts/ci-fixture --require-gate
+          uv run python scripts/benchmark.py --suite examples/challenge-suite-v1.json --output artifacts/ci-challenge --require-gate
+          uv run python scripts/compare.py reports/fixture-v1.json artifacts/ci-fixture.json --output artifacts/ci-comparison
       - name: Browser workflow regression
         env:
           PLAYWRIGHT_CHANNEL: chromium
@@ -37,6 +39,7 @@ jobs:
         run: |
           uv run --with playwright==1.64.0 python -m playwright install --with-deps chromium
           uv run --with playwright==1.64.0 python web/qa/browser_smoke.py
+          uv run --with playwright==1.64.0 python web/qa/async_smoke.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

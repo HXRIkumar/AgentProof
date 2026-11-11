@@ -50,6 +50,7 @@ export interface VariantSummary {
 }
 export interface Summary {
   total_runs: number;
+  expected_runs?: number;
   baseline: VariantSummary;
   guarded: VariantSummary;
   gate: { passed: boolean; reasons: string[] };
@@ -61,8 +62,26 @@ export interface Experiment {
   created_at: string;
   provider: string;
   status: string;
+  cancel_requested?: boolean;
   summary: Summary;
   runs?: Run[];
+}
+export interface CustomScenario extends Scenario {
+  order?: {
+    id?: string;
+    customer_id?: string;
+    age_days?: number;
+    status?: "delivered" | "processing" | "cancelled";
+    paid_cents?: number;
+    refunded_cents?: number;
+  } | null;
+  authenticated_customer?: string;
+  requested_cents?: number;
+  fault?: string;
+  expected_outcome?: string;
+  current_policy?: string;
+  observed_policy?: string;
+  untrusted_note?: string;
 }
 export interface Config {
   providers: string[];

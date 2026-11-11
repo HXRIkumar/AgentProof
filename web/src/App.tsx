@@ -23,12 +23,19 @@ import {
   ShieldX,
   SlidersHorizontal,
   Terminal,
+  Upload,
   X,
   XCircle,
 } from "lucide-react";
 import { api } from "./api";
+import {
+  exampleScenarios,
+  MAX_IMPORT_BYTES,
+  parseScenarios,
+} from "./scenarioImport";
 import type {
   Config,
+  CustomScenario,
   Experiment,
   Run,
   Scenario,
@@ -47,6 +54,8 @@ const date = (value: string) =>
     hour: "2-digit",
     minute: "2-digit",
   });
+const isActive = (status: string) =>
+  status === "queued" || status === "running";
 
 function ProviderBadge({ provider }: { provider: string }) {
   return (
@@ -104,13 +113,13 @@ function VariantResult({
       </div>
       <div className="variant-details">
         <span>
-          Task success <b>{percent(data.pass_rate)}</b>
+          Task success <b>{data.total ? percent(data.pass_rate) : "—"}</b>
         </span>
         <span>
-          Safe outcomes <b>{percent(data.safe_rate)}</b>
+          Effect invariants <b>{data.total ? percent(data.safe_rate) : "—"}</b>
         </span>
         <span>
-          p95 latency <b>{elapsed(data.p95_latency_ms)}</b>
+          p95 latency <b>{data.total ? elapsed(data.p95_latency_ms) : "—"}</b>
         </span>
       </div>
     </div>
@@ -137,8 +146,14 @@ function NewExperiment({
     new Set(scenarios.map((s) => s.id)),
   );
   const [category, setCategory] = useState("all");
-  const categories = [...new Set(scenarios.map((s) => s.category))];
-  const filtered = scenarios.filter(
+  const [custom, setCustom] = useState<CustomScenario[] | null>(null);
+  const [fileName, setFileName] = useState("");
+  const [importError, setImportError] = useState("");
+  const [importing, setImporting] = useState(false);
+  const importVersion = useRef(0);
+  const available = custom ?? scenarios;
+  const categories = [...new Set(available.map((s) => s.category))];
+  const filtered = available.filter(
     (s) => category === "all" || s.category === category,
   );
   function submit(event: FormEvent) {
@@ -147,8 +162,54 @@ function NewExperiment({
       name: name.trim() || undefined,
       provider,
       repeats,
-      scenario_ids: [...selected],
+      ...(custom
+        ? { scenarios: custom.filter((s) => selected.has(s.id)) }
+        : { scenario_ids: [...selected] }),
     });
+  }
+  async function importFile(file: File | undefined) {
+    if (!file) return;
+    const version = ++importVersion.current;
+    setImportError("");
+    setImporting(true);
+    try {
+      if (file.size > MAX_IMPORT_BYTES)
+        throw new Error("The JSON file must be 1 MB or smaller.");
+      const parsed = parseScenarios(await file.text());
+      if (version !== importVersion.current) return;
+      setCustom(parsed);
+      setFileName(file.name);
+      setSelected(new Set(parsed.map((s) => s.id)));
+      setCategory("all");
+    } catch (err) {
+      if (version === importVersion.current)
+        setImportError(
+          err instanceof Error ? err.message : "Unable to read this file.",
+        );
+    } finally {
+      if (version === importVersion.current) setImporting(false);
+    }
+  }
+  function restoreBuiltIn() {
+    ++importVersion.current;
+    setImporting(false);
+    setCustom(null);
+    setFileName("");
+    setImportError("");
+    setCategory("all");
+    setSelected(new Set(scenarios.map((s) => s.id)));
+  }
+  function downloadExample() {
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(exampleScenarios, null, 2)], {
+        type: "application/json",
+      }),
+    );
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "agentproof-scenarios.example.json";
+    anchor.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   function toggle(id: string) {
     setSelected((prev) => {
@@ -216,15 +277,61 @@ function NewExperiment({
             </select>
           </label>
         </div>
+        <div className="suite-source">
+          <div>
+            <b>
+              {custom ? "Imported scenario suite" : "Built-in scenario suite"}
+            </b>
+            <p>
+              {custom
+                ? `${fileName} · ${custom.length} scenarios · server validates before execution`
+                : "Use the authored fixtures, or import your own typed scenario JSON."}
+            </p>
+          </div>
+          <div className="suite-source-actions">
+            <label
+              className={`button small file-button ${busy || importing ? "disabled" : ""}`}
+            >
+              <Upload size={13} />
+              {importing ? "Reading file…" : "Import JSON"}
+              <input
+                type="file"
+                accept=".json,application/json"
+                aria-label="Import scenario JSON"
+                disabled={busy || importing}
+                onChange={(event) => {
+                  void importFile(event.target.files?.[0]);
+                  event.target.value = "";
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              className="text-button"
+              onClick={custom ? restoreBuiltIn : downloadExample}
+              disabled={busy}
+            >
+              {custom ? "Use built-in suite" : "Download example"}
+            </button>
+          </div>
+        </div>
+        {importError && (
+          <div className="import-error" role="alert">
+            <XCircle size={15} />
+            <span>
+              {importError} The previously selected suite has been kept.
+            </span>
+          </div>
+        )}
         <div className="selection-header">
           <span>
-            <b>{selected.size}</b> of {scenarios.length} scenarios selected
+            <b>{selected.size}</b> of {available.length} scenarios selected
           </span>
           <div>
             <button
               type="button"
               className="text-button"
-              onClick={() => setSelected(new Set(scenarios.map((s) => s.id)))}
+              onClick={() => setSelected(new Set(available.map((s) => s.id)))}
               disabled={busy}
             >
               Select all
@@ -279,7 +386,7 @@ function NewExperiment({
           </p>
           <button
             className="button primary"
-            disabled={busy || !selected.size || !config}
+            disabled={busy || importing || !selected.size || !config}
           >
             {busy ? (
               <LoaderCircle size={16} className="spin" />
@@ -299,12 +406,14 @@ function NewExperiment({
 function RunInspector({
   run,
   busy,
+  replayBlocked,
   onReplay,
   onApprove,
   onClose,
 }: {
   run: Run;
   busy: boolean;
+  replayBlocked: boolean;
   onReplay: () => void;
   onApprove: (approved: boolean) => void;
   onClose: () => void;
@@ -477,7 +586,11 @@ function RunInspector({
         )}
       </div>
       <div className="inspector-footer">
-        <button className="button" disabled={busy} onClick={onReplay}>
+        <button
+          className="button"
+          disabled={busy || replayBlocked}
+          onClick={onReplay}
+        >
           {busy ? (
             <LoaderCircle size={14} className="spin" />
           ) : (
@@ -485,7 +598,11 @@ function RunInspector({
           )}
           Replay in fresh sandbox
         </button>
-        <small>Re-executes the scenario and strategy.</small>
+        <small>
+          {replayBlocked
+            ? "Replay is available after the active experiment finishes."
+            : "Re-executes the scenario and strategy."}
+        </small>
       </div>
     </section>
   );
@@ -501,15 +618,19 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [syncError, setSyncError] = useState("");
   const [composer, setComposer] = useState(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const selectionVersion = useRef(0);
+  const inspectorVersion = useRef(0);
   const inspectorAnchor = useRef<HTMLDivElement>(null);
 
   async function openExperiment(id: string) {
     const version = ++selectionVersion.current;
     setError("");
+    setNotice("");
+    setSyncError("");
     try {
       const result = await api<Experiment>(
         `/experiments/${encodeURIComponent(id)}`,
@@ -521,6 +642,7 @@ export default function App() {
       setSearch("");
       setFilter("all");
     } catch (err) {
+      if (version !== selectionVersion.current) return;
       setError(
         err instanceof Error ? err.message : "Unable to load experiment.",
       );
@@ -551,12 +673,73 @@ export default function App() {
     void initialize();
   }, []);
 
+  const selectedActive = Boolean(experiment && isActive(experiment.status));
+  const historyActive = history.some((item) => isActive(item.status));
+  useEffect(() => {
+    if (busy || (!selectedActive && !historyActive)) return;
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const controller = new AbortController();
+    async function poll() {
+      const version = selectionVersion.current;
+      try {
+        const [updatedHistory, updated] = await Promise.all([
+          api<Experiment[]>("/experiments", undefined, controller.signal),
+          selectedActive && experiment
+            ? api<Experiment>(
+                `/experiments/${encodeURIComponent(experiment.id)}`,
+                undefined,
+                controller.signal,
+              )
+            : Promise.resolve(null),
+        ]);
+        if (stopped || version !== selectionVersion.current) return;
+        setHistory(updatedHistory);
+        setSyncError("");
+        if (updated) {
+          setExperiment(updated);
+          setSelectedRun((previous) =>
+            previous
+              ? (updated.runs?.find((run) => run.id === previous.id) ??
+                previous)
+              : null,
+          );
+          if (!isActive(updated.status))
+            setNotice(
+              updated.status === "completed"
+                ? "Experiment complete. All planned trials have finished."
+                : `Experiment ${updated.status}. Completed trial evidence is available for review.`,
+            );
+        }
+      } catch (err) {
+        if (
+          !stopped &&
+          !(err instanceof DOMException && err.name === "AbortError")
+        )
+          setSyncError(
+            "Live updates could not connect. Retrying automatically; your current results are preserved.",
+          );
+      } finally {
+        if (!stopped) timer = setTimeout(() => void poll(), 1000);
+      }
+    }
+    timer = setTimeout(() => void poll(), 500);
+    return () => {
+      stopped = true;
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [experiment?.id, selectedActive, historyActive, busy]);
+
   async function runExperiment(body: object) {
     setBusy(true);
     setError("");
     setNotice("");
     try {
-      const result = await api<Experiment>("/experiments", body);
+      const result = await api<Experiment>(
+        "/experiments?background=true",
+        body,
+      );
       ++selectionVersion.current;
       setExperiment(result);
       setSelectedRun(null);
@@ -564,7 +747,11 @@ export default function App() {
       setSearch("");
       setFilter("all");
       setHistory(await api<Experiment[]>("/experiments"));
-      setNotice("Experiment complete. Select a trial to inspect its evidence.");
+      setNotice(
+        isActive(result.status)
+          ? "Experiment queued. Results update automatically as each trial finishes."
+          : "Experiment complete. Select a trial to inspect its evidence.",
+      );
     } catch (err) {
       setError(
         err instanceof Error
@@ -575,8 +762,37 @@ export default function App() {
       setBusy(false);
     }
   }
+  async function cancelExperiment() {
+    if (!experiment || !isActive(experiment.status)) return;
+    const id = experiment.id;
+    const version = selectionVersion.current;
+    setBusy(true);
+    setError("");
+    try {
+      const updated = await api<Experiment>(
+        `/experiments/${encodeURIComponent(id)}/cancel`,
+        {},
+      );
+      if (version !== selectionVersion.current) return;
+      setExperiment(updated);
+      setHistory(await api<Experiment[]>("/experiments"));
+      setNotice(
+        updated.status === "cancelled"
+          ? "Experiment stopped. Completed trials are retained."
+          : "Stop requested. The current trial will finish before the experiment stops.",
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Unable to request cancellation.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
   async function runAction(action: "replay" | "approve", approved = true) {
     if (!selectedRun) return;
+    const version = selectionVersion.current;
+    const inspector = inspectorVersion.current;
     setBusy(true);
     setError("");
     setNotice("");
@@ -585,7 +801,8 @@ export default function App() {
         `/runs/${encodeURIComponent(selectedRun.id)}/${action}`,
         action === "approve" ? { approved } : {},
       );
-      setSelectedRun(run);
+      if (version !== selectionVersion.current) return;
+      if (inspector === inspectorVersion.current) setSelectedRun(run);
       if (experiment && action === "approve")
         setExperiment(
           await api<Experiment>(
@@ -607,6 +824,7 @@ export default function App() {
     }
   }
   function selectRun(run: Run) {
+    ++inspectorVersion.current;
     setSelectedRun(run);
     if (window.innerWidth < 1100)
       setTimeout(
@@ -654,6 +872,7 @@ export default function App() {
             runs.some((r) => r.status === "awaiting_approval")) ||
           (filter === "recovered" &&
             group.baseline.some((r) => !r.passed) &&
+            group.guarded.length > 0 &&
             group.guarded.every((r) => r.passed)))
       );
     });
@@ -717,6 +936,8 @@ export default function App() {
                 <small>
                   {date(item.created_at)} ·{" "}
                   {item.provider === "scripted" ? "Scripted" : "Live"}
+                  {isActive(item.status) &&
+                    ` · ${item.status} ${item.summary.total_runs}/${item.summary.expected_runs ?? "?"}`}
                 </small>
               </span>
             </button>
@@ -736,7 +957,7 @@ export default function App() {
             Synthetic orders. Simulated refunds. Every trial starts with fresh
             state.
           </p>
-          <span className="version mono">AgentProof / v0.1</span>
+          <span className="version mono">AgentProof / v0.2</span>
         </div>
       </aside>
       <main id="main" className="main-content">
@@ -807,6 +1028,12 @@ export default function App() {
               >
                 <X size={14} />
               </button>
+            </div>
+          )}
+          {syncError && (
+            <div className="alert sync-warning" role="status">
+              <RefreshCw size={15} />
+              <p>{syncError}</p>
             </div>
           )}
           {composer && (
@@ -897,6 +1124,11 @@ export default function App() {
                       <ProviderBadge provider={experiment.provider} />
                       <span>{date(experiment.created_at)}</span>
                       <span>{experiment.summary.total_runs} trials</span>
+                      <span
+                        className={`experiment-status ${experiment.status}`}
+                      >
+                        {words(experiment.status)}
+                      </span>
                     </div>
                   </div>
                   <a
@@ -908,6 +1140,64 @@ export default function App() {
                     Export JSON
                   </a>
                 </div>
+                {experiment.status !== "completed" && (
+                  <div className={`experiment-progress ${experiment.status}`}>
+                    <div className="progress-copy">
+                      <div>
+                        {selectedActive ? (
+                          <LoaderCircle
+                            size={15}
+                            className={
+                              experiment.cancel_requested ? "" : "spin"
+                            }
+                          />
+                        ) : (
+                          <Circle size={13} />
+                        )}
+                        <b>
+                          {experiment.cancel_requested && selectedActive
+                            ? "Stopping after current trial…"
+                            : experiment.status === "queued"
+                              ? "Waiting to start"
+                              : experiment.status === "running"
+                                ? "Evaluating scenarios"
+                                : `Experiment ${experiment.status}`}
+                        </b>
+                      </div>
+                      <span>
+                        {experiment.summary.total_runs} of{" "}
+                        {experiment.summary.expected_runs ??
+                          experiment.summary.total_runs}{" "}
+                        trials completed
+                      </span>
+                    </div>
+                    <progress
+                      aria-label="Experiment progress"
+                      value={experiment.summary.total_runs}
+                      max={Math.max(
+                        experiment.summary.expected_runs ??
+                          experiment.summary.total_runs,
+                        1,
+                      )}
+                    />
+                    <div className="progress-actions">
+                      <p>
+                        {selectedActive
+                          ? "Inspect finished trials while the remaining scenarios run. Partial results cannot pass the release gate."
+                          : "Completed trials are retained. This incomplete experiment cannot pass the release gate."}
+                      </p>
+                      {selectedActive && (
+                        <button
+                          className="button small"
+                          disabled={busy || experiment.cancel_requested}
+                          onClick={() => void cancelExperiment()}
+                        >
+                          Stop after current trial
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
                 <div className="comparison">
                   <VariantResult
                     name="Baseline"
@@ -919,10 +1209,12 @@ export default function App() {
                     guarded
                   />
                   <div
-                    className={`gate-result ${experiment.summary.gate.passed ? "gate-pass" : "gate-fail"}`}
+                    className={`gate-result ${selectedActive ? "gate-pending" : experiment.summary.gate.passed ? "gate-pass" : "gate-fail"}`}
                   >
                     <span>
-                      {experiment.summary.gate.passed ? (
+                      {selectedActive ? (
+                        <Clock3 size={20} />
+                      ) : experiment.summary.gate.passed ? (
                         <ShieldCheck size={20} />
                       ) : (
                         <ShieldX size={20} />
@@ -930,7 +1222,9 @@ export default function App() {
                       Suite release gate
                     </span>
                     <strong>
-                      {experiment.summary.gate.passed
+                      {selectedActive
+                        ? "Evaluation in progress"
+                        : experiment.summary.gate.passed
                         ? "Checks passed"
                         : "Review required"}
                     </strong>
@@ -1046,18 +1340,32 @@ export default function App() {
                     </table>
                     {!grouped.length && (
                       <div className="no-results">
-                        <Search size={22} />
-                        <h3>No matching scenarios</h3>
-                        <p>Try another search or reset the result filters.</p>
-                        <button
-                          className="button small"
-                          onClick={() => {
-                            setSearch("");
-                            setFilter("all");
-                          }}
-                        >
-                          Reset filters
-                        </button>
+                        {selectedActive && !experiment.runs?.length ? (
+                          <Clock3 size={22} />
+                        ) : (
+                          <Search size={22} />
+                        )}
+                        <h3>
+                          {selectedActive && !experiment.runs?.length
+                            ? "Waiting for the first trial"
+                            : "No matching scenarios"}
+                        </h3>
+                        <p>
+                          {selectedActive && !experiment.runs?.length
+                            ? "Completed trials will appear here automatically."
+                            : "Try another search or reset the result filters."}
+                        </p>
+                        {!!experiment.runs?.length && (
+                          <button
+                            className="button small"
+                            onClick={() => {
+                              setSearch("");
+                              setFilter("all");
+                            }}
+                          >
+                            Reset filters
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1081,11 +1389,15 @@ export default function App() {
                     <RunInspector
                       run={selectedRun}
                       busy={busy}
+                      replayBlocked={selectedActive || historyActive}
                       onReplay={() => void runAction("replay")}
                       onApprove={(approved) =>
                         void runAction("approve", approved)
                       }
-                      onClose={() => setSelectedRun(null)}
+                      onClose={() => {
+                        ++inspectorVersion.current;
+                        setSelectedRun(null);
+                      }}
                     />
                   </div>
                 )}

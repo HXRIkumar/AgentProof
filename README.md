@@ -20,7 +20,8 @@ real-model adapter; the interface and reports distinguish the two.
 
 ## Run it
 
-Prerequisites: Python 3.12–3.14, [uv](https://docs.astral.sh/uv/), Node 22+.
+Prerequisites: macOS or Linux, Python 3.12–3.14, [uv](https://docs.astral.sh/uv/), Node 22+.
+Windows users can use the Linux Docker container or WSL; the local worker uses POSIX file locks.
 
 ```sh
 uv sync --frozen
@@ -28,7 +29,7 @@ cd web
 npm ci
 npm run build
 cd ..
-uv run uvicorn agentproof.api:app --host 127.0.0.1 --port 8010
+.venv/bin/uvicorn agentproof.api:app --host 127.0.0.1 --port 8010
 ```
 
 Open **http://127.0.0.1:8010**. Run the scripted suite, select a result, and
@@ -55,10 +56,20 @@ approval or experiment API publicly.
 - Bounded proposal correction and read retries, with visible budgets and traces.
 - Transactional effect deduplication and human approval for high-value requests.
 - Persisted runs, fresh-sandbox replay, JSON export and a machine-readable CI gate.
+- Background experiments with live progress, bounded queues and cancellation after the current trial.
+- Browser import of custom JSON suites, including clear schema errors and a downloadable example.
+- Release-to-release comparisons that reject incomplete evidence and reveal per-case regressions.
 - Actual model requests and token counts when a live provider is configured.
 
 The guarded agent does not become a better model. Its execution environment
 enforces explicit business constraints. That distinction is central to this project.
+
+![Inspect completed trials while a background experiment continues](docs/screenshots/background-progress.png)
+
+Queued jobs survive a server restart. A trial interrupted by a crash is marked
+failed, never silently rerun. Cancelled experiments retain completed evidence and
+cannot pass the gate. Both synchronous clients and the web console share one
+serialized worker per database; run one API process per database.
 
 ## Live inference
 
@@ -70,7 +81,8 @@ export AGENTPROOF_BASE_URL=http://127.0.0.1:8089/v1
 export AGENTPROOF_MODEL=mlx-community/Qwen3.5-4B-MLX-4bit
 export AGENTPROOF_DISABLE_THINKING=true
 export AGENTPROOF_TIMEOUT_SECONDS=120
-uv run uvicorn agentproof.api:app --host 127.0.0.1 --port 8010
+export AGENTPROOF_MODEL_REVISION=32f3e8ecf65426fc3306969496342d504bfa13f3
+.venv/bin/uvicorn agentproof.api:app --host 127.0.0.1 --port 8010
 ```
 
 On Apple Silicon, a separate free local server can be launched with:
@@ -87,6 +99,9 @@ This downloads model weights and consumes local memory. The MLX server is a
 development server, not a hardened deployment. Other compatible endpoints can be
 used; set `AGENTPROOF_API_KEY` for hosted providers. The adapter uses bounded
 timeouts, strict proposal validation and a fixed proposal-attempt limit.
+The revision above identifies the tested weights; set the revision to the
+weights you actually load. It is recorded metadata, not a command that pins the
+inference server's download. Network timeouts limit inactivity, not total wall time.
 
 ## Evaluate and export evidence
 
@@ -98,6 +113,9 @@ uv run ruff check src tests scripts
 uv run python scripts/benchmark.py --output reports/my-fixture --require-gate
 uv run python scripts/benchmark.py --provider openai --repeats 3 --output reports/my-live
 uv run python scripts/benchmark.py --suite examples/custom-suite.json --output reports/custom
+uv run python scripts/benchmark.py --background --suite examples/challenge-suite-v1.json --output reports/challenge
+uv run python scripts/benchmark.py --experiment-id SAVED_ID --output reports/reconnected
+uv run python scripts/compare.py reports/reference.json reports/candidate.json --output reports/comparison
 ```
 
 Each benchmark saves raw JSON, an analysis JSON and a readable Markdown report.
@@ -106,9 +124,21 @@ source revision, hashes, measured latency and limitations. A failed gate exits
 nonzero when `--require-gate` is supplied. CI runs only scripted tests, never paid
 model calls. See [evaluation protocol](docs/EVALUATION_PROTOCOL.md).
 
+`--background` prints the persisted experiment ID and polls progress. If the
+client disconnects, reconnect with `--experiment-id`; the server owns the job.
+Existing output files are protected unless `--overwrite` is explicit.
+The comparison command checks compatible inputs and model settings, regrades
+exported ledger effects, and fails on any guarded case regression even if the
+aggregate improves. Its per-case gate is stricter than the single-experiment UI
+gate. Cost and latency changes are reported, not automatically certified acceptable.
+
 Custom suites use the typed scenario schema exposed in `/api/docs`. Expected
 outcomes are evaluator labels and are never included in model observations.
 Suite authors control those labels; review them before interpreting a pass rate.
+The [30-case challenge suite](docs/CHALLENGE_SUITE.md) was frozen before recovery
+changes; its provenance is documented. It is an authored development set, not a
+blind held-out benchmark. Requested amounts support up to 1,000,000 cents;
+negative requests are allowed as deliberate rejection tests.
 
 ## First measured live result
 
@@ -124,7 +154,9 @@ faults, not a general LLM accuracy claim. [Full results and raw evidence](report
 ```mermaid
 flowchart LR
     UI[React evaluation console] --> API[FastAPI experiment API]
-    API --> GRAPH[LangGraph workflow]
+    API --> QUEUE[Durable SQLite queue]
+    QUEUE --> WORKER[One worker with exclusive lease]
+    WORKER --> GRAPH[LangGraph workflow]
     GRAPH --> OBS[Observe order and policy]
     OBS --> MODEL[Scripted or live proposal]
     MODEL --> GATE[Typed validation and policy gate]

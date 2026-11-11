@@ -32,7 +32,8 @@ with sync_playwright() as p:
     expect(page.get_by_role("button", name="Run 48 trials", exact=True)).to_be_enabled()
     page.get_by_role("button", name="Run 48 trials", exact=True).click()
     expect(page.get_by_role("heading", name="Refund resilience · browser verification")).to_be_visible(timeout=60000)
-    expect(page.get_by_text("48 trials", exact=True)).to_be_visible()
+    expect(page.get_by_text("48 trials", exact=True)).to_be_visible(timeout=60000)
+    expect(page.locator(".experiment-status")).to_have_text("completed", ignore_case=True)
     expect(page.get_by_text("Scripted fixture", exact=True)).to_be_visible()
     page.get_by_role("button", name="Dismiss notification").click()
 

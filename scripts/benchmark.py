@@ -7,6 +7,8 @@ import json
 import math
 import platform
 import subprocess
+import sys
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -65,7 +67,15 @@ def main():
     parser.add_argument("--suite", type=Path, help="JSON array of custom typed scenarios")
     parser.add_argument("--output", type=Path, default=Path("reports/fixture"))
     parser.add_argument("--require-gate", action="store_true")
+    parser.add_argument("--background", action="store_true", help="Submit a durable job and poll progress")
+    parser.add_argument("--experiment-id", help="Wait for and export an already submitted experiment")
+    parser.add_argument("--overwrite", action="store_true", help="Explicitly replace existing output files")
     args = parser.parse_args()
+    if args.experiment_id and (args.background or args.scenarios or args.suite):
+        parser.error("--experiment-id cannot be combined with a new submission")
+    outputs = [args.output.with_suffix(suffix) for suffix in (".json", ".summary.json", ".md")]
+    if not args.overwrite and any(path.exists() for path in outputs):
+        parser.error("Output already exists; choose another --output or explicitly use --overwrite")
     payload = {
         "name": f"{args.provider} benchmark",
         "provider": args.provider,
@@ -77,13 +87,33 @@ def main():
         if args.scenarios:
             parser.error("--suite and --scenarios are mutually exclusive")
         payload["scenarios"] = json.loads(args.suite.read_text())
-    req = Request(
-        args.url.rstrip("/") + "/api/experiments",
-        data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json"},
-    )
-    with urlopen(req, timeout=7200) as response:
-        experiment = json.load(response)
+    base_url = args.url.rstrip("/")
+    if args.experiment_id:
+        if not args.experiment_id.isalnum():
+            parser.error("Invalid experiment ID")
+        with urlopen(base_url + "/api/experiments/" + args.experiment_id, timeout=30) as response:
+            experiment = json.load(response)
+    else:
+        req = Request(
+            base_url + "/api/experiments" + ("?background=true" if args.background else ""),
+            data=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        with urlopen(req, timeout=30 if args.background else 7200) as response:
+            experiment = json.load(response)
+    if experiment["status"] in ("queued", "running"):
+        print(f"Experiment {experiment['id']} persists on the server; use --experiment-id to reconnect.", file=sys.stderr)
+    progress = None
+    while experiment["status"] in ("queued", "running"):
+        count = experiment["summary"]["total_runs"]
+        if count != progress:
+            print(f"{experiment['status']}: {count}/{experiment['summary']['expected_runs']} trials", file=sys.stderr)
+            progress = count
+        time.sleep(1)
+        with urlopen(base_url + "/api/experiments/" + experiment["id"], timeout=30) as response:
+            experiment = json.load(response)
+    if args.experiment_id:
+        payload = {"experiment_id": args.experiment_id, "configuration": experiment["configuration"]}
     raw = json.dumps(experiment, indent=2).encode()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.with_suffix(".json").write_bytes(raw)
@@ -99,10 +129,11 @@ def main():
     summary = {
         "created_at": datetime.now(UTC).isoformat(),
         "evidence_kind": "scripted integration test"
-        if args.provider == "scripted"
+        if experiment["provider"] == "scripted"
         else "live model experiment",
         "raw_sha256": hashlib.sha256(raw).hexdigest(),
         "source_revision": revision,
+        "source_revision_scope": "Reporting client checkout at export time; server_metadata.backend_source_sha256 identifies the executed backend source snapshot.",
         "working_tree_dirty": dirty,
         "platform": platform.platform(),
         "requested": payload,

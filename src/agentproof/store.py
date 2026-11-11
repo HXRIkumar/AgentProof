@@ -33,6 +33,11 @@ class Store:
                     id TEXT PRIMARY KEY, document TEXT NOT NULL,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS experiment_jobs (
+                    experiment_id TEXT PRIMARY KEY REFERENCES experiments(id),
+                    state TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
             """)
 
     @contextmanager
@@ -128,3 +133,100 @@ class Store:
                 json.loads(r[0])
                 for r in db.execute("SELECT document FROM experiments ORDER BY rowid DESC")
             ]
+
+    @staticmethod
+    def _experiment_row(db, experiment_id):
+        row = db.execute("SELECT document FROM experiments WHERE id=?", (experiment_id,)).fetchone()
+        if row is None:
+            raise KeyError(experiment_id)
+        return json.loads(row[0])
+
+    @staticmethod
+    def _write_experiment(db, experiment):
+        db.execute(
+            "UPDATE experiments SET document=? WHERE id=?",
+            (json.dumps(experiment), experiment["id"]),
+        )
+        db.execute(
+            "UPDATE experiment_jobs SET state=? WHERE experiment_id=?",
+            (experiment["status"], experiment["id"]),
+        )
+
+    def enqueue_experiment(self, experiment: dict, limit: int):
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            queued = db.execute(
+                "SELECT COUNT(*) FROM experiment_jobs WHERE state='queued'"
+            ).fetchone()[0]
+            if queued >= limit:
+                raise OverflowError("The experiment queue is full; wait for a job to finish")
+            db.execute(
+                "INSERT INTO experiments(id,document) VALUES(?,?)",
+                (experiment["id"], json.dumps(experiment)),
+            )
+            db.execute(
+                "INSERT INTO experiment_jobs(experiment_id,state) VALUES(?,'queued')",
+                (experiment["id"],),
+            )
+
+    def claim_experiment(self):
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute(
+                "SELECT experiment_id FROM experiment_jobs WHERE state='queued' ORDER BY rowid LIMIT 1"
+            ).fetchone()
+            if row is None:
+                return None
+            experiment = self._experiment_row(db, row[0])
+            experiment["status"] = "running"
+            self._write_experiment(db, experiment)
+            return experiment
+
+    def record_experiment_run(self, experiment_id, run_id):
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            experiment = self._experiment_row(db, experiment_id)
+            if run_id not in experiment["run_ids"]:
+                experiment["run_ids"].append(run_id)
+            self._write_experiment(db, experiment)
+            return experiment
+
+    def finish_experiment(self, experiment_id, status, error=None):
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            experiment = self._experiment_row(db, experiment_id)
+            if experiment["status"] in ("completed", "failed", "cancelled"):
+                return experiment
+            experiment["status"] = "cancelled" if experiment.get("cancel_requested") else status
+            if error and experiment["status"] != "cancelled":
+                experiment["error"] = error
+            self._write_experiment(db, experiment)
+            return experiment
+
+    def cancel_experiment(self, experiment_id):
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            experiment = self._experiment_row(db, experiment_id)
+            if experiment["status"] not in ("completed", "failed", "cancelled"):
+                experiment["cancel_requested"] = True
+                if experiment["status"] == "queued":
+                    experiment["status"] = "cancelled"
+                self._write_experiment(db, experiment)
+            return experiment
+
+    def fail_interrupted_jobs(self):
+        """Call only after acquiring the exclusive worker lease, never during request handling."""
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            # Also recover interrupted pre-queue (v0.1) synchronous experiments.
+            rows = db.execute(
+                "SELECT id FROM experiments WHERE json_extract(document, '$.status')='running'"
+            ).fetchall()
+            for row in rows:
+                experiment = self._experiment_row(db, row[0])
+                experiment["status"] = "failed"
+                experiment["error"] = {
+                    "type": "InterruptedExecution",
+                    "message": "The server stopped during execution. Partial evidence is preserved; interrupted trials are never automatically replayed. Start a new experiment.",
+                }
+                self._write_experiment(db, experiment)

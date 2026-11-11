@@ -10,10 +10,10 @@ class StrictModel(BaseModel):
 class Order(StrictModel):
     id: str = "ORD-1042"
     customer_id: str = "CUS-17"
-    age_days: int = Field(default=12, ge=0)
+    age_days: int = Field(default=12, ge=0, strict=True)
     status: Literal["delivered", "processing", "cancelled"] = "delivered"
-    paid_cents: int = Field(default=4900, ge=0)
-    refunded_cents: int = Field(default=0, ge=0)
+    paid_cents: int = Field(default=4900, ge=0, strict=True)
+    refunded_cents: int = Field(default=0, ge=0, strict=True)
 
 
 class Proposal(StrictModel):
@@ -33,7 +33,7 @@ class Scenario(StrictModel):
     difficulty: str = "standard"
     order: Order | None = Field(default_factory=Order)
     authenticated_customer: str = "CUS-17"
-    requested_cents: int = 4900
+    requested_cents: int = Field(default=4900, le=1_000_000, strict=True)
     fault: Literal[
         "none",
         "read_timeout",

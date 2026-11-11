@@ -13,3 +13,5 @@ web/qa/*.png
 .DS_Store
 artifacts/
 *.egg-info/
+docs/OVERNIGHT_HANDOFF.md
+reports/*.runner.log

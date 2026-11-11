@@ -43,8 +43,6 @@ class ScriptedProvider:
         identity = observation["authenticated_customer"]
         amount = observation["requested_cents"]
         version = observation["policy_version"]
-        if feedback and "current policy" in feedback:
-            version = feedback.split("current policy ", 1)[1].split()[0].rstrip(".")
         action = "refund"
         reason = "Eligible delivered order within return window."
         if order is None:
@@ -99,6 +97,7 @@ class LiveProvider:
         self.client = client
         self.timeout = min(120, max(1, float(os.getenv("AGENTPROOF_TIMEOUT_SECONDS", "20"))))
         self.max_tokens = min(2048, max(128, int(os.getenv("AGENTPROOF_MAX_TOKENS", "512"))))
+        self.disable_thinking = os.getenv("AGENTPROOF_DISABLE_THINKING", "").lower() == "true"
 
     def propose(
         self, observation: dict, feedback: str | None = None, fault: str = "none", attempt: int = 0
@@ -128,7 +127,7 @@ class LiveProvider:
             "max_tokens": self.max_tokens,
             "response_format": {"type": "json_object"},
         }
-        if os.getenv("AGENTPROOF_DISABLE_THINKING", "").lower() == "true":
+        if self.disable_thinking:
             body["chat_template_kwargs"] = {"enable_thinking": False}
         headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
         try:
@@ -150,7 +149,14 @@ class LiveProvider:
             if not isinstance(content, str):
                 raise TypeError("Model response content must be text")
             usage = data.get("usage", {})
-            return content, int(usage.get("total_tokens", 0))
+            if not isinstance(usage, dict):
+                raise TypeError("Model usage must be an object when present")
+            total_tokens = usage.get("total_tokens", 0)
+            # Missing telemetry is allowed; malformed telemetry must not silently become
+            # zero, a rounded count, or a negative cost. bool is an int subclass in Python.
+            if type(total_tokens) is not int or total_tokens < 0:
+                raise ValueError("Model total_tokens must be a nonnegative integer")
+            return content, total_tokens
         except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError) as exc:
             # Never persist response bodies, auth headers, or provider error details.
             raise ProviderFailure(f"Provider request failed ({type(exc).__name__})") from None
