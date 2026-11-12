@@ -443,7 +443,7 @@ export default function AnswerLab() {
               </b>
               <p>
                 {ANSWER_RECORDED_ONLY
-                  ? "Actual local-model runs. No inference in this viewer."
+                  ? "Actual model runs. No inference in this viewer."
                   : "Sources, runs, and cache use local storage."}
               </p>
             </div>
@@ -462,7 +462,7 @@ export default function AnswerLab() {
               className={`al-dot ${!config?.configured && !ANSWER_RECORDED_ONLY ? "warn" : ""}`}
             />
             {ANSWER_RECORDED_ONLY
-              ? "Recorded local-model experiments"
+              ? "Recorded model experiments"
               : loading
                 ? "Connecting"
                 : config?.configured
