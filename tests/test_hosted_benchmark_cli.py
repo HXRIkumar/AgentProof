@@ -100,3 +100,33 @@ def test_prior_budget_audit_is_preserved(hosted, monkeypatch, tmp_path, capsys):
         hosted.main()
     assert "Budget audit already exists" in capsys.readouterr().err
     assert audit.read_text() == "retained audit"
+
+
+def test_free_cache_runner_rejects_paid_critic(tmp_path):
+    env = os.environ.copy()
+    env.update(ANSWER_LAB_BASE_URL="http://127.0.0.1:8089/v1",
+               ANSWER_LAB_CRITIC_BASE_URL="https://api.openai.com/v1",
+               ANSWER_LAB_ENABLE_PAID="1")
+    result = subprocess.run(
+        [sys.executable, str(SCRIPTS / "answer_cache_probe.py"), "--suite", "unused.json",
+         "--output-dir", str(tmp_path / "unused")], env=env, capture_output=True, text=True, check=False,
+    )
+    assert result.returncode == 2
+    assert "restricted to a free local" in result.stderr
+    assert not (tmp_path / "unused").exists()
+
+
+def test_local_launcher_cannot_inherit_hosted_optin():
+    spec = importlib.util.spec_from_file_location("local_launcher", SCRIPTS / "start_answer_lab.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    env = module.local_environment({"PATH": "/test/bin", "OPENAI_API_KEY": "do-not-pass",
+                                    "ANSWER_LAB_ENABLE_PAID": "1",
+                                    "ANSWER_LAB_CRITIC_BASE_URL": "https://api.openai.com/v1",
+                                    "ANSWER_LAB_ESCALATE_FINAL": "1"})
+    assert env["PATH"] == "/test/bin"
+    assert env["ANSWER_LAB_ENABLE_PAID"] == "0"
+    assert "ANSWER_LAB_CRITIC_BASE_URL" not in env
+    assert "ANSWER_LAB_ESCALATE_FINAL" not in env
+    assert "OPENAI_API_KEY" not in env

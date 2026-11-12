@@ -17,6 +17,22 @@ MODEL = "mlx-community/Qwen3.5-4B-MLX-4bit"
 REVISION = "32f3e8ecf65426fc3306969496342d504bfa13f3"
 
 
+def local_environment(environment):
+    return dict(
+        {key: value for key, value in environment.items()
+         if not key.startswith("ANSWER_LAB_") and key != "OPENAI_API_KEY"},
+        HF_HUB_OFFLINE="1",
+        TRANSFORMERS_OFFLINE="1",
+        ANSWER_LAB_BASE_URL="http://127.0.0.1:8089/v1",
+        ANSWER_LAB_MODEL=MODEL,
+        ANSWER_LAB_MODEL_REVISION=REVISION,
+        ANSWER_LAB_DISABLE_THINKING="true",
+        ANSWER_LAB_MAX_TOKENS="768",
+        ANSWER_LAB_ENABLE_PAID="0",
+        ANSWER_LAB_API_KEY="",
+    )
+
+
 def unused(port):
     with socket.socket() as sock:
         return sock.connect_ex(("127.0.0.1", port)) != 0
@@ -67,17 +83,7 @@ def main():
         )
     if not model_path.exists():
         model_path.symlink_to(snapshot, target_is_directory=True)
-    env = dict(
-        os.environ,
-        HF_HUB_OFFLINE="1",
-        TRANSFORMERS_OFFLINE="1",
-        ANSWER_LAB_BASE_URL="http://127.0.0.1:8089/v1",
-        ANSWER_LAB_MODEL=MODEL,
-        ANSWER_LAB_MODEL_REVISION=REVISION,
-        ANSWER_LAB_DISABLE_THINKING="true",
-        ANSWER_LAB_MAX_TOKENS="768",
-        ANSWER_LAB_API_KEY="",
-    )
+    env = local_environment(os.environ)
     processes = []
     logs = []
 

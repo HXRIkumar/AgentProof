@@ -131,9 +131,11 @@ def main():
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--replays", type=int, default=5)
     args = parser.parse_args()
-    if urlsplit(os.getenv("ANSWER_LAB_BASE_URL", "")).hostname not in {
-        "127.0.0.1", "localhost", "::1",
-    }:
+    endpoints = [os.getenv("ANSWER_LAB_BASE_URL", "")]
+    if os.getenv("ANSWER_LAB_CRITIC_BASE_URL"):
+        endpoints.append(os.environ["ANSWER_LAB_CRITIC_BASE_URL"])
+    if any(urlsplit(endpoint).hostname not in {"127.0.0.1", "localhost", "::1"}
+           for endpoint in endpoints):
         parser.error("This study is restricted to a free local inference endpoint")
     signal.signal(signal.SIGTERM, interrupt)
     report = run_probe(args.suite, args.output_dir, replays=args.replays)
