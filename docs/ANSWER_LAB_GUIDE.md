@@ -51,11 +51,11 @@ For hybrid retrieval during an exploratory demo, cache the optional embedding
 weights too:
 
 ```sh
-uv run --extra embeddings hf download sentence-transformers/all-MiniLM-L6-v2
+uv run --extra embeddings hf download sentence-transformers/all-MiniLM-L6-v2 --revision 1110a243fdf4706b3f48f1d95db1a4f5529b4d41
 ```
 
-This second command uses the current model revision; it is not a frozen benchmark
-setup. Benchmark reports record the actual pinned embedding revision separately.
+The launcher selects this pinned embedding revision. Benchmark reports record
+the actual model revisions and configuration separately.
 Installing the `embeddings` extra installs software, not model weights. If the
 embedding package or cached weights cannot load, retrieval reports `bm25` and
 semantic-cache lookup is unavailable. It does not silently claim hybrid retrieval.
@@ -73,8 +73,8 @@ free and an existing web build. Startup logs are in `artifacts/answer-launcher/`
 
 The launcher deliberately removes inherited `ANSWER_LAB_*` settings and disables
 paid inference. It is a local demo path, not a way to reproduce a hosted or frozen
-benchmark configuration. It also does not preserve an externally set embedding
-revision. Use the manual server configuration in the [README](../README.md#run-locally)
+benchmark configuration. It selects the bundled embedding revision rather than
+preserving an external override. Use the manual server configuration in the [README](../README.md#run-locally)
 and [hosted guide](HOSTED_INFERENCE.md) for an explicitly configured comparison.
 Do not launch a second local model while another benchmark is using port 8089.
 

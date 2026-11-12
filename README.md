@@ -68,6 +68,7 @@ Alternatively, use an existing local OpenAI-compatible model server:
 export ANSWER_LAB_BASE_URL=http://127.0.0.1:8089/v1
 export ANSWER_LAB_MODEL=mlx-community/Qwen3.5-4B-MLX-4bit
 export ANSWER_LAB_MODEL_REVISION=32f3e8ecf65426fc3306969496342d504bfa13f3
+export ANSWER_LAB_EMBEDDING_REVISION=1110a243fdf4706b3f48f1d95db1a4f5529b4d41
 export ANSWER_LAB_DISABLE_THINKING=true
 export ANSWER_LAB_MAX_TOKENS=768
 .venv/bin/uvicorn agentproof.api:app --host 127.0.0.1 --port 8010

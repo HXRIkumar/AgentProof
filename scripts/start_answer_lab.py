@@ -15,6 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = "mlx-community/Qwen3.5-4B-MLX-4bit"
 REVISION = "32f3e8ecf65426fc3306969496342d504bfa13f3"
+EMBEDDING_REVISION = "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
 
 
 def local_environment(environment):
@@ -26,6 +27,7 @@ def local_environment(environment):
         ANSWER_LAB_BASE_URL="http://127.0.0.1:8089/v1",
         ANSWER_LAB_MODEL=MODEL,
         ANSWER_LAB_MODEL_REVISION=REVISION,
+        ANSWER_LAB_EMBEDDING_REVISION=EMBEDDING_REVISION,
         ANSWER_LAB_DISABLE_THINKING="true",
         ANSWER_LAB_MAX_TOKENS="768",
         ANSWER_LAB_ENABLE_PAID="0",

@@ -123,6 +123,7 @@ def test_local_launcher_cannot_inherit_hosted_optin():
     spec.loader.exec_module(module)
     env = module.local_environment({"PATH": "/test/bin", "OPENAI_API_KEY": "do-not-pass",
                                     "ANSWER_LAB_ENABLE_PAID": "1",
+                                    "ANSWER_LAB_EMBEDDING_REVISION": "different-unreviewed-snapshot",
                                     "ANSWER_LAB_CRITIC_BASE_URL": "https://api.openai.com/v1",
                                     "ANSWER_LAB_ESCALATE_FINAL": "1"})
     assert env["PATH"] == "/test/bin"
@@ -130,3 +131,4 @@ def test_local_launcher_cannot_inherit_hosted_optin():
     assert "ANSWER_LAB_CRITIC_BASE_URL" not in env
     assert "ANSWER_LAB_ESCALATE_FINAL" not in env
     assert "OPENAI_API_KEY" not in env
+    assert env["ANSWER_LAB_EMBEDDING_REVISION"] == "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
