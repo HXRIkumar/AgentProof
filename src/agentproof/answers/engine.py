@@ -431,7 +431,9 @@ class AnswerService:
         if getattr(self.adapter, "configured", True):
             self._prepare_embeddings()
         source_hash = digest([source.model_dump() for source in request.sources])
-        config_hash = digest(self.configuration())
+        configuration = self.configuration()
+        config_hash = digest(configuration)
+        provider_configuration = configuration.get("provider", {})
         result = {
             "id": uuid.uuid4().hex,
             "created_at": datetime.now(UTC).isoformat(),
@@ -454,6 +456,9 @@ class AnswerService:
                 "rejected_candidates": 0,
             },
             "model": self.adapter.model,
+            "critic_model": provider_configuration.get("critic_model", self.adapter.model),
+            "generator_provider": provider_configuration.get("generator_provider", "unrecorded"),
+            "critic_provider": provider_configuration.get("critic_provider", "unrecorded"),
             "source_hash": source_hash,
             "config_hash": config_hash,
             "final_attempt_index": None,
