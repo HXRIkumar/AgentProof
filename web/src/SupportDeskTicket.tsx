@@ -335,6 +335,16 @@ export default function SupportDeskTicket({
         )}
         {tab === "evidence" && (
           <>
+            {run?.status === "failed" && (
+              <div className="sd-notice sd-warning">
+                <Flag size={15} />
+                <span>
+                  This result did not pass runtime validation. Listed quotations
+                  are the model's actual output; check the source passages and
+                  model trace before using them.
+                </span>
+              </div>
+            )}
             {run?.citations.length ? (
               <>
                 <div className="sd-section-heading">
