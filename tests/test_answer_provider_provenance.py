@@ -2,7 +2,7 @@
 
 import json
 
-from agentproof.answers import AnswerRequest, AnswerService, ModelResponse
+from agentproof.answers import AnswerRequest, AnswerService, ModelResponse, OpenAIAdapter
 
 
 class NoEmbeddings:
@@ -42,3 +42,14 @@ def test_saved_run_retains_its_provider_identity(tmp_path):
     saved = runtime.store.get(result["id"])
     assert saved["critic_model"] == "remote-reviewer"
     assert saved["model"] == "local-draft"
+
+
+def test_configuration_records_only_sent_sampling_parameters():
+    adapter = OpenAIAdapter(base_url="http://127.0.0.1:8089/v1", model="local",
+                            critic_base_url="https://api.openai.com/v1",
+                            critic_model="gpt-5.4-mini-2026-03-17", enable_paid=True)
+    assert adapter.configuration()["temperature"] == 0
+    assert adapter.configuration()["critic_temperature"] is None
+    hosted = OpenAIAdapter(base_url="https://api.openai.com/v1",
+                           model="gpt-5.4-mini-2026-03-17", enable_paid=True)
+    assert hosted.configuration()["temperature"] is None

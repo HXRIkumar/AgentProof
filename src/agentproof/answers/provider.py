@@ -256,7 +256,8 @@ class OpenAIAdapter:
         payload = {
             "model": selected_model,
             "messages": messages,
-            "temperature": 0,
+            "temperature": 0 if self._generator_kind == "local" else None,
+            "critic_temperature": 0 if self._critic_kind == "local" else None,
             "max_tokens": self.critic_max_tokens if is_critic else self.max_tokens,
             "stream": False,
         }

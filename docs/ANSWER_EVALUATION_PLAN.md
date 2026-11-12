@@ -80,6 +80,21 @@ generation limit and the shared spending ceiling. These are development hypothes
 include an escalation candidate in the final comparison only if development results
 and regression tests justify it, and record its exact configuration separately.
 
+## Final configuration selection
+
+Selected before evaluation: local-only Qwen; Qwen with mini critic at medium
+reasoning; that same hybrid with final-attempt escalation; and all-mini generation
+and critique at medium reasoning. Each evaluates all three policies on the same
+64 cases. Local models use temperature zero; hosted reasoning calls omit temperature.
+The selected cascade reached 15/18 development tasks (direct Qwen 11/18), with four
+initial errors recovered and no initial-success regressions. This selection result
+is development evidence, not a promised evaluation outcome.
+
+The frozen evaluation checkout retains one exact source revision for all runs.
+Local-generator studies execute sequentially against the Mac model server. The
+all-hosted study may overlap them but does not call that model server. Machine and
+network latency remain descriptive rather than isolated hardware benchmarks.
+
 ## Measurements and interpretation
 
 Primary outcome: reference-correct **and delivered** task success. Also report QA

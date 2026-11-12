@@ -1,0 +1,3281 @@
+{
+  "format_version": "answer-lab-study-v1",
+  "id": "answers-dev-qwen-thinking-v1",
+  "title": "Source-grounded answer reliability — paired policy comparison",
+  "created_at": "2026-11-12T06:07:34.220419+00:00",
+  "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+  "status": "interrupted",
+  "suite": {
+    "sha256": "93e1310cd634918b76eb86ca648847afe0defc8737b2e196dc5313bf84d14dcf",
+    "version": "answer-suite-v1",
+    "split": "development",
+    "case_count": 18,
+    "case_ids": [
+      "squad2-5a66a156f038b7001ab0c076",
+      "squad2-5ad269a7d7d075001a4292e2",
+      "squad2-5726249538643c19005ad082",
+      "squad2-570d4030fed7b91900d45da1",
+      "squad2-572a1dbb3f37b319004786f8",
+      "squad2-57281bb84b864d190016449d",
+      "squad2-5a1c6968b4fb5d0018714618",
+      "dev-experiment",
+      "dev-incident",
+      "squad2-57377aac1c4567190057447d",
+      "squad2-5728dc2d3acd2414000e0081",
+      "squad2-5ad2467ad7d075001a428af7",
+      "squad2-5a552252134fea001a0e1964",
+      "dev-ticket",
+      "dev-action-list",
+      "dev-document",
+      "dev-correction",
+      "squad2-5a638ffe68151a001a922383"
+    ],
+    "case_manifest_sha256": {
+      "squad2-5a66a156f038b7001ab0c076": "74281ca6a9cb546fe62128aa35346bbc328f2ec22d899adf3b4cb261255a9d43",
+      "squad2-5ad269a7d7d075001a4292e2": "213ac81b2ed7185a319aa94aa2abdb2f00fd935d1314e2519dbceb28605b5ccf",
+      "squad2-5726249538643c19005ad082": "85ca697d9b2ebf04f719f18b88a70b3d09d4d78a4dc899f4ae798db34d6a98bb",
+      "squad2-570d4030fed7b91900d45da1": "cdea587351230d13cd24210a5cd9459d309861ec69dbbdc6d0b3b0ed83e9baca",
+      "squad2-572a1dbb3f37b319004786f8": "c43ee403761e4770e7cc76101ae2f55053cb317294c29e710791e2a72ed6cf15",
+      "squad2-57281bb84b864d190016449d": "d95b2e239b227873c1b4dc1a7ec240ed36e3cd3ee2ed478f7aec924efee764f0",
+      "squad2-5a1c6968b4fb5d0018714618": "18976e45a6b13974665ae450a29c9e93571ddc7a7062697d5816b5a56425d90d",
+      "dev-experiment": "bc54a5fe8751b9174da14415a72170e59099ad74a11a2f9b4ff9c6596e6972a7",
+      "dev-incident": "54bc29752fb58def744958e563f05d1ed1591b5f355fe5abe29acc659da7d16d",
+      "squad2-57377aac1c4567190057447d": "9ddd8a93ed7e92187aa2658d3f25671cfc3ba6c70b249bb657c474f4a2150e44",
+      "squad2-5728dc2d3acd2414000e0081": "b1842b224af917ce25b6508e3118e98fb33ef8a45402a9b816530c2b5f166075",
+      "squad2-5ad2467ad7d075001a428af7": "6aabec12d6543b04b0e16f0c1d3e29c58c5a91fc2bd74dd5923e77e11db90c45",
+      "squad2-5a552252134fea001a0e1964": "f26777a76384755bd12808a272715a7030a7797ebb18c95213d00821cc83e04f",
+      "dev-ticket": "4ce7fdc93b12df26ab5b73f541bd925bd8890c6ebfd4db23f05e53d9039e7310",
+      "dev-action-list": "f1cdcd6f7d1f86ec83ce6666ba2fd080280c09c024656b68d66395b307a63d7f",
+      "dev-document": "a7f970a31ad822867815c0604c51f9d78738ed82ce290b498550885a4dc97817",
+      "dev-correction": "d7285dea714a3672d8ae5bdd87290a52ff37b50a484d75126cab88d397a7571a",
+      "squad2-5a638ffe68151a001a922383": "57e977cb296797f06f19a259b2bee705a43fb53f2807a4127f2ee4e00b003696"
+    },
+    "limited": false,
+    "provenance": {
+      "version": "answer-suite-v1",
+      "seed": 20261112,
+      "upstream_url": "https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.json",
+      "upstream_sha256": "80a5225e94905956a6446d296ca1093975c4d3b3260f1d6c8f68bc2ab77182d8",
+      "upstream_license": "CC BY-SA 4.0",
+      "upstream_version": "v2.0",
+      "selection": "SHA256(seed:question_id), topic round-robin, distinct paragraphs across splits, contexts 150-2400 characters. Select 30 answerable and 30 unanswerable; first 6 of each form development and remaining 24 of each evaluation.",
+      "distractors": "Two full 150-650 character paragraphs from different topics, outside selected question paragraphs; exclude occurrences of known reference answer strings. Source order shuffled by per-case hash. Added passages change the official task; alternative answerability is not independently relabeled.",
+      "scope": "SQuAD-derived multi-source public development-set subset, not an official leaderboard evaluation or an unseen-data claim. Authored extraction cases are synthetic and separately reported.",
+      "extractor_sha256": "3602617b748a8f426950ec04f680642c0214e3cdb9e184f5359d3cefb81d54c2",
+      "authored_source_sha256": "1d1fa445fc6685c9fa6ca0702c642d51598b97b7f1b8a09b834280e20475078b"
+    }
+  },
+  "configuration": {
+    "strategies": [
+      "baseline",
+      "validated",
+      "adaptive"
+    ],
+    "max_attempts": 3,
+    "seed": 20261112,
+    "cache_enabled": false,
+    "runtime": {
+      "provider": {
+        "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "revision": "32f3e8ecf65426fc3306969496342d504bfa13f3",
+        "endpoint_hash": "fc6e420923bfd229847108c13ac292d5e480427fea945d7cb657127eb4933424",
+        "temperature": 0,
+        "max_tokens": 768,
+        "disable_thinking": true,
+        "critic_model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "critic_revision": "32f3e8ecf65426fc3306969496342d504bfa13f3",
+        "critic_max_tokens": 2048,
+        "critic_disable_thinking": false,
+        "critic_thinking_override": true
+      },
+      "prompt_hash": "9cf2d901f2be5ae4b0834bf7f775d4d75a19be9a6600ceec54e027ec58262c14",
+      "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+      "embedding_revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+      "embedding_status": "loaded",
+      "semantic_threshold": 0.94,
+      "retrieval_limit": 4
+    },
+    "source_files": {
+      "src/agentproof/answers/__init__.py": "a962dbe16221b1fa1bac6d9bd03664507d00f788a96682b4f05686041fc9812e",
+      "src/agentproof/answers/api.py": "98a5db7c2508d05190455b731a8352fc465459b7c24c240b13b99825a26259d8",
+      "src/agentproof/answers/engine.py": "c6db7fdf4279e018b5ca97d5f1a18aaefa417a211f3c8efbf62f6f0ed8576136",
+      "src/agentproof/answers/models.py": "e71d09303cb4d3b07a5050d37d01d5994fb3a0cade03abbf133f5f16b5754539",
+      "src/agentproof/answers/provider.py": "4e1a78f1e589d35e78568d9f37cb06d2087f379e93c1d0d7a98309a54d9a18ce",
+      "src/agentproof/answers/retrieval.py": "51bf07d3b4729aab059a3a6bc703512fcf293d9a804a2ea2ae11b7bf73ac3fea",
+      "src/agentproof/answers/store.py": "bb58eb9aa1b038170ad5302947ecf544ee1e956304848b2e173d0c62edd6eca7",
+      "src/agentproof/answer_eval.py": "507b12af489665398d51243719638ebc6afd941a9dadc2974c33e9aaff8f7662",
+      "scripts/answer_benchmark.py": "30d489e242e0c68e3c027c163c3674115770a883e1394415965cea2f037a012f"
+    },
+    "python": "3.14.7",
+    "machine": "arm64",
+    "system": "Darwin",
+    "initial_generation": "One shared first response; each policy logically pays its full initial cost, actual study usage counts it once.",
+    "git_revision": "15e232c80f3ab2582fc093c584d989a6398050e8"
+  },
+  "initial_generations": [
+    {
+      "case_id": "squad2-5a66a156f038b7001ab0c076",
+      "response": {
+        "text": "{\"answer\":\"The leaflets would have to be given to the leafleter's own jury as evidence.\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+        "prompt_tokens": 1106,
+        "completion_tokens": 74,
+        "latency_ms": 5820.501707999938,
+        "finish_reason": "stop",
+        "usage_known": true,
+        "request_hash": "499bcc5afa4fa52ee4d27b5688e62303b835abddba4a7ad8474fa07e450c0c8f",
+        "error": null,
+        "preparation_latency_ms": 54.12674999752198,
+        "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+      },
+      "wall_latency_ms": 5874.74333299906
+    },
+    {
+      "case_id": "squad2-5ad269a7d7d075001a4292e2",
+      "response": {
+        "text": "{\"answer\":\"vector addition\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-1\",\"quote\":\"Summing these component forces using vector addition yields the original force.\"}]}",
+        "prompt_tokens": 1030,
+        "completion_tokens": 44,
+        "latency_ms": 9968.201290997968,
+        "finish_reason": "stop",
+        "usage_known": true,
+        "request_hash": "955286689fe96895793bfafb2b215a77d1c7fa0f4c6d4b50f21ce797cdc0a8db",
+        "error": null,
+        "preparation_latency_ms": 139.34662499741535,
+        "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+      },
+      "wall_latency_ms": 10107.670166999014
+    }
+  ],
+  "trials": [
+    {
+      "case_id": "squad2-5a66a156f038b7001ab0c076",
+      "task": "qa",
+      "category": "unanswerable",
+      "question": "If he was arrested, what would happen to the leaflets that were handed out by Carter Wentworth in court",
+      "strategy": "baseline",
+      "case": {
+        "id": "squad2-5a66a156f038b7001ab0c076",
+        "task": "qa",
+        "category": "unanswerable",
+        "origin": {
+          "dataset": "SQuAD v2.0 dev",
+          "question_id": "5a66a156f038b7001ab0c076",
+          "title": "Civil_disobedience",
+          "license": "CC BY-SA 4.0"
+        },
+        "request": {
+          "question": "If he was arrested, what would happen to the leaflets that were handed out by Carter Wentworth in court",
+          "task": "qa",
+          "sources": [
+            {
+              "id": "source-1",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+            },
+            {
+              "id": "source-2",
+              "title": "Civil disobedience",
+              "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\""
+            },
+            {
+              "id": "source-3",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+            }
+          ]
+        },
+        "gold": {
+          "answers": [],
+          "answerable": false,
+          "relevant_source_ids": [
+            "source-2"
+          ]
+        }
+      },
+      "result": {
+        "id": "87e762d359b34edda7b9d5ac4243419f",
+        "created_at": "2026-11-12T06:07:40.117926+00:00",
+        "task": "qa",
+        "strategy": "baseline",
+        "question": "If he was arrested, what would happen to the leaflets that were handed out by Carter Wentworth in court",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          },
+          {
+            "id": "source-2",
+            "title": "Civil disobedience",
+            "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\""
+          },
+          {
+            "id": "source-3",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          }
+        ],
+        "schema": null,
+        "namespace": "benchmark",
+        "status": "failed",
+        "answer": "The leaflets would have to be given to the leafleter's own jury as evidence.",
+        "data": null,
+        "abstained": false,
+        "citations": [
+          {
+            "source_id": "source-2",
+            "quote": "if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence."
+          }
+        ],
+        "quality": {
+          "score": 0.75,
+          "checks": [
+            {
+              "name": "response_schema",
+              "passed": true,
+              "detail": "Response matches the typed output format"
+            },
+            {
+              "name": "citations",
+              "passed": true,
+              "detail": "Every quote must appear verbatim in a retrieved source"
+            },
+            {
+              "name": "answer_span",
+              "passed": false,
+              "detail": "QA answer must be a short exact span inside its supporting quote"
+            },
+            {
+              "name": "qa_data",
+              "passed": true,
+              "detail": "QA data must be null"
+            }
+          ],
+          "label": "Validation score, not probability"
+        },
+        "attempts": [
+          {
+            "index": 1,
+            "answer": "The leaflets would have to be given to the leafleter's own jury as evidence.",
+            "data": null,
+            "abstained": false,
+            "citations": [
+              {
+                "source_id": "source-2",
+                "quote": "if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence."
+              }
+            ],
+            "checks": [
+              {
+                "name": "response_schema",
+                "passed": true,
+                "detail": "Response matches the typed output format"
+              },
+              {
+                "name": "citations",
+                "passed": true,
+                "detail": "Every quote must appear verbatim in a retrieved source"
+              },
+              {
+                "name": "answer_span",
+                "passed": false,
+                "detail": "QA answer must be a short exact span inside its supporting quote"
+              },
+              {
+                "name": "qa_data",
+                "passed": true,
+                "detail": "QA data must be null"
+              }
+            ],
+            "critic": null,
+            "feedback": "QA answer must be a short exact span inside its supporting quote",
+            "output_text": "{\"answer\":\"The leaflets would have to be given to the leafleter's own jury as evidence.\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+            "usage": {
+              "calls": 1,
+              "actual_calls": 0,
+              "reused_calls": 1,
+              "prompt_tokens": 1106,
+              "completion_tokens": 74,
+              "total_tokens": 1180,
+              "actual_total_tokens": 0,
+              "known": true,
+              "unknown_calls": 0
+            },
+            "generation": {
+              "text": "{\"answer\":\"The leaflets would have to be given to the leafleter's own jury as evidence.\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+              "prompt_tokens": 1106,
+              "completion_tokens": 74,
+              "latency_ms": 5820.501707999938,
+              "finish_reason": "stop",
+              "usage_known": true,
+              "request_hash": "499bcc5afa4fa52ee4d27b5688e62303b835abddba4a7ad8474fa07e450c0c8f",
+              "error": null,
+              "preparation_latency_ms": 54.12674999752198,
+              "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+            },
+            "critic_response": null,
+            "latency_ms": 5820.639833000314,
+            "passed": false,
+            "validation_score": 0.75,
+            "normalizations": []
+          }
+        ],
+        "cache": {
+          "status": "disabled",
+          "similarity": null,
+          "rejected_candidates": 0
+        },
+        "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "source_hash": "907f3b050055716d23710d1cd8bad8d4cb1b3d91ae1211321b33786192fe616b",
+        "config_hash": "5e27604c7877dcb2dbcabaabe397b6a131f10e92b505d89f9b1df4abce759aee",
+        "final_attempt_index": 1,
+        "retrieval": {
+          "method": "hybrid_bm25_embeddings",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+          "selected": [
+            {
+              "source_id": "source-2",
+              "title": "Civil disobedience",
+              "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"",
+              "start": 0,
+              "end": 1453,
+              "lexical_score": 1.0,
+              "semantic_score": 0.31040887525970906,
+              "score": 0.62072488139284
+            },
+            {
+              "source_id": "source-1",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells.",
+              "start": 0,
+              "end": 508,
+              "lexical_score": 0.17630918282654076,
+              "semantic_score": 0.02419303247200081,
+              "score": 0.09264530013154379
+            },
+            {
+              "source_id": "source-3",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element.",
+              "start": 0,
+              "end": 605,
+              "lexical_score": 0.07207843165765405,
+              "semantic_score": -0.11959784061862165,
+              "score": 0.032435294245944324
+            }
+          ],
+          "total_chunks": 3,
+          "selected_chunks": 3
+        },
+        "normalizations": [],
+        "selection": "Earliest candidate maximizing all-check pass, valid extraction payload, deterministic pass, validation score",
+        "usage": {
+          "calls": 1,
+          "actual_calls": 0,
+          "reused_calls": 1,
+          "prompt_tokens": 1106,
+          "completion_tokens": 74,
+          "total_tokens": 1180,
+          "actual_total_tokens": 0,
+          "known": true,
+          "unknown_calls": 0
+        },
+        "wall_latency_ms": 1.1785409988078754,
+        "latency_ms": 5821.680248998746,
+        "latency_scope": "Includes retrieval, validation, inference, cache lookup/population; excludes final history write. Shared inference time is attributed; retrieval is measured anew for each strategy. Initial preparation is separate.",
+        "shared_initial_preparation_ms": 54.12674999752198,
+        "retries": 0
+      },
+      "initial_result": {
+        "id": "87e762d359b34edda7b9d5ac4243419f",
+        "created_at": "2026-11-12T06:07:40.117926+00:00",
+        "task": "qa",
+        "strategy": "baseline",
+        "question": "If he was arrested, what would happen to the leaflets that were handed out by Carter Wentworth in court",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          },
+          {
+            "id": "source-2",
+            "title": "Civil disobedience",
+            "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\""
+          },
+          {
+            "id": "source-3",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          }
+        ],
+        "schema": null,
+        "namespace": "benchmark",
+        "status": "failed",
+        "answer": "The leaflets would have to be given to the leafleter's own jury as evidence.",
+        "data": null,
+        "abstained": false,
+        "citations": [
+          {
+            "source_id": "source-2",
+            "quote": "if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence."
+          }
+        ],
+        "quality": {
+          "score": 0.75,
+          "checks": [
+            {
+              "name": "response_schema",
+              "passed": true,
+              "detail": "Response matches the typed output format"
+            },
+            {
+              "name": "citations",
+              "passed": true,
+              "detail": "Every quote must appear verbatim in a retrieved source"
+            },
+            {
+              "name": "answer_span",
+              "passed": false,
+              "detail": "QA answer must be a short exact span inside its supporting quote"
+            },
+            {
+              "name": "qa_data",
+              "passed": true,
+              "detail": "QA data must be null"
+            }
+          ],
+          "label": "Validation score, not probability"
+        },
+        "attempts": [
+          {
+            "index": 1,
+            "answer": "The leaflets would have to be given to the leafleter's own jury as evidence.",
+            "data": null,
+            "abstained": false,
+            "citations": [
+              {
+                "source_id": "source-2",
+                "quote": "if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence."
+              }
+            ],
+            "checks": [
+              {
+                "name": "response_schema",
+                "passed": true,
+                "detail": "Response matches the typed output format"
+              },
+              {
+                "name": "citations",
+                "passed": true,
+                "detail": "Every quote must appear verbatim in a retrieved source"
+              },
+              {
+                "name": "answer_span",
+                "passed": false,
+                "detail": "QA answer must be a short exact span inside its supporting quote"
+              },
+              {
+                "name": "qa_data",
+                "passed": true,
+                "detail": "QA data must be null"
+              }
+            ],
+            "critic": null,
+            "feedback": "QA answer must be a short exact span inside its supporting quote",
+            "output_text": "{\"answer\":\"The leaflets would have to be given to the leafleter's own jury as evidence.\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+            "usage": {
+              "calls": 1,
+              "actual_calls": 0,
+              "reused_calls": 1,
+              "prompt_tokens": 1106,
+              "completion_tokens": 74,
+              "total_tokens": 1180,
+              "actual_total_tokens": 0,
+              "known": true,
+              "unknown_calls": 0
+            },
+            "generation": {
+              "text": "{\"answer\":\"The leaflets would have to be given to the leafleter's own jury as evidence.\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+              "prompt_tokens": 1106,
+              "completion_tokens": 74,
+              "latency_ms": 5820.501707999938,
+              "finish_reason": "stop",
+              "usage_known": true,
+              "request_hash": "499bcc5afa4fa52ee4d27b5688e62303b835abddba4a7ad8474fa07e450c0c8f",
+              "error": null,
+              "preparation_latency_ms": 54.12674999752198,
+              "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+            },
+            "critic_response": null,
+            "latency_ms": 5820.639833000314,
+            "passed": false,
+            "validation_score": 0.75,
+            "normalizations": []
+          }
+        ],
+        "cache": {
+          "status": "disabled",
+          "similarity": null,
+          "rejected_candidates": 0
+        },
+        "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "source_hash": "907f3b050055716d23710d1cd8bad8d4cb1b3d91ae1211321b33786192fe616b",
+        "config_hash": "5e27604c7877dcb2dbcabaabe397b6a131f10e92b505d89f9b1df4abce759aee",
+        "final_attempt_index": 1,
+        "retrieval": {
+          "method": "hybrid_bm25_embeddings",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+          "selected": [
+            {
+              "source_id": "source-2",
+              "title": "Civil disobedience",
+              "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"",
+              "start": 0,
+              "end": 1453,
+              "lexical_score": 1.0,
+              "semantic_score": 0.31040887525970906,
+              "score": 0.62072488139284
+            },
+            {
+              "source_id": "source-1",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells.",
+              "start": 0,
+              "end": 508,
+              "lexical_score": 0.17630918282654076,
+              "semantic_score": 0.02419303247200081,
+              "score": 0.09264530013154379
+            },
+            {
+              "source_id": "source-3",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element.",
+              "start": 0,
+              "end": 605,
+              "lexical_score": 0.07207843165765405,
+              "semantic_score": -0.11959784061862165,
+              "score": 0.032435294245944324
+            }
+          ],
+          "total_chunks": 3,
+          "selected_chunks": 3
+        },
+        "normalizations": [],
+        "selection": "Earliest candidate maximizing all-check pass, valid extraction payload, deterministic pass, validation score",
+        "usage": {
+          "calls": 1,
+          "actual_calls": 0,
+          "reused_calls": 1,
+          "prompt_tokens": 1106,
+          "completion_tokens": 74,
+          "total_tokens": 1180,
+          "actual_total_tokens": 0,
+          "known": true,
+          "unknown_calls": 0
+        },
+        "wall_latency_ms": 1.1785409988078754,
+        "latency_ms": 5821.680248998746,
+        "latency_scope": "Includes retrieval, validation, inference, cache lookup/population; excludes final history write. Shared inference time is attributed; retrieval is measured anew for each strategy. Initial preparation is separate.",
+        "shared_initial_preparation_ms": 54.12674999752198,
+        "retries": 0
+      },
+      "grade": {
+        "correct": false,
+        "answer_correct": false,
+        "delivered": false,
+        "exact_match": 0.0,
+        "token_f1": 0.0,
+        "schema_valid": null,
+        "field_accuracy": null,
+        "field_precision": null,
+        "field_recall": null,
+        "field_f1": null,
+        "retrieval_recall": 1.0
+      },
+      "initial_grade": {
+        "correct": false,
+        "answer_correct": false,
+        "delivered": false,
+        "exact_match": 0.0,
+        "token_f1": 0.0,
+        "schema_valid": null,
+        "field_accuracy": null,
+        "field_precision": null,
+        "field_recall": null,
+        "field_f1": null,
+        "retrieval_recall": 1.0
+      }
+    },
+    {
+      "case_id": "squad2-5a66a156f038b7001ab0c076",
+      "task": "qa",
+      "category": "unanswerable",
+      "question": "If he was arrested, what would happen to the leaflets that were handed out by Carter Wentworth in court",
+      "strategy": "validated",
+      "case": {
+        "id": "squad2-5a66a156f038b7001ab0c076",
+        "task": "qa",
+        "category": "unanswerable",
+        "origin": {
+          "dataset": "SQuAD v2.0 dev",
+          "question_id": "5a66a156f038b7001ab0c076",
+          "title": "Civil_disobedience",
+          "license": "CC BY-SA 4.0"
+        },
+        "request": {
+          "question": "If he was arrested, what would happen to the leaflets that were handed out by Carter Wentworth in court",
+          "task": "qa",
+          "sources": [
+            {
+              "id": "source-1",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+            },
+            {
+              "id": "source-2",
+              "title": "Civil disobedience",
+              "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\""
+            },
+            {
+              "id": "source-3",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+            }
+          ]
+        },
+        "gold": {
+          "answers": [],
+          "answerable": false,
+          "relevant_source_ids": [
+            "source-2"
+          ]
+        }
+      },
+      "result": {
+        "id": "599adf9b5a564ecea3aee967f6c058af",
+        "created_at": "2026-11-12T06:07:40.125892+00:00",
+        "task": "qa",
+        "strategy": "validated",
+        "question": "If he was arrested, what would happen to the leaflets that were handed out by Carter Wentworth in court",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          },
+          {
+            "id": "source-2",
+            "title": "Civil disobedience",
+            "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\""
+          },
+          {
+            "id": "source-3",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          }
+        ],
+        "schema": null,
+        "namespace": "benchmark",
+        "status": "accepted",
+        "answer": "given to the leafleter's own jury as evidence",
+        "data": null,
+        "abstained": false,
+        "citations": [
+          {
+            "source_id": "source-2",
+            "quote": "if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence."
+          }
+        ],
+        "quality": {
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "response_schema",
+              "passed": true,
+              "detail": "Response matches the typed output format"
+            },
+            {
+              "name": "citations",
+              "passed": true,
+              "detail": "Every quote must appear verbatim in a retrieved source"
+            },
+            {
+              "name": "answer_span",
+              "passed": true,
+              "detail": "QA answer must be a short exact span inside its supporting quote"
+            },
+            {
+              "name": "qa_data",
+              "passed": true,
+              "detail": "QA data must be null"
+            }
+          ],
+          "label": "Validation score, not probability"
+        },
+        "attempts": [
+          {
+            "index": 1,
+            "answer": "The leaflets would have to be given to the leafleter's own jury as evidence.",
+            "data": null,
+            "abstained": false,
+            "citations": [
+              {
+                "source_id": "source-2",
+                "quote": "if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence."
+              }
+            ],
+            "checks": [
+              {
+                "name": "response_schema",
+                "passed": true,
+                "detail": "Response matches the typed output format"
+              },
+              {
+                "name": "citations",
+                "passed": true,
+                "detail": "Every quote must appear verbatim in a retrieved source"
+              },
+              {
+                "name": "answer_span",
+                "passed": false,
+                "detail": "QA answer must be a short exact span inside its supporting quote"
+              },
+              {
+                "name": "qa_data",
+                "passed": true,
+                "detail": "QA data must be null"
+              }
+            ],
+            "critic": null,
+            "feedback": "QA answer must be a short exact span inside its supporting quote",
+            "output_text": "{\"answer\":\"The leaflets would have to be given to the leafleter's own jury as evidence.\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+            "usage": {
+              "calls": 1,
+              "actual_calls": 0,
+              "reused_calls": 1,
+              "prompt_tokens": 1106,
+              "completion_tokens": 74,
+              "total_tokens": 1180,
+              "actual_total_tokens": 0,
+              "known": true,
+              "unknown_calls": 0
+            },
+            "generation": {
+              "text": "{\"answer\":\"The leaflets would have to be given to the leafleter's own jury as evidence.\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+              "prompt_tokens": 1106,
+              "completion_tokens": 74,
+              "latency_ms": 5820.501707999938,
+              "finish_reason": "stop",
+              "usage_known": true,
+              "request_hash": "499bcc5afa4fa52ee4d27b5688e62303b835abddba4a7ad8474fa07e450c0c8f",
+              "error": null,
+              "preparation_latency_ms": 54.12674999752198,
+              "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+            },
+            "critic_response": null,
+            "latency_ms": 5820.601291998173,
+            "passed": false,
+            "validation_score": 0.75,
+            "normalizations": []
+          },
+          {
+            "index": 2,
+            "answer": "given to the leafleter's own jury as evidence",
+            "data": null,
+            "abstained": false,
+            "citations": [
+              {
+                "source_id": "source-2",
+                "quote": "if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence."
+              }
+            ],
+            "checks": [
+              {
+                "name": "response_schema",
+                "passed": true,
+                "detail": "Response matches the typed output format"
+              },
+              {
+                "name": "citations",
+                "passed": true,
+                "detail": "Every quote must appear verbatim in a retrieved source"
+              },
+              {
+                "name": "answer_span",
+                "passed": true,
+                "detail": "QA answer must be a short exact span inside its supporting quote"
+              },
+              {
+                "name": "qa_data",
+                "passed": true,
+                "detail": "QA data must be null"
+              }
+            ],
+            "critic": null,
+            "feedback": "",
+            "output_text": "{\"answer\":\"given to the leafleter's own jury as evidence\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+            "usage": {
+              "calls": 1,
+              "actual_calls": 1,
+              "reused_calls": 0,
+              "prompt_tokens": 1207,
+              "completion_tokens": 67,
+              "total_tokens": 1274,
+              "actual_total_tokens": 1274,
+              "known": true,
+              "unknown_calls": 0
+            },
+            "generation": {
+              "text": "{\"answer\":\"given to the leafleter's own jury as evidence\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+              "prompt_tokens": 1207,
+              "completion_tokens": 67,
+              "latency_ms": 6019.828750002489,
+              "finish_reason": "stop",
+              "usage_known": true,
+              "request_hash": "499bcc5afa4fa52ee4d27b5688e62303b835abddba4a7ad8474fa07e450c0c8f",
+              "error": null,
+              "preparation_latency_ms": 0.0,
+              "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+            },
+            "critic_response": null,
+            "latency_ms": 6019.996125000034,
+            "passed": true,
+            "validation_score": 1.0,
+            "normalizations": []
+          }
+        ],
+        "cache": {
+          "status": "disabled",
+          "similarity": null,
+          "rejected_candidates": 0
+        },
+        "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "source_hash": "907f3b050055716d23710d1cd8bad8d4cb1b3d91ae1211321b33786192fe616b",
+        "config_hash": "5e27604c7877dcb2dbcabaabe397b6a131f10e92b505d89f9b1df4abce759aee",
+        "final_attempt_index": 2,
+        "retrieval": {
+          "method": "hybrid_bm25_embeddings",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+          "selected": [
+            {
+              "source_id": "source-2",
+              "title": "Civil disobedience",
+              "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"",
+              "start": 0,
+              "end": 1453,
+              "lexical_score": 1.0,
+              "semantic_score": 0.31040887525970906,
+              "score": 0.62072488139284
+            },
+            {
+              "source_id": "source-1",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells.",
+              "start": 0,
+              "end": 508,
+              "lexical_score": 0.17630918282654076,
+              "semantic_score": 0.02419303247200081,
+              "score": 0.09264530013154379
+            },
+            {
+              "source_id": "source-3",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element.",
+              "start": 0,
+              "end": 605,
+              "lexical_score": 0.07207843165765405,
+              "semantic_score": -0.11959784061862165,
+              "score": 0.032435294245944324
+            }
+          ],
+          "total_chunks": 3,
+          "selected_chunks": 3
+        },
+        "normalizations": [],
+        "selection": "Earliest candidate maximizing all-check pass, valid extraction payload, deterministic pass, validation score",
+        "usage": {
+          "calls": 2,
+          "actual_calls": 1,
+          "reused_calls": 1,
+          "prompt_tokens": 2313,
+          "completion_tokens": 141,
+          "total_tokens": 2454,
+          "actual_total_tokens": 1274,
+          "known": true,
+          "unknown_calls": 0
+        },
+        "wall_latency_ms": 6020.474291999562,
+        "latency_ms": 11840.9759999995,
+        "latency_scope": "Includes retrieval, validation, inference, cache lookup/population; excludes final history write. Shared inference time is attributed; retrieval is measured anew for each strategy. Initial preparation is separate.",
+        "shared_initial_preparation_ms": 54.12674999752198,
+        "retries": 1
+      },
+      "initial_result": {
+        "id": "87e762d359b34edda7b9d5ac4243419f",
+        "created_at": "2026-11-12T06:07:40.117926+00:00",
+        "task": "qa",
+        "strategy": "baseline",
+        "question": "If he was arrested, what would happen to the leaflets that were handed out by Carter Wentworth in court",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          },
+          {
+            "id": "source-2",
+            "title": "Civil disobedience",
+            "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\""
+          },
+          {
+            "id": "source-3",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          }
+        ],
+        "schema": null,
+        "namespace": "benchmark",
+        "status": "failed",
+        "answer": "The leaflets would have to be given to the leafleter's own jury as evidence.",
+        "data": null,
+        "abstained": false,
+        "citations": [
+          {
+            "source_id": "source-2",
+            "quote": "if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence."
+          }
+        ],
+        "quality": {
+          "score": 0.75,
+          "checks": [
+            {
+              "name": "response_schema",
+              "passed": true,
+              "detail": "Response matches the typed output format"
+            },
+            {
+              "name": "citations",
+              "passed": true,
+              "detail": "Every quote must appear verbatim in a retrieved source"
+            },
+            {
+              "name": "answer_span",
+              "passed": false,
+              "detail": "QA answer must be a short exact span inside its supporting quote"
+            },
+            {
+              "name": "qa_data",
+              "passed": true,
+              "detail": "QA data must be null"
+            }
+          ],
+          "label": "Validation score, not probability"
+        },
+        "attempts": [
+          {
+            "index": 1,
+            "answer": "The leaflets would have to be given to the leafleter's own jury as evidence.",
+            "data": null,
+            "abstained": false,
+            "citations": [
+              {
+                "source_id": "source-2",
+                "quote": "if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence."
+              }
+            ],
+            "checks": [
+              {
+                "name": "response_schema",
+                "passed": true,
+                "detail": "Response matches the typed output format"
+              },
+              {
+                "name": "citations",
+                "passed": true,
+                "detail": "Every quote must appear verbatim in a retrieved source"
+              },
+              {
+                "name": "answer_span",
+                "passed": false,
+                "detail": "QA answer must be a short exact span inside its supporting quote"
+              },
+              {
+                "name": "qa_data",
+                "passed": true,
+                "detail": "QA data must be null"
+              }
+            ],
+            "critic": null,
+            "feedback": "QA answer must be a short exact span inside its supporting quote",
+            "output_text": "{\"answer\":\"The leaflets would have to be given to the leafleter's own jury as evidence.\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+            "usage": {
+              "calls": 1,
+              "actual_calls": 0,
+              "reused_calls": 1,
+              "prompt_tokens": 1106,
+              "completion_tokens": 74,
+              "total_tokens": 1180,
+              "actual_total_tokens": 0,
+              "known": true,
+              "unknown_calls": 0
+            },
+            "generation": {
+              "text": "{\"answer\":\"The leaflets would have to be given to the leafleter's own jury as evidence.\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+              "prompt_tokens": 1106,
+              "completion_tokens": 74,
+              "latency_ms": 5820.501707999938,
+              "finish_reason": "stop",
+              "usage_known": true,
+              "request_hash": "499bcc5afa4fa52ee4d27b5688e62303b835abddba4a7ad8474fa07e450c0c8f",
+              "error": null,
+              "preparation_latency_ms": 54.12674999752198,
+              "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+            },
+            "critic_response": null,
+            "latency_ms": 5820.639833000314,
+            "passed": false,
+            "validation_score": 0.75,
+            "normalizations": []
+          }
+        ],
+        "cache": {
+          "status": "disabled",
+          "similarity": null,
+          "rejected_candidates": 0
+        },
+        "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "source_hash": "907f3b050055716d23710d1cd8bad8d4cb1b3d91ae1211321b33786192fe616b",
+        "config_hash": "5e27604c7877dcb2dbcabaabe397b6a131f10e92b505d89f9b1df4abce759aee",
+        "final_attempt_index": 1,
+        "retrieval": {
+          "method": "hybrid_bm25_embeddings",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+          "selected": [
+            {
+              "source_id": "source-2",
+              "title": "Civil disobedience",
+              "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"",
+              "start": 0,
+              "end": 1453,
+              "lexical_score": 1.0,
+              "semantic_score": 0.31040887525970906,
+              "score": 0.62072488139284
+            },
+            {
+              "source_id": "source-1",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells.",
+              "start": 0,
+              "end": 508,
+              "lexical_score": 0.17630918282654076,
+              "semantic_score": 0.02419303247200081,
+              "score": 0.09264530013154379
+            },
+            {
+              "source_id": "source-3",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element.",
+              "start": 0,
+              "end": 605,
+              "lexical_score": 0.07207843165765405,
+              "semantic_score": -0.11959784061862165,
+              "score": 0.032435294245944324
+            }
+          ],
+          "total_chunks": 3,
+          "selected_chunks": 3
+        },
+        "normalizations": [],
+        "selection": "Earliest candidate maximizing all-check pass, valid extraction payload, deterministic pass, validation score",
+        "usage": {
+          "calls": 1,
+          "actual_calls": 0,
+          "reused_calls": 1,
+          "prompt_tokens": 1106,
+          "completion_tokens": 74,
+          "total_tokens": 1180,
+          "actual_total_tokens": 0,
+          "known": true,
+          "unknown_calls": 0
+        },
+        "wall_latency_ms": 1.1785409988078754,
+        "latency_ms": 5821.680248998746,
+        "latency_scope": "Includes retrieval, validation, inference, cache lookup/population; excludes final history write. Shared inference time is attributed; retrieval is measured anew for each strategy. Initial preparation is separate.",
+        "shared_initial_preparation_ms": 54.12674999752198,
+        "retries": 0
+      },
+      "grade": {
+        "correct": false,
+        "answer_correct": false,
+        "delivered": true,
+        "exact_match": 0.0,
+        "token_f1": 0.0,
+        "schema_valid": null,
+        "field_accuracy": null,
+        "field_precision": null,
+        "field_recall": null,
+        "field_f1": null,
+        "retrieval_recall": 1.0
+      },
+      "initial_grade": {
+        "correct": false,
+        "answer_correct": false,
+        "delivered": false,
+        "exact_match": 0.0,
+        "token_f1": 0.0,
+        "schema_valid": null,
+        "field_accuracy": null,
+        "field_precision": null,
+        "field_recall": null,
+        "field_f1": null,
+        "retrieval_recall": 1.0
+      }
+    },
+    {
+      "case_id": "squad2-5a66a156f038b7001ab0c076",
+      "task": "qa",
+      "category": "unanswerable",
+      "question": "If he was arrested, what would happen to the leaflets that were handed out by Carter Wentworth in court",
+      "strategy": "adaptive",
+      "case": {
+        "id": "squad2-5a66a156f038b7001ab0c076",
+        "task": "qa",
+        "category": "unanswerable",
+        "origin": {
+          "dataset": "SQuAD v2.0 dev",
+          "question_id": "5a66a156f038b7001ab0c076",
+          "title": "Civil_disobedience",
+          "license": "CC BY-SA 4.0"
+        },
+        "request": {
+          "question": "If he was arrested, what would happen to the leaflets that were handed out by Carter Wentworth in court",
+          "task": "qa",
+          "sources": [
+            {
+              "id": "source-1",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+            },
+            {
+              "id": "source-2",
+              "title": "Civil disobedience",
+              "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\""
+            },
+            {
+              "id": "source-3",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+            }
+          ]
+        },
+        "gold": {
+          "answers": [],
+          "answerable": false,
+          "relevant_source_ids": [
+            "source-2"
+          ]
+        }
+      },
+      "result": {
+        "id": "75a0d2e7531f480bb62503229ae79147",
+        "created_at": "2026-11-12T06:07:46.147556+00:00",
+        "task": "qa",
+        "strategy": "adaptive",
+        "question": "If he was arrested, what would happen to the leaflets that were handed out by Carter Wentworth in court",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          },
+          {
+            "id": "source-2",
+            "title": "Civil disobedience",
+            "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\""
+          },
+          {
+            "id": "source-3",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          }
+        ],
+        "schema": null,
+        "namespace": "benchmark",
+        "status": "failed",
+        "answer": "given to the leafleter's own jury as evidence",
+        "data": null,
+        "abstained": false,
+        "citations": [
+          {
+            "source_id": "source-2",
+            "quote": "if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence."
+          }
+        ],
+        "quality": {
+          "score": 0.7142857142857143,
+          "checks": [
+            {
+              "name": "response_schema",
+              "passed": true,
+              "detail": "Response matches the typed output format"
+            },
+            {
+              "name": "citations",
+              "passed": true,
+              "detail": "Every quote must appear verbatim in a retrieved source"
+            },
+            {
+              "name": "answer_span",
+              "passed": true,
+              "detail": "QA answer must be a short exact span inside its supporting quote"
+            },
+            {
+              "name": "qa_data",
+              "passed": true,
+              "detail": "QA data must be null"
+            },
+            {
+              "name": "critic_supported",
+              "passed": false,
+              "detail": "The source mentions FIJA activists' leaflets, not Carter Wentworth's. Carter's case involved a guilty verdict without mention of leaflets being given to the jury."
+            },
+            {
+              "name": "critic_responsive",
+              "passed": true,
+              "detail": "The source mentions FIJA activists' leaflets, not Carter Wentworth's. Carter's case involved a guilty verdict without mention of leaflets being given to the jury."
+            },
+            {
+              "name": "critic_answerability",
+              "passed": false,
+              "detail": "Abstention must agree with the critic's source-answerability assessment"
+            }
+          ],
+          "label": "Validation score, not probability"
+        },
+        "attempts": [
+          {
+            "index": 1,
+            "answer": "The leaflets would have to be given to the leafleter's own jury as evidence.",
+            "data": null,
+            "abstained": false,
+            "citations": [
+              {
+                "source_id": "source-2",
+                "quote": "if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence."
+              }
+            ],
+            "checks": [
+              {
+                "name": "response_schema",
+                "passed": true,
+                "detail": "Response matches the typed output format"
+              },
+              {
+                "name": "citations",
+                "passed": true,
+                "detail": "Every quote must appear verbatim in a retrieved source"
+              },
+              {
+                "name": "answer_span",
+                "passed": false,
+                "detail": "QA answer must be a short exact span inside its supporting quote"
+              },
+              {
+                "name": "qa_data",
+                "passed": true,
+                "detail": "QA data must be null"
+              }
+            ],
+            "critic": null,
+            "feedback": "QA answer must be a short exact span inside its supporting quote",
+            "output_text": "{\"answer\":\"The leaflets would have to be given to the leafleter's own jury as evidence.\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+            "usage": {
+              "calls": 1,
+              "actual_calls": 0,
+              "reused_calls": 1,
+              "prompt_tokens": 1106,
+              "completion_tokens": 74,
+              "total_tokens": 1180,
+              "actual_total_tokens": 0,
+              "known": true,
+              "unknown_calls": 0
+            },
+            "generation": {
+              "text": "{\"answer\":\"The leaflets would have to be given to the leafleter's own jury as evidence.\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+              "prompt_tokens": 1106,
+              "completion_tokens": 74,
+              "latency_ms": 5820.501707999938,
+              "finish_reason": "stop",
+              "usage_known": true,
+              "request_hash": "499bcc5afa4fa52ee4d27b5688e62303b835abddba4a7ad8474fa07e450c0c8f",
+              "error": null,
+              "preparation_latency_ms": 54.12674999752198,
+              "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+            },
+            "critic_response": null,
+            "latency_ms": 5820.5892910009425,
+            "passed": false,
+            "validation_score": 0.75,
+            "normalizations": []
+          },
+          {
+            "index": 2,
+            "answer": "given to the leafleter's own jury as evidence",
+            "data": null,
+            "abstained": false,
+            "citations": [
+              {
+                "source_id": "source-2",
+                "quote": "if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence."
+              }
+            ],
+            "checks": [
+              {
+                "name": "response_schema",
+                "passed": true,
+                "detail": "Response matches the typed output format"
+              },
+              {
+                "name": "citations",
+                "passed": true,
+                "detail": "Every quote must appear verbatim in a retrieved source"
+              },
+              {
+                "name": "answer_span",
+                "passed": true,
+                "detail": "QA answer must be a short exact span inside its supporting quote"
+              },
+              {
+                "name": "qa_data",
+                "passed": true,
+                "detail": "QA data must be null"
+              },
+              {
+                "name": "critic_supported",
+                "passed": false,
+                "detail": "The source mentions FIJA activists' leaflets, not Carter Wentworth's. Carter's case involved a guilty verdict without mention of leaflets being given to the jury."
+              },
+              {
+                "name": "critic_responsive",
+                "passed": true,
+                "detail": "The source mentions FIJA activists' leaflets, not Carter Wentworth's. Carter's case involved a guilty verdict without mention of leaflets being given to the jury."
+              },
+              {
+                "name": "critic_answerability",
+                "passed": false,
+                "detail": "Abstention must agree with the critic's source-answerability assessment"
+              }
+            ],
+            "critic": {
+              "supported": false,
+              "responsive": true,
+              "answerable": false,
+              "feedback": "The source mentions FIJA activists' leaflets, not Carter Wentworth's. Carter's case involved a guilty verdict without mention of leaflets being given to the jury."
+            },
+            "feedback": "The source mentions FIJA activists' leaflets, not Carter Wentworth's. Carter's case involved a guilty verdict without mention of leaflets being given to the jury.; Abstention must agree with the critic's source-answerability assessment",
+            "output_text": "{\"answer\":\"given to the leafleter's own jury as evidence\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+            "usage": {
+              "calls": 2,
+              "actual_calls": 2,
+              "reused_calls": 0,
+              "prompt_tokens": 2300,
+              "completion_tokens": 1359,
+              "total_tokens": 3659,
+              "actual_total_tokens": 3659,
+              "known": true,
+              "unknown_calls": 0
+            },
+            "generation": {
+              "text": "{\"answer\":\"given to the leafleter's own jury as evidence\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+              "prompt_tokens": 1207,
+              "completion_tokens": 67,
+              "latency_ms": 5925.973958001123,
+              "finish_reason": "stop",
+              "usage_known": true,
+              "request_hash": "499bcc5afa4fa52ee4d27b5688e62303b835abddba4a7ad8474fa07e450c0c8f",
+              "error": null,
+              "preparation_latency_ms": 0.0,
+              "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+            },
+            "critic_response": {
+              "text": "\n\n{\n  \"supported\": false,\n  \"responsive\": true,\n  \"answerable\": false,\n  \"feedback\": \"The source mentions FIJA activists' leaflets, not Carter Wentworth's. Carter's case involved a guilty verdict without mention of leaflets being given to the jury.\"\n}",
+              "prompt_tokens": 1093,
+              "completion_tokens": 1292,
+              "latency_ms": 44403.61716600091,
+              "finish_reason": "stop",
+              "usage_known": true,
+              "request_hash": "",
+              "error": null,
+              "preparation_latency_ms": 0.0,
+              "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+            },
+            "latency_ms": 50330.02512500025,
+            "passed": false,
+            "validation_score": 0.7142857142857143,
+            "normalizations": []
+          },
+          {
+            "index": 3,
+            "answer": "",
+            "data": null,
+            "abstained": true,
+            "citations": [],
+            "checks": [
+              {
+                "name": "response_schema",
+                "passed": true,
+                "detail": "Response matches the typed output format"
+              },
+              {
+                "name": "abstention",
+                "passed": true,
+                "detail": "Abstention must have empty answer, null data and no citations"
+              },
+              {
+                "name": "critic",
+                "passed": false,
+                "detail": "Inference transport or response error"
+              }
+            ],
+            "critic": null,
+            "feedback": "Inference transport or response error",
+            "output_text": "{\"answer\":\"\",\"data\":null,\"abstained\":true,\"citations\":[]}",
+            "usage": {
+              "calls": 2,
+              "actual_calls": 2,
+              "reused_calls": 0,
+              "prompt_tokens": 1234,
+              "completion_tokens": 18,
+              "total_tokens": 1252,
+              "actual_total_tokens": 1252,
+              "known": false,
+              "unknown_calls": 1
+            },
+            "generation": {
+              "text": "{\"answer\":\"\",\"data\":null,\"abstained\":true,\"citations\":[]}",
+              "prompt_tokens": 1234,
+              "completion_tokens": 18,
+              "latency_ms": 4335.241791999579,
+              "finish_reason": "stop",
+              "usage_known": true,
+              "request_hash": "499bcc5afa4fa52ee4d27b5688e62303b835abddba4a7ad8474fa07e450c0c8f",
+              "error": null,
+              "preparation_latency_ms": 0.0,
+              "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+            },
+            "critic_response": {
+              "text": "",
+              "prompt_tokens": null,
+              "completion_tokens": null,
+              "latency_ms": 90009.05945799968,
+              "finish_reason": null,
+              "usage_known": false,
+              "request_hash": "",
+              "error": "Inference transport or response error",
+              "preparation_latency_ms": 0.0,
+              "model": null
+            },
+            "latency_ms": 94348.26529099882,
+            "passed": false,
+            "validation_score": 0.6666666666666666,
+            "normalizations": []
+          }
+        ],
+        "cache": {
+          "status": "disabled",
+          "similarity": null,
+          "rejected_candidates": 0
+        },
+        "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "source_hash": "907f3b050055716d23710d1cd8bad8d4cb1b3d91ae1211321b33786192fe616b",
+        "config_hash": "5e27604c7877dcb2dbcabaabe397b6a131f10e92b505d89f9b1df4abce759aee",
+        "final_attempt_index": 2,
+        "retrieval": {
+          "method": "hybrid_bm25_embeddings",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+          "selected": [
+            {
+              "source_id": "source-2",
+              "title": "Civil disobedience",
+              "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"",
+              "start": 0,
+              "end": 1453,
+              "lexical_score": 1.0,
+              "semantic_score": 0.31040887525970906,
+              "score": 0.62072488139284
+            },
+            {
+              "source_id": "source-1",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells.",
+              "start": 0,
+              "end": 508,
+              "lexical_score": 0.17630918282654076,
+              "semantic_score": 0.02419303247200081,
+              "score": 0.09264530013154379
+            },
+            {
+              "source_id": "source-3",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element.",
+              "start": 0,
+              "end": 605,
+              "lexical_score": 0.07207843165765405,
+              "semantic_score": -0.11959784061862165,
+              "score": 0.032435294245944324
+            }
+          ],
+          "total_chunks": 3,
+          "selected_chunks": 3
+        },
+        "normalizations": [],
+        "selection": "Earliest candidate maximizing all-check pass, valid extraction payload, deterministic pass, validation score",
+        "usage": {
+          "calls": 5,
+          "actual_calls": 4,
+          "reused_calls": 1,
+          "prompt_tokens": 4640,
+          "completion_tokens": 1451,
+          "total_tokens": 6091,
+          "actual_total_tokens": 4911,
+          "known": false,
+          "unknown_calls": 1
+        },
+        "wall_latency_ms": 144678.88262500128,
+        "latency_ms": 150499.38433300122,
+        "latency_scope": "Includes retrieval, validation, inference, cache lookup/population; excludes final history write. Shared inference time is attributed; retrieval is measured anew for each strategy. Initial preparation is separate.",
+        "shared_initial_preparation_ms": 54.12674999752198,
+        "retries": 2
+      },
+      "initial_result": {
+        "id": "87e762d359b34edda7b9d5ac4243419f",
+        "created_at": "2026-11-12T06:07:40.117926+00:00",
+        "task": "qa",
+        "strategy": "baseline",
+        "question": "If he was arrested, what would happen to the leaflets that were handed out by Carter Wentworth in court",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          },
+          {
+            "id": "source-2",
+            "title": "Civil disobedience",
+            "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\""
+          },
+          {
+            "id": "source-3",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          }
+        ],
+        "schema": null,
+        "namespace": "benchmark",
+        "status": "failed",
+        "answer": "The leaflets would have to be given to the leafleter's own jury as evidence.",
+        "data": null,
+        "abstained": false,
+        "citations": [
+          {
+            "source_id": "source-2",
+            "quote": "if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence."
+          }
+        ],
+        "quality": {
+          "score": 0.75,
+          "checks": [
+            {
+              "name": "response_schema",
+              "passed": true,
+              "detail": "Response matches the typed output format"
+            },
+            {
+              "name": "citations",
+              "passed": true,
+              "detail": "Every quote must appear verbatim in a retrieved source"
+            },
+            {
+              "name": "answer_span",
+              "passed": false,
+              "detail": "QA answer must be a short exact span inside its supporting quote"
+            },
+            {
+              "name": "qa_data",
+              "passed": true,
+              "detail": "QA data must be null"
+            }
+          ],
+          "label": "Validation score, not probability"
+        },
+        "attempts": [
+          {
+            "index": 1,
+            "answer": "The leaflets would have to be given to the leafleter's own jury as evidence.",
+            "data": null,
+            "abstained": false,
+            "citations": [
+              {
+                "source_id": "source-2",
+                "quote": "if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence."
+              }
+            ],
+            "checks": [
+              {
+                "name": "response_schema",
+                "passed": true,
+                "detail": "Response matches the typed output format"
+              },
+              {
+                "name": "citations",
+                "passed": true,
+                "detail": "Every quote must appear verbatim in a retrieved source"
+              },
+              {
+                "name": "answer_span",
+                "passed": false,
+                "detail": "QA answer must be a short exact span inside its supporting quote"
+              },
+              {
+                "name": "qa_data",
+                "passed": true,
+                "detail": "QA data must be null"
+              }
+            ],
+            "critic": null,
+            "feedback": "QA answer must be a short exact span inside its supporting quote",
+            "output_text": "{\"answer\":\"The leaflets would have to be given to the leafleter's own jury as evidence.\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+            "usage": {
+              "calls": 1,
+              "actual_calls": 0,
+              "reused_calls": 1,
+              "prompt_tokens": 1106,
+              "completion_tokens": 74,
+              "total_tokens": 1180,
+              "actual_total_tokens": 0,
+              "known": true,
+              "unknown_calls": 0
+            },
+            "generation": {
+              "text": "{\"answer\":\"The leaflets would have to be given to the leafleter's own jury as evidence.\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-2\",\"quote\":\"if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"}]}",
+              "prompt_tokens": 1106,
+              "completion_tokens": 74,
+              "latency_ms": 5820.501707999938,
+              "finish_reason": "stop",
+              "usage_known": true,
+              "request_hash": "499bcc5afa4fa52ee4d27b5688e62303b835abddba4a7ad8474fa07e450c0c8f",
+              "error": null,
+              "preparation_latency_ms": 54.12674999752198,
+              "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+            },
+            "critic_response": null,
+            "latency_ms": 5820.639833000314,
+            "passed": false,
+            "validation_score": 0.75,
+            "normalizations": []
+          }
+        ],
+        "cache": {
+          "status": "disabled",
+          "similarity": null,
+          "rejected_candidates": 0
+        },
+        "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "source_hash": "907f3b050055716d23710d1cd8bad8d4cb1b3d91ae1211321b33786192fe616b",
+        "config_hash": "5e27604c7877dcb2dbcabaabe397b6a131f10e92b505d89f9b1df4abce759aee",
+        "final_attempt_index": 1,
+        "retrieval": {
+          "method": "hybrid_bm25_embeddings",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+          "selected": [
+            {
+              "source_id": "source-2",
+              "title": "Civil disobedience",
+              "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\"",
+              "start": 0,
+              "end": 1453,
+              "lexical_score": 1.0,
+              "semantic_score": 0.31040887525970906,
+              "score": 0.62072488139284
+            },
+            {
+              "source_id": "source-1",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells.",
+              "start": 0,
+              "end": 508,
+              "lexical_score": 0.17630918282654076,
+              "semantic_score": 0.02419303247200081,
+              "score": 0.09264530013154379
+            },
+            {
+              "source_id": "source-3",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element.",
+              "start": 0,
+              "end": 605,
+              "lexical_score": 0.07207843165765405,
+              "semantic_score": -0.11959784061862165,
+              "score": 0.032435294245944324
+            }
+          ],
+          "total_chunks": 3,
+          "selected_chunks": 3
+        },
+        "normalizations": [],
+        "selection": "Earliest candidate maximizing all-check pass, valid extraction payload, deterministic pass, validation score",
+        "usage": {
+          "calls": 1,
+          "actual_calls": 0,
+          "reused_calls": 1,
+          "prompt_tokens": 1106,
+          "completion_tokens": 74,
+          "total_tokens": 1180,
+          "actual_total_tokens": 0,
+          "known": true,
+          "unknown_calls": 0
+        },
+        "wall_latency_ms": 1.1785409988078754,
+        "latency_ms": 5821.680248998746,
+        "latency_scope": "Includes retrieval, validation, inference, cache lookup/population; excludes final history write. Shared inference time is attributed; retrieval is measured anew for each strategy. Initial preparation is separate.",
+        "shared_initial_preparation_ms": 54.12674999752198,
+        "retries": 0
+      },
+      "grade": {
+        "correct": false,
+        "answer_correct": false,
+        "delivered": false,
+        "exact_match": 0.0,
+        "token_f1": 0.0,
+        "schema_valid": null,
+        "field_accuracy": null,
+        "field_precision": null,
+        "field_recall": null,
+        "field_f1": null,
+        "retrieval_recall": 1.0
+      },
+      "initial_grade": {
+        "correct": false,
+        "answer_correct": false,
+        "delivered": false,
+        "exact_match": 0.0,
+        "token_f1": 0.0,
+        "schema_valid": null,
+        "field_accuracy": null,
+        "field_precision": null,
+        "field_recall": null,
+        "field_f1": null,
+        "retrieval_recall": 1.0
+      }
+    },
+    {
+      "case_id": "squad2-5ad269a7d7d075001a4292e2",
+      "task": "qa",
+      "category": "unanswerable",
+      "question": "What yields the non original force?",
+      "strategy": "baseline",
+      "case": {
+        "id": "squad2-5ad269a7d7d075001a4292e2",
+        "task": "qa",
+        "category": "unanswerable",
+        "origin": {
+          "dataset": "SQuAD v2.0 dev",
+          "question_id": "5ad269a7d7d075001a4292e2",
+          "title": "Force",
+          "license": "CC BY-SA 4.0"
+        },
+        "request": {
+          "question": "What yields the non original force?",
+          "task": "qa",
+          "sources": [
+            {
+              "id": "source-1",
+              "title": "Force",
+              "text": "As well as being added, forces can also be resolved into independent components at right angles to each other. A horizontal force pointing northeast can therefore be split into two forces, one pointing north, and one pointing east. Summing these component forces using vector addition yields the original force. Resolving force vectors into components of a set of basis vectors is often a more mathematically clean way to describe forces than using magnitudes and directions. This is because, for orthogonal components, the components of the vector sum are uniquely determined by the scalar addition of the components of the individual vectors. Orthogonal components are independent of each other because forces acting at ninety degrees to each other have no effect on the magnitude or direction of the other. Choosing a set of orthogonal basis vectors is often done by considering what set of basis vectors will make the mathematics most convenient. Choosing a basis vector that is in the same direction as one of the forces is desirable, since that force would then have only one non-zero component. Orthogonal force vectors can be three-dimensional with the third component being at right-angles to the other two."
+            },
+            {
+              "id": "source-2",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+            },
+            {
+              "id": "source-3",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+            }
+          ]
+        },
+        "gold": {
+          "answers": [],
+          "answerable": false,
+          "relevant_source_ids": [
+            "source-1"
+          ]
+        }
+      },
+      "result": {
+        "id": "ed0f6c29b468484f95b721ddbca69870",
+        "created_at": "2026-11-12T06:10:20.956031+00:00",
+        "task": "qa",
+        "strategy": "baseline",
+        "question": "What yields the non original force?",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Force",
+            "text": "As well as being added, forces can also be resolved into independent components at right angles to each other. A horizontal force pointing northeast can therefore be split into two forces, one pointing north, and one pointing east. Summing these component forces using vector addition yields the original force. Resolving force vectors into components of a set of basis vectors is often a more mathematically clean way to describe forces than using magnitudes and directions. This is because, for orthogonal components, the components of the vector sum are uniquely determined by the scalar addition of the components of the individual vectors. Orthogonal components are independent of each other because forces acting at ninety degrees to each other have no effect on the magnitude or direction of the other. Choosing a set of orthogonal basis vectors is often done by considering what set of basis vectors will make the mathematics most convenient. Choosing a basis vector that is in the same direction as one of the forces is desirable, since that force would then have only one non-zero component. Orthogonal force vectors can be three-dimensional with the third component being at right-angles to the other two."
+          },
+          {
+            "id": "source-2",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          },
+          {
+            "id": "source-3",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          }
+        ],
+        "schema": null,
+        "namespace": "benchmark",
+        "status": "accepted",
+        "answer": "vector addition",
+        "data": null,
+        "abstained": false,
+        "citations": [
+          {
+            "source_id": "source-1",
+            "quote": "Summing these component forces using vector addition yields the original force."
+          }
+        ],
+        "quality": {
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "response_schema",
+              "passed": true,
+              "detail": "Response matches the typed output format"
+            },
+            {
+              "name": "citations",
+              "passed": true,
+              "detail": "Every quote must appear verbatim in a retrieved source"
+            },
+            {
+              "name": "answer_span",
+              "passed": true,
+              "detail": "QA answer must be a short exact span inside its supporting quote"
+            },
+            {
+              "name": "qa_data",
+              "passed": true,
+              "detail": "QA data must be null"
+            }
+          ],
+          "label": "Validation score, not probability"
+        },
+        "attempts": [
+          {
+            "index": 1,
+            "answer": "vector addition",
+            "data": null,
+            "abstained": false,
+            "citations": [
+              {
+                "source_id": "source-1",
+                "quote": "Summing these component forces using vector addition yields the original force."
+              }
+            ],
+            "checks": [
+              {
+                "name": "response_schema",
+                "passed": true,
+                "detail": "Response matches the typed output format"
+              },
+              {
+                "name": "citations",
+                "passed": true,
+                "detail": "Every quote must appear verbatim in a retrieved source"
+              },
+              {
+                "name": "answer_span",
+                "passed": true,
+                "detail": "QA answer must be a short exact span inside its supporting quote"
+              },
+              {
+                "name": "qa_data",
+                "passed": true,
+                "detail": "QA data must be null"
+              }
+            ],
+            "critic": null,
+            "feedback": "",
+            "output_text": "{\"answer\":\"vector addition\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-1\",\"quote\":\"Summing these component forces using vector addition yields the original force.\"}]}",
+            "usage": {
+              "calls": 1,
+              "actual_calls": 0,
+              "reused_calls": 1,
+              "prompt_tokens": 1030,
+              "completion_tokens": 44,
+              "total_tokens": 1074,
+              "actual_total_tokens": 0,
+              "known": true,
+              "unknown_calls": 0
+            },
+            "generation": {
+              "text": "{\"answer\":\"vector addition\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-1\",\"quote\":\"Summing these component forces using vector addition yields the original force.\"}]}",
+              "prompt_tokens": 1030,
+              "completion_tokens": 44,
+              "latency_ms": 9968.201290997968,
+              "finish_reason": "stop",
+              "usage_known": true,
+              "request_hash": "955286689fe96895793bfafb2b215a77d1c7fa0f4c6d4b50f21ce797cdc0a8db",
+              "error": null,
+              "preparation_latency_ms": 139.34662499741535,
+              "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+            },
+            "critic_response": null,
+            "latency_ms": 9968.442332996347,
+            "passed": true,
+            "validation_score": 1.0,
+            "normalizations": []
+          }
+        ],
+        "cache": {
+          "status": "disabled",
+          "similarity": null,
+          "rejected_candidates": 0
+        },
+        "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "source_hash": "d4312a210fd58593379dc62bae14558ac0f5c3af2e015b4d2530f8891a10509f",
+        "config_hash": "5e27604c7877dcb2dbcabaabe397b6a131f10e92b505d89f9b1df4abce759aee",
+        "final_attempt_index": 1,
+        "retrieval": {
+          "method": "hybrid_bm25_embeddings",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+          "selected": [
+            {
+              "source_id": "source-1",
+              "title": "Force",
+              "text": "As well as being added, forces can also be resolved into independent components at right angles to each other. A horizontal force pointing northeast can therefore be split into two forces, one pointing north, and one pointing east. Summing these component forces using vector addition yields the original force. Resolving force vectors into components of a set of basis vectors is often a more mathematically clean way to describe forces than using magnitudes and directions. This is because, for orthogonal components, the components of the vector sum are uniquely determined by the scalar addition of the components of the individual vectors. Orthogonal components are independent of each other because forces acting at ninety degrees to each other have no effect on the magnitude or direction of the other. Choosing a set of orthogonal basis vectors is often done by considering what set of basis vectors will make the mathematics most convenient. Choosing a basis vector that is in the same direction as one of the forces is desirable, since that force would then have only one non-zero component. Orthogonal force vectors can be three-dimensional with the third component being at right-angles to the other two.",
+              "start": 0,
+              "end": 1216,
+              "lexical_score": 1.0,
+              "semantic_score": 0.31427947961967184,
+              "score": 0.6228537137908196
+            },
+            {
+              "source_id": "source-3",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells.",
+              "start": 0,
+              "end": 508,
+              "lexical_score": 0.05065174685608611,
+              "semantic_score": 0.11411919056292195,
+              "score": 0.08555884089484583
+            },
+            {
+              "source_id": "source-2",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element.",
+              "start": 0,
+              "end": 605,
+              "lexical_score": 0.053472368347981344,
+              "semantic_score": -0.022266426850684924,
+              "score": 0.024062565756591606
+            }
+          ],
+          "total_chunks": 3,
+          "selected_chunks": 3
+        },
+        "normalizations": [],
+        "selection": "Earliest candidate maximizing all-check pass, valid extraction payload, deterministic pass, validation score",
+        "usage": {
+          "calls": 1,
+          "actual_calls": 0,
+          "reused_calls": 1,
+          "prompt_tokens": 1030,
+          "completion_tokens": 44,
+          "total_tokens": 1074,
+          "actual_total_tokens": 0,
+          "known": true,
+          "unknown_calls": 0
+        },
+        "wall_latency_ms": 1.2006249999103602,
+        "latency_ms": 9969.401915997878,
+        "latency_scope": "Includes retrieval, validation, inference, cache lookup/population; excludes final history write. Shared inference time is attributed; retrieval is measured anew for each strategy. Initial preparation is separate.",
+        "shared_initial_preparation_ms": 139.34662499741535,
+        "retries": 0
+      },
+      "initial_result": {
+        "id": "ed0f6c29b468484f95b721ddbca69870",
+        "created_at": "2026-11-12T06:10:20.956031+00:00",
+        "task": "qa",
+        "strategy": "baseline",
+        "question": "What yields the non original force?",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Force",
+            "text": "As well as being added, forces can also be resolved into independent components at right angles to each other. A horizontal force pointing northeast can therefore be split into two forces, one pointing north, and one pointing east. Summing these component forces using vector addition yields the original force. Resolving force vectors into components of a set of basis vectors is often a more mathematically clean way to describe forces than using magnitudes and directions. This is because, for orthogonal components, the components of the vector sum are uniquely determined by the scalar addition of the components of the individual vectors. Orthogonal components are independent of each other because forces acting at ninety degrees to each other have no effect on the magnitude or direction of the other. Choosing a set of orthogonal basis vectors is often done by considering what set of basis vectors will make the mathematics most convenient. Choosing a basis vector that is in the same direction as one of the forces is desirable, since that force would then have only one non-zero component. Orthogonal force vectors can be three-dimensional with the third component being at right-angles to the other two."
+          },
+          {
+            "id": "source-2",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          },
+          {
+            "id": "source-3",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          }
+        ],
+        "schema": null,
+        "namespace": "benchmark",
+        "status": "accepted",
+        "answer": "vector addition",
+        "data": null,
+        "abstained": false,
+        "citations": [
+          {
+            "source_id": "source-1",
+            "quote": "Summing these component forces using vector addition yields the original force."
+          }
+        ],
+        "quality": {
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "response_schema",
+              "passed": true,
+              "detail": "Response matches the typed output format"
+            },
+            {
+              "name": "citations",
+              "passed": true,
+              "detail": "Every quote must appear verbatim in a retrieved source"
+            },
+            {
+              "name": "answer_span",
+              "passed": true,
+              "detail": "QA answer must be a short exact span inside its supporting quote"
+            },
+            {
+              "name": "qa_data",
+              "passed": true,
+              "detail": "QA data must be null"
+            }
+          ],
+          "label": "Validation score, not probability"
+        },
+        "attempts": [
+          {
+            "index": 1,
+            "answer": "vector addition",
+            "data": null,
+            "abstained": false,
+            "citations": [
+              {
+                "source_id": "source-1",
+                "quote": "Summing these component forces using vector addition yields the original force."
+              }
+            ],
+            "checks": [
+              {
+                "name": "response_schema",
+                "passed": true,
+                "detail": "Response matches the typed output format"
+              },
+              {
+                "name": "citations",
+                "passed": true,
+                "detail": "Every quote must appear verbatim in a retrieved source"
+              },
+              {
+                "name": "answer_span",
+                "passed": true,
+                "detail": "QA answer must be a short exact span inside its supporting quote"
+              },
+              {
+                "name": "qa_data",
+                "passed": true,
+                "detail": "QA data must be null"
+              }
+            ],
+            "critic": null,
+            "feedback": "",
+            "output_text": "{\"answer\":\"vector addition\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-1\",\"quote\":\"Summing these component forces using vector addition yields the original force.\"}]}",
+            "usage": {
+              "calls": 1,
+              "actual_calls": 0,
+              "reused_calls": 1,
+              "prompt_tokens": 1030,
+              "completion_tokens": 44,
+              "total_tokens": 1074,
+              "actual_total_tokens": 0,
+              "known": true,
+              "unknown_calls": 0
+            },
+            "generation": {
+              "text": "{\"answer\":\"vector addition\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-1\",\"quote\":\"Summing these component forces using vector addition yields the original force.\"}]}",
+              "prompt_tokens": 1030,
+              "completion_tokens": 44,
+              "latency_ms": 9968.201290997968,
+              "finish_reason": "stop",
+              "usage_known": true,
+              "request_hash": "955286689fe96895793bfafb2b215a77d1c7fa0f4c6d4b50f21ce797cdc0a8db",
+              "error": null,
+              "preparation_latency_ms": 139.34662499741535,
+              "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+            },
+            "critic_response": null,
+            "latency_ms": 9968.442332996347,
+            "passed": true,
+            "validation_score": 1.0,
+            "normalizations": []
+          }
+        ],
+        "cache": {
+          "status": "disabled",
+          "similarity": null,
+          "rejected_candidates": 0
+        },
+        "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "source_hash": "d4312a210fd58593379dc62bae14558ac0f5c3af2e015b4d2530f8891a10509f",
+        "config_hash": "5e27604c7877dcb2dbcabaabe397b6a131f10e92b505d89f9b1df4abce759aee",
+        "final_attempt_index": 1,
+        "retrieval": {
+          "method": "hybrid_bm25_embeddings",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+          "selected": [
+            {
+              "source_id": "source-1",
+              "title": "Force",
+              "text": "As well as being added, forces can also be resolved into independent components at right angles to each other. A horizontal force pointing northeast can therefore be split into two forces, one pointing north, and one pointing east. Summing these component forces using vector addition yields the original force. Resolving force vectors into components of a set of basis vectors is often a more mathematically clean way to describe forces than using magnitudes and directions. This is because, for orthogonal components, the components of the vector sum are uniquely determined by the scalar addition of the components of the individual vectors. Orthogonal components are independent of each other because forces acting at ninety degrees to each other have no effect on the magnitude or direction of the other. Choosing a set of orthogonal basis vectors is often done by considering what set of basis vectors will make the mathematics most convenient. Choosing a basis vector that is in the same direction as one of the forces is desirable, since that force would then have only one non-zero component. Orthogonal force vectors can be three-dimensional with the third component being at right-angles to the other two.",
+              "start": 0,
+              "end": 1216,
+              "lexical_score": 1.0,
+              "semantic_score": 0.31427947961967184,
+              "score": 0.6228537137908196
+            },
+            {
+              "source_id": "source-3",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells.",
+              "start": 0,
+              "end": 508,
+              "lexical_score": 0.05065174685608611,
+              "semantic_score": 0.11411919056292195,
+              "score": 0.08555884089484583
+            },
+            {
+              "source_id": "source-2",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element.",
+              "start": 0,
+              "end": 605,
+              "lexical_score": 0.053472368347981344,
+              "semantic_score": -0.022266426850684924,
+              "score": 0.024062565756591606
+            }
+          ],
+          "total_chunks": 3,
+          "selected_chunks": 3
+        },
+        "normalizations": [],
+        "selection": "Earliest candidate maximizing all-check pass, valid extraction payload, deterministic pass, validation score",
+        "usage": {
+          "calls": 1,
+          "actual_calls": 0,
+          "reused_calls": 1,
+          "prompt_tokens": 1030,
+          "completion_tokens": 44,
+          "total_tokens": 1074,
+          "actual_total_tokens": 0,
+          "known": true,
+          "unknown_calls": 0
+        },
+        "wall_latency_ms": 1.2006249999103602,
+        "latency_ms": 9969.401915997878,
+        "latency_scope": "Includes retrieval, validation, inference, cache lookup/population; excludes final history write. Shared inference time is attributed; retrieval is measured anew for each strategy. Initial preparation is separate.",
+        "shared_initial_preparation_ms": 139.34662499741535,
+        "retries": 0
+      },
+      "grade": {
+        "correct": false,
+        "answer_correct": false,
+        "delivered": true,
+        "exact_match": 0.0,
+        "token_f1": 0.0,
+        "schema_valid": null,
+        "field_accuracy": null,
+        "field_precision": null,
+        "field_recall": null,
+        "field_f1": null,
+        "retrieval_recall": 1.0
+      },
+      "initial_grade": {
+        "correct": false,
+        "answer_correct": false,
+        "delivered": true,
+        "exact_match": 0.0,
+        "token_f1": 0.0,
+        "schema_valid": null,
+        "field_accuracy": null,
+        "field_precision": null,
+        "field_recall": null,
+        "field_f1": null,
+        "retrieval_recall": 1.0
+      }
+    },
+    {
+      "case_id": "squad2-5ad269a7d7d075001a4292e2",
+      "task": "qa",
+      "category": "unanswerable",
+      "question": "What yields the non original force?",
+      "strategy": "validated",
+      "case": {
+        "id": "squad2-5ad269a7d7d075001a4292e2",
+        "task": "qa",
+        "category": "unanswerable",
+        "origin": {
+          "dataset": "SQuAD v2.0 dev",
+          "question_id": "5ad269a7d7d075001a4292e2",
+          "title": "Force",
+          "license": "CC BY-SA 4.0"
+        },
+        "request": {
+          "question": "What yields the non original force?",
+          "task": "qa",
+          "sources": [
+            {
+              "id": "source-1",
+              "title": "Force",
+              "text": "As well as being added, forces can also be resolved into independent components at right angles to each other. A horizontal force pointing northeast can therefore be split into two forces, one pointing north, and one pointing east. Summing these component forces using vector addition yields the original force. Resolving force vectors into components of a set of basis vectors is often a more mathematically clean way to describe forces than using magnitudes and directions. This is because, for orthogonal components, the components of the vector sum are uniquely determined by the scalar addition of the components of the individual vectors. Orthogonal components are independent of each other because forces acting at ninety degrees to each other have no effect on the magnitude or direction of the other. Choosing a set of orthogonal basis vectors is often done by considering what set of basis vectors will make the mathematics most convenient. Choosing a basis vector that is in the same direction as one of the forces is desirable, since that force would then have only one non-zero component. Orthogonal force vectors can be three-dimensional with the third component being at right-angles to the other two."
+            },
+            {
+              "id": "source-2",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+            },
+            {
+              "id": "source-3",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+            }
+          ]
+        },
+        "gold": {
+          "answers": [],
+          "answerable": false,
+          "relevant_source_ids": [
+            "source-1"
+          ]
+        }
+      },
+      "result": {
+        "id": "0c327209e5064b6997ca5d69ea10502d",
+        "created_at": "2026-11-12T06:10:20.961644+00:00",
+        "task": "qa",
+        "strategy": "validated",
+        "question": "What yields the non original force?",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Force",
+            "text": "As well as being added, forces can also be resolved into independent components at right angles to each other. A horizontal force pointing northeast can therefore be split into two forces, one pointing north, and one pointing east. Summing these component forces using vector addition yields the original force. Resolving force vectors into components of a set of basis vectors is often a more mathematically clean way to describe forces than using magnitudes and directions. This is because, for orthogonal components, the components of the vector sum are uniquely determined by the scalar addition of the components of the individual vectors. Orthogonal components are independent of each other because forces acting at ninety degrees to each other have no effect on the magnitude or direction of the other. Choosing a set of orthogonal basis vectors is often done by considering what set of basis vectors will make the mathematics most convenient. Choosing a basis vector that is in the same direction as one of the forces is desirable, since that force would then have only one non-zero component. Orthogonal force vectors can be three-dimensional with the third component being at right-angles to the other two."
+          },
+          {
+            "id": "source-2",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          },
+          {
+            "id": "source-3",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          }
+        ],
+        "schema": null,
+        "namespace": "benchmark",
+        "status": "accepted",
+        "answer": "vector addition",
+        "data": null,
+        "abstained": false,
+        "citations": [
+          {
+            "source_id": "source-1",
+            "quote": "Summing these component forces using vector addition yields the original force."
+          }
+        ],
+        "quality": {
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "response_schema",
+              "passed": true,
+              "detail": "Response matches the typed output format"
+            },
+            {
+              "name": "citations",
+              "passed": true,
+              "detail": "Every quote must appear verbatim in a retrieved source"
+            },
+            {
+              "name": "answer_span",
+              "passed": true,
+              "detail": "QA answer must be a short exact span inside its supporting quote"
+            },
+            {
+              "name": "qa_data",
+              "passed": true,
+              "detail": "QA data must be null"
+            }
+          ],
+          "label": "Validation score, not probability"
+        },
+        "attempts": [
+          {
+            "index": 1,
+            "answer": "vector addition",
+            "data": null,
+            "abstained": false,
+            "citations": [
+              {
+                "source_id": "source-1",
+                "quote": "Summing these component forces using vector addition yields the original force."
+              }
+            ],
+            "checks": [
+              {
+                "name": "response_schema",
+                "passed": true,
+                "detail": "Response matches the typed output format"
+              },
+              {
+                "name": "citations",
+                "passed": true,
+                "detail": "Every quote must appear verbatim in a retrieved source"
+              },
+              {
+                "name": "answer_span",
+                "passed": true,
+                "detail": "QA answer must be a short exact span inside its supporting quote"
+              },
+              {
+                "name": "qa_data",
+                "passed": true,
+                "detail": "QA data must be null"
+              }
+            ],
+            "critic": null,
+            "feedback": "",
+            "output_text": "{\"answer\":\"vector addition\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-1\",\"quote\":\"Summing these component forces using vector addition yields the original force.\"}]}",
+            "usage": {
+              "calls": 1,
+              "actual_calls": 0,
+              "reused_calls": 1,
+              "prompt_tokens": 1030,
+              "completion_tokens": 44,
+              "total_tokens": 1074,
+              "actual_total_tokens": 0,
+              "known": true,
+              "unknown_calls": 0
+            },
+            "generation": {
+              "text": "{\"answer\":\"vector addition\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-1\",\"quote\":\"Summing these component forces using vector addition yields the original force.\"}]}",
+              "prompt_tokens": 1030,
+              "completion_tokens": 44,
+              "latency_ms": 9968.201290997968,
+              "finish_reason": "stop",
+              "usage_known": true,
+              "request_hash": "955286689fe96895793bfafb2b215a77d1c7fa0f4c6d4b50f21ce797cdc0a8db",
+              "error": null,
+              "preparation_latency_ms": 139.34662499741535,
+              "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+            },
+            "critic_response": null,
+            "latency_ms": 9968.398915996659,
+            "passed": true,
+            "validation_score": 1.0,
+            "normalizations": []
+          }
+        ],
+        "cache": {
+          "status": "disabled",
+          "similarity": null,
+          "rejected_candidates": 0
+        },
+        "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "source_hash": "d4312a210fd58593379dc62bae14558ac0f5c3af2e015b4d2530f8891a10509f",
+        "config_hash": "5e27604c7877dcb2dbcabaabe397b6a131f10e92b505d89f9b1df4abce759aee",
+        "final_attempt_index": 1,
+        "retrieval": {
+          "method": "hybrid_bm25_embeddings",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+          "selected": [
+            {
+              "source_id": "source-1",
+              "title": "Force",
+              "text": "As well as being added, forces can also be resolved into independent components at right angles to each other. A horizontal force pointing northeast can therefore be split into two forces, one pointing north, and one pointing east. Summing these component forces using vector addition yields the original force. Resolving force vectors into components of a set of basis vectors is often a more mathematically clean way to describe forces than using magnitudes and directions. This is because, for orthogonal components, the components of the vector sum are uniquely determined by the scalar addition of the components of the individual vectors. Orthogonal components are independent of each other because forces acting at ninety degrees to each other have no effect on the magnitude or direction of the other. Choosing a set of orthogonal basis vectors is often done by considering what set of basis vectors will make the mathematics most convenient. Choosing a basis vector that is in the same direction as one of the forces is desirable, since that force would then have only one non-zero component. Orthogonal force vectors can be three-dimensional with the third component being at right-angles to the other two.",
+              "start": 0,
+              "end": 1216,
+              "lexical_score": 1.0,
+              "semantic_score": 0.31427947961967184,
+              "score": 0.6228537137908196
+            },
+            {
+              "source_id": "source-3",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells.",
+              "start": 0,
+              "end": 508,
+              "lexical_score": 0.05065174685608611,
+              "semantic_score": 0.11411919056292195,
+              "score": 0.08555884089484583
+            },
+            {
+              "source_id": "source-2",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element.",
+              "start": 0,
+              "end": 605,
+              "lexical_score": 0.053472368347981344,
+              "semantic_score": -0.022266426850684924,
+              "score": 0.024062565756591606
+            }
+          ],
+          "total_chunks": 3,
+          "selected_chunks": 3
+        },
+        "normalizations": [],
+        "selection": "Earliest candidate maximizing all-check pass, valid extraction payload, deterministic pass, validation score",
+        "usage": {
+          "calls": 1,
+          "actual_calls": 0,
+          "reused_calls": 1,
+          "prompt_tokens": 1030,
+          "completion_tokens": 44,
+          "total_tokens": 1074,
+          "actual_total_tokens": 0,
+          "known": true,
+          "unknown_calls": 0
+        },
+        "wall_latency_ms": 1.0036669991677627,
+        "latency_ms": 9969.204957997135,
+        "latency_scope": "Includes retrieval, validation, inference, cache lookup/population; excludes final history write. Shared inference time is attributed; retrieval is measured anew for each strategy. Initial preparation is separate.",
+        "shared_initial_preparation_ms": 139.34662499741535,
+        "retries": 0
+      },
+      "initial_result": {
+        "id": "ed0f6c29b468484f95b721ddbca69870",
+        "created_at": "2026-11-12T06:10:20.956031+00:00",
+        "task": "qa",
+        "strategy": "baseline",
+        "question": "What yields the non original force?",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Force",
+            "text": "As well as being added, forces can also be resolved into independent components at right angles to each other. A horizontal force pointing northeast can therefore be split into two forces, one pointing north, and one pointing east. Summing these component forces using vector addition yields the original force. Resolving force vectors into components of a set of basis vectors is often a more mathematically clean way to describe forces than using magnitudes and directions. This is because, for orthogonal components, the components of the vector sum are uniquely determined by the scalar addition of the components of the individual vectors. Orthogonal components are independent of each other because forces acting at ninety degrees to each other have no effect on the magnitude or direction of the other. Choosing a set of orthogonal basis vectors is often done by considering what set of basis vectors will make the mathematics most convenient. Choosing a basis vector that is in the same direction as one of the forces is desirable, since that force would then have only one non-zero component. Orthogonal force vectors can be three-dimensional with the third component being at right-angles to the other two."
+          },
+          {
+            "id": "source-2",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          },
+          {
+            "id": "source-3",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          }
+        ],
+        "schema": null,
+        "namespace": "benchmark",
+        "status": "accepted",
+        "answer": "vector addition",
+        "data": null,
+        "abstained": false,
+        "citations": [
+          {
+            "source_id": "source-1",
+            "quote": "Summing these component forces using vector addition yields the original force."
+          }
+        ],
+        "quality": {
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "response_schema",
+              "passed": true,
+              "detail": "Response matches the typed output format"
+            },
+            {
+              "name": "citations",
+              "passed": true,
+              "detail": "Every quote must appear verbatim in a retrieved source"
+            },
+            {
+              "name": "answer_span",
+              "passed": true,
+              "detail": "QA answer must be a short exact span inside its supporting quote"
+            },
+            {
+              "name": "qa_data",
+              "passed": true,
+              "detail": "QA data must be null"
+            }
+          ],
+          "label": "Validation score, not probability"
+        },
+        "attempts": [
+          {
+            "index": 1,
+            "answer": "vector addition",
+            "data": null,
+            "abstained": false,
+            "citations": [
+              {
+                "source_id": "source-1",
+                "quote": "Summing these component forces using vector addition yields the original force."
+              }
+            ],
+            "checks": [
+              {
+                "name": "response_schema",
+                "passed": true,
+                "detail": "Response matches the typed output format"
+              },
+              {
+                "name": "citations",
+                "passed": true,
+                "detail": "Every quote must appear verbatim in a retrieved source"
+              },
+              {
+                "name": "answer_span",
+                "passed": true,
+                "detail": "QA answer must be a short exact span inside its supporting quote"
+              },
+              {
+                "name": "qa_data",
+                "passed": true,
+                "detail": "QA data must be null"
+              }
+            ],
+            "critic": null,
+            "feedback": "",
+            "output_text": "{\"answer\":\"vector addition\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-1\",\"quote\":\"Summing these component forces using vector addition yields the original force.\"}]}",
+            "usage": {
+              "calls": 1,
+              "actual_calls": 0,
+              "reused_calls": 1,
+              "prompt_tokens": 1030,
+              "completion_tokens": 44,
+              "total_tokens": 1074,
+              "actual_total_tokens": 0,
+              "known": true,
+              "unknown_calls": 0
+            },
+            "generation": {
+              "text": "{\"answer\":\"vector addition\",\"data\":null,\"abstained\":false,\"citations\":[{\"source_id\":\"source-1\",\"quote\":\"Summing these component forces using vector addition yields the original force.\"}]}",
+              "prompt_tokens": 1030,
+              "completion_tokens": 44,
+              "latency_ms": 9968.201290997968,
+              "finish_reason": "stop",
+              "usage_known": true,
+              "request_hash": "955286689fe96895793bfafb2b215a77d1c7fa0f4c6d4b50f21ce797cdc0a8db",
+              "error": null,
+              "preparation_latency_ms": 139.34662499741535,
+              "model": "mlx-community/Qwen3.5-4B-MLX-4bit"
+            },
+            "critic_response": null,
+            "latency_ms": 9968.442332996347,
+            "passed": true,
+            "validation_score": 1.0,
+            "normalizations": []
+          }
+        ],
+        "cache": {
+          "status": "disabled",
+          "similarity": null,
+          "rejected_candidates": 0
+        },
+        "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "source_hash": "d4312a210fd58593379dc62bae14558ac0f5c3af2e015b4d2530f8891a10509f",
+        "config_hash": "5e27604c7877dcb2dbcabaabe397b6a131f10e92b505d89f9b1df4abce759aee",
+        "final_attempt_index": 1,
+        "retrieval": {
+          "method": "hybrid_bm25_embeddings",
+          "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+          "selected": [
+            {
+              "source_id": "source-1",
+              "title": "Force",
+              "text": "As well as being added, forces can also be resolved into independent components at right angles to each other. A horizontal force pointing northeast can therefore be split into two forces, one pointing north, and one pointing east. Summing these component forces using vector addition yields the original force. Resolving force vectors into components of a set of basis vectors is often a more mathematically clean way to describe forces than using magnitudes and directions. This is because, for orthogonal components, the components of the vector sum are uniquely determined by the scalar addition of the components of the individual vectors. Orthogonal components are independent of each other because forces acting at ninety degrees to each other have no effect on the magnitude or direction of the other. Choosing a set of orthogonal basis vectors is often done by considering what set of basis vectors will make the mathematics most convenient. Choosing a basis vector that is in the same direction as one of the forces is desirable, since that force would then have only one non-zero component. Orthogonal force vectors can be three-dimensional with the third component being at right-angles to the other two.",
+              "start": 0,
+              "end": 1216,
+              "lexical_score": 1.0,
+              "semantic_score": 0.31427947961967184,
+              "score": 0.6228537137908196
+            },
+            {
+              "source_id": "source-3",
+              "title": "Immune system",
+              "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells.",
+              "start": 0,
+              "end": 508,
+              "lexical_score": 0.05065174685608611,
+              "semantic_score": 0.11411919056292195,
+              "score": 0.08555884089484583
+            },
+            {
+              "source_id": "source-2",
+              "title": "Rhine",
+              "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element.",
+              "start": 0,
+              "end": 605,
+              "lexical_score": 0.053472368347981344,
+              "semantic_score": -0.022266426850684924,
+              "score": 0.024062565756591606
+            }
+          ],
+          "total_chunks": 3,
+          "selected_chunks": 3
+        },
+        "normalizations": [],
+        "selection": "Earliest candidate maximizing all-check pass, valid extraction payload, deterministic pass, validation score",
+        "usage": {
+          "calls": 1,
+          "actual_calls": 0,
+          "reused_calls": 1,
+          "prompt_tokens": 1030,
+          "completion_tokens": 44,
+          "total_tokens": 1074,
+          "actual_total_tokens": 0,
+          "known": true,
+          "unknown_calls": 0
+        },
+        "wall_latency_ms": 1.2006249999103602,
+        "latency_ms": 9969.401915997878,
+        "latency_scope": "Includes retrieval, validation, inference, cache lookup/population; excludes final history write. Shared inference time is attributed; retrieval is measured anew for each strategy. Initial preparation is separate.",
+        "shared_initial_preparation_ms": 139.34662499741535,
+        "retries": 0
+      },
+      "grade": {
+        "correct": false,
+        "answer_correct": false,
+        "delivered": true,
+        "exact_match": 0.0,
+        "token_f1": 0.0,
+        "schema_valid": null,
+        "field_accuracy": null,
+        "field_precision": null,
+        "field_recall": null,
+        "field_f1": null,
+        "retrieval_recall": 1.0
+      },
+      "initial_grade": {
+        "correct": false,
+        "answer_correct": false,
+        "delivered": true,
+        "exact_match": 0.0,
+        "token_f1": 0.0,
+        "schema_valid": null,
+        "field_accuracy": null,
+        "field_precision": null,
+        "field_recall": null,
+        "field_f1": null,
+        "retrieval_recall": 1.0
+      }
+    }
+  ],
+  "summary": {
+    "complete": false,
+    "planned_trials": 54,
+    "finished_trials": 5,
+    "strategies": {
+      "baseline": {
+        "trials": 2,
+        "correct": 0,
+        "success_rate": 0.0,
+        "answer_correct": 0,
+        "answer_accuracy": 0.0,
+        "exact_match": 0.0,
+        "token_f1": 0.0,
+        "field_accuracy": null,
+        "field_f1": null,
+        "schema_valid_rate": null,
+        "retrieval_recall": 1.0,
+        "recovered": 0,
+        "initial_failures": 2,
+        "recovery_rate": 0.0,
+        "regressed": 0,
+        "initial_successes": 0,
+        "regression_rate": null,
+        "answer_regressed": 0,
+        "initial_answer_successes": 0,
+        "answer_regression_rate": null,
+        "task_recovered": 0,
+        "initial_task_failures": 2,
+        "task_recovery_rate": 0.0,
+        "accepted": 1,
+        "accepted_incorrect": 1,
+        "false_accept_rate": 1.0,
+        "retries": 0,
+        "retries_per_query": 0.0,
+        "calls": 2,
+        "calls_per_query": 1.0,
+        "usage_known": true,
+        "observed_tokens": 2254,
+        "total_tokens": 2254,
+        "tokens_per_correct": null,
+        "latency_p50_ms": 7895.541082498312,
+        "latency_p95_ms": 9762.015832647921,
+        "cache_statuses": {
+          "disabled": 2
+        },
+        "error_count": 0
+      },
+      "validated": {
+        "trials": 2,
+        "correct": 0,
+        "success_rate": 0.0,
+        "answer_correct": 0,
+        "answer_accuracy": 0.0,
+        "exact_match": 0.0,
+        "token_f1": 0.0,
+        "field_accuracy": null,
+        "field_f1": null,
+        "schema_valid_rate": null,
+        "retrieval_recall": 1.0,
+        "recovered": 0,
+        "initial_failures": 2,
+        "recovery_rate": 0.0,
+        "regressed": 0,
+        "initial_successes": 0,
+        "regression_rate": null,
+        "answer_regressed": 0,
+        "initial_answer_successes": 0,
+        "answer_regression_rate": null,
+        "task_recovered": 0,
+        "initial_task_failures": 2,
+        "task_recovery_rate": 0.0,
+        "accepted": 2,
+        "accepted_incorrect": 2,
+        "false_accept_rate": 1.0,
+        "retries": 1,
+        "retries_per_query": 0.5,
+        "calls": 3,
+        "calls_per_query": 1.5,
+        "usage_known": true,
+        "observed_tokens": 3528,
+        "total_tokens": 3528,
+        "tokens_per_correct": null,
+        "latency_p50_ms": 10905.090478998318,
+        "latency_p95_ms": 11747.387447899382,
+        "cache_statuses": {
+          "disabled": 2
+        },
+        "error_count": 0
+      },
+      "adaptive": {
+        "trials": 1,
+        "correct": 0,
+        "success_rate": 0.0,
+        "answer_correct": 0,
+        "answer_accuracy": 0.0,
+        "exact_match": 0.0,
+        "token_f1": 0.0,
+        "field_accuracy": null,
+        "field_f1": null,
+        "schema_valid_rate": null,
+        "retrieval_recall": 1.0,
+        "recovered": 0,
+        "initial_failures": 1,
+        "recovery_rate": 0.0,
+        "regressed": 0,
+        "initial_successes": 0,
+        "regression_rate": null,
+        "answer_regressed": 0,
+        "initial_answer_successes": 0,
+        "answer_regression_rate": null,
+        "task_recovered": 0,
+        "initial_task_failures": 1,
+        "task_recovery_rate": 0.0,
+        "accepted": 0,
+        "accepted_incorrect": 0,
+        "false_accept_rate": null,
+        "retries": 2,
+        "retries_per_query": 2.0,
+        "calls": 5,
+        "calls_per_query": 5.0,
+        "usage_known": false,
+        "observed_tokens": 6091,
+        "total_tokens": null,
+        "tokens_per_correct": null,
+        "latency_p50_ms": 150499.38433300122,
+        "latency_p95_ms": 150499.38433300122,
+        "cache_statuses": {
+          "disabled": 1
+        },
+        "error_count": 0
+      }
+    },
+    "by_task": {
+      "qa": {
+        "baseline": {
+          "trials": 2,
+          "correct": 0,
+          "success_rate": 0.0,
+          "answer_correct": 0,
+          "answer_accuracy": 0.0,
+          "exact_match": 0.0,
+          "token_f1": 0.0,
+          "field_accuracy": null,
+          "field_f1": null,
+          "schema_valid_rate": null,
+          "retrieval_recall": 1.0,
+          "recovered": 0,
+          "initial_failures": 2,
+          "recovery_rate": 0.0,
+          "regressed": 0,
+          "initial_successes": 0,
+          "regression_rate": null,
+          "answer_regressed": 0,
+          "initial_answer_successes": 0,
+          "answer_regression_rate": null,
+          "task_recovered": 0,
+          "initial_task_failures": 2,
+          "task_recovery_rate": 0.0,
+          "accepted": 1,
+          "accepted_incorrect": 1,
+          "false_accept_rate": 1.0,
+          "retries": 0,
+          "retries_per_query": 0.0,
+          "calls": 2,
+          "calls_per_query": 1.0,
+          "usage_known": true,
+          "observed_tokens": 2254,
+          "total_tokens": 2254,
+          "tokens_per_correct": null,
+          "latency_p50_ms": 7895.541082498312,
+          "latency_p95_ms": 9762.015832647921,
+          "cache_statuses": {
+            "disabled": 2
+          },
+          "error_count": 0
+        },
+        "validated": {
+          "trials": 2,
+          "correct": 0,
+          "success_rate": 0.0,
+          "answer_correct": 0,
+          "answer_accuracy": 0.0,
+          "exact_match": 0.0,
+          "token_f1": 0.0,
+          "field_accuracy": null,
+          "field_f1": null,
+          "schema_valid_rate": null,
+          "retrieval_recall": 1.0,
+          "recovered": 0,
+          "initial_failures": 2,
+          "recovery_rate": 0.0,
+          "regressed": 0,
+          "initial_successes": 0,
+          "regression_rate": null,
+          "answer_regressed": 0,
+          "initial_answer_successes": 0,
+          "answer_regression_rate": null,
+          "task_recovered": 0,
+          "initial_task_failures": 2,
+          "task_recovery_rate": 0.0,
+          "accepted": 2,
+          "accepted_incorrect": 2,
+          "false_accept_rate": 1.0,
+          "retries": 1,
+          "retries_per_query": 0.5,
+          "calls": 3,
+          "calls_per_query": 1.5,
+          "usage_known": true,
+          "observed_tokens": 3528,
+          "total_tokens": 3528,
+          "tokens_per_correct": null,
+          "latency_p50_ms": 10905.090478998318,
+          "latency_p95_ms": 11747.387447899382,
+          "cache_statuses": {
+            "disabled": 2
+          },
+          "error_count": 0
+        },
+        "adaptive": {
+          "trials": 1,
+          "correct": 0,
+          "success_rate": 0.0,
+          "answer_correct": 0,
+          "answer_accuracy": 0.0,
+          "exact_match": 0.0,
+          "token_f1": 0.0,
+          "field_accuracy": null,
+          "field_f1": null,
+          "schema_valid_rate": null,
+          "retrieval_recall": 1.0,
+          "recovered": 0,
+          "initial_failures": 1,
+          "recovery_rate": 0.0,
+          "regressed": 0,
+          "initial_successes": 0,
+          "regression_rate": null,
+          "answer_regressed": 0,
+          "initial_answer_successes": 0,
+          "answer_regression_rate": null,
+          "task_recovered": 0,
+          "initial_task_failures": 1,
+          "task_recovery_rate": 0.0,
+          "accepted": 0,
+          "accepted_incorrect": 0,
+          "false_accept_rate": null,
+          "retries": 2,
+          "retries_per_query": 2.0,
+          "calls": 5,
+          "calls_per_query": 5.0,
+          "usage_known": false,
+          "observed_tokens": 6091,
+          "total_tokens": null,
+          "tokens_per_correct": null,
+          "latency_p50_ms": 150499.38433300122,
+          "latency_p95_ms": 150499.38433300122,
+          "cache_statuses": {
+            "disabled": 1
+          },
+          "error_count": 0
+        }
+      }
+    },
+    "qa_by_answerability": {
+      "answerable": {
+        "baseline": {
+          "trials": 0,
+          "correct": 0,
+          "success_rate": null,
+          "answer_correct": 0,
+          "answer_accuracy": null,
+          "exact_match": null,
+          "token_f1": null,
+          "field_accuracy": null,
+          "field_f1": null,
+          "schema_valid_rate": null,
+          "retrieval_recall": null,
+          "recovered": 0,
+          "initial_failures": 0,
+          "recovery_rate": null,
+          "regressed": 0,
+          "initial_successes": 0,
+          "regression_rate": null,
+          "answer_regressed": 0,
+          "initial_answer_successes": 0,
+          "answer_regression_rate": null,
+          "task_recovered": 0,
+          "initial_task_failures": 0,
+          "task_recovery_rate": null,
+          "accepted": 0,
+          "accepted_incorrect": 0,
+          "false_accept_rate": null,
+          "retries": 0,
+          "retries_per_query": null,
+          "calls": 0,
+          "calls_per_query": null,
+          "usage_known": true,
+          "observed_tokens": 0,
+          "total_tokens": 0,
+          "tokens_per_correct": null,
+          "latency_p50_ms": null,
+          "latency_p95_ms": null,
+          "cache_statuses": {},
+          "error_count": 0
+        },
+        "validated": {
+          "trials": 0,
+          "correct": 0,
+          "success_rate": null,
+          "answer_correct": 0,
+          "answer_accuracy": null,
+          "exact_match": null,
+          "token_f1": null,
+          "field_accuracy": null,
+          "field_f1": null,
+          "schema_valid_rate": null,
+          "retrieval_recall": null,
+          "recovered": 0,
+          "initial_failures": 0,
+          "recovery_rate": null,
+          "regressed": 0,
+          "initial_successes": 0,
+          "regression_rate": null,
+          "answer_regressed": 0,
+          "initial_answer_successes": 0,
+          "answer_regression_rate": null,
+          "task_recovered": 0,
+          "initial_task_failures": 0,
+          "task_recovery_rate": null,
+          "accepted": 0,
+          "accepted_incorrect": 0,
+          "false_accept_rate": null,
+          "retries": 0,
+          "retries_per_query": null,
+          "calls": 0,
+          "calls_per_query": null,
+          "usage_known": true,
+          "observed_tokens": 0,
+          "total_tokens": 0,
+          "tokens_per_correct": null,
+          "latency_p50_ms": null,
+          "latency_p95_ms": null,
+          "cache_statuses": {},
+          "error_count": 0
+        },
+        "adaptive": {
+          "trials": 0,
+          "correct": 0,
+          "success_rate": null,
+          "answer_correct": 0,
+          "answer_accuracy": null,
+          "exact_match": null,
+          "token_f1": null,
+          "field_accuracy": null,
+          "field_f1": null,
+          "schema_valid_rate": null,
+          "retrieval_recall": null,
+          "recovered": 0,
+          "initial_failures": 0,
+          "recovery_rate": null,
+          "regressed": 0,
+          "initial_successes": 0,
+          "regression_rate": null,
+          "answer_regressed": 0,
+          "initial_answer_successes": 0,
+          "answer_regression_rate": null,
+          "task_recovered": 0,
+          "initial_task_failures": 0,
+          "task_recovery_rate": null,
+          "accepted": 0,
+          "accepted_incorrect": 0,
+          "false_accept_rate": null,
+          "retries": 0,
+          "retries_per_query": null,
+          "calls": 0,
+          "calls_per_query": null,
+          "usage_known": true,
+          "observed_tokens": 0,
+          "total_tokens": 0,
+          "tokens_per_correct": null,
+          "latency_p50_ms": null,
+          "latency_p95_ms": null,
+          "cache_statuses": {},
+          "error_count": 0
+        }
+      },
+      "unanswerable": {
+        "baseline": {
+          "trials": 2,
+          "correct": 0,
+          "success_rate": 0.0,
+          "answer_correct": 0,
+          "answer_accuracy": 0.0,
+          "exact_match": 0.0,
+          "token_f1": 0.0,
+          "field_accuracy": null,
+          "field_f1": null,
+          "schema_valid_rate": null,
+          "retrieval_recall": 1.0,
+          "recovered": 0,
+          "initial_failures": 2,
+          "recovery_rate": 0.0,
+          "regressed": 0,
+          "initial_successes": 0,
+          "regression_rate": null,
+          "answer_regressed": 0,
+          "initial_answer_successes": 0,
+          "answer_regression_rate": null,
+          "task_recovered": 0,
+          "initial_task_failures": 2,
+          "task_recovery_rate": 0.0,
+          "accepted": 1,
+          "accepted_incorrect": 1,
+          "false_accept_rate": 1.0,
+          "retries": 0,
+          "retries_per_query": 0.0,
+          "calls": 2,
+          "calls_per_query": 1.0,
+          "usage_known": true,
+          "observed_tokens": 2254,
+          "total_tokens": 2254,
+          "tokens_per_correct": null,
+          "latency_p50_ms": 7895.541082498312,
+          "latency_p95_ms": 9762.015832647921,
+          "cache_statuses": {
+            "disabled": 2
+          },
+          "error_count": 0
+        },
+        "validated": {
+          "trials": 2,
+          "correct": 0,
+          "success_rate": 0.0,
+          "answer_correct": 0,
+          "answer_accuracy": 0.0,
+          "exact_match": 0.0,
+          "token_f1": 0.0,
+          "field_accuracy": null,
+          "field_f1": null,
+          "schema_valid_rate": null,
+          "retrieval_recall": 1.0,
+          "recovered": 0,
+          "initial_failures": 2,
+          "recovery_rate": 0.0,
+          "regressed": 0,
+          "initial_successes": 0,
+          "regression_rate": null,
+          "answer_regressed": 0,
+          "initial_answer_successes": 0,
+          "answer_regression_rate": null,
+          "task_recovered": 0,
+          "initial_task_failures": 2,
+          "task_recovery_rate": 0.0,
+          "accepted": 2,
+          "accepted_incorrect": 2,
+          "false_accept_rate": 1.0,
+          "retries": 1,
+          "retries_per_query": 0.5,
+          "calls": 3,
+          "calls_per_query": 1.5,
+          "usage_known": true,
+          "observed_tokens": 3528,
+          "total_tokens": 3528,
+          "tokens_per_correct": null,
+          "latency_p50_ms": 10905.090478998318,
+          "latency_p95_ms": 11747.387447899382,
+          "cache_statuses": {
+            "disabled": 2
+          },
+          "error_count": 0
+        },
+        "adaptive": {
+          "trials": 1,
+          "correct": 0,
+          "success_rate": 0.0,
+          "answer_correct": 0,
+          "answer_accuracy": 0.0,
+          "exact_match": 0.0,
+          "token_f1": 0.0,
+          "field_accuracy": null,
+          "field_f1": null,
+          "schema_valid_rate": null,
+          "retrieval_recall": 1.0,
+          "recovered": 0,
+          "initial_failures": 1,
+          "recovery_rate": 0.0,
+          "regressed": 0,
+          "initial_successes": 0,
+          "regression_rate": null,
+          "answer_regressed": 0,
+          "initial_answer_successes": 0,
+          "answer_regression_rate": null,
+          "task_recovered": 0,
+          "initial_task_failures": 1,
+          "task_recovery_rate": 0.0,
+          "accepted": 0,
+          "accepted_incorrect": 0,
+          "false_accept_rate": null,
+          "retries": 2,
+          "retries_per_query": 2.0,
+          "calls": 5,
+          "calls_per_query": 5.0,
+          "usage_known": false,
+          "observed_tokens": 6091,
+          "total_tokens": null,
+          "tokens_per_correct": null,
+          "latency_p50_ms": 150499.38433300122,
+          "latency_p95_ms": 150499.38433300122,
+          "cache_statuses": {
+            "disabled": 1
+          },
+          "error_count": 0
+        }
+      }
+    },
+    "comparisons": [
+      {
+        "reference": "baseline",
+        "candidate": "validated",
+        "paired_cases": 2,
+        "success_delta": 0.0,
+        "success_delta_ci95": [
+          0.0,
+          0.0
+        ],
+        "token_f1_delta": 0.0,
+        "token_f1_delta_ci95": [
+          0.0,
+          0.0
+        ],
+        "improved_cases": 0,
+        "regressed_cases": 0,
+        "bootstrap_unit": "case",
+        "bootstrap_draws": 2000,
+        "bootstrap_seed": 20261112
+      },
+      {
+        "reference": "baseline",
+        "candidate": "adaptive",
+        "paired_cases": 1,
+        "success_delta": 0.0,
+        "success_delta_ci95": [
+          0.0,
+          0.0
+        ],
+        "token_f1_delta": 0.0,
+        "token_f1_delta_ci95": [
+          0.0,
+          0.0
+        ],
+        "improved_cases": 0,
+        "regressed_cases": 0,
+        "bootstrap_unit": "case",
+        "bootstrap_draws": 2000,
+        "bootstrap_seed": 20261112
+      }
+    ],
+    "definitions": {
+      "success_rate": "Exact QA reference match or exact schema-valid extraction AND delivered status accepted/abstained.",
+      "answer_accuracy": "Reference answer correctness, independent of whether runtime accepted it.",
+      "exact_match": "SQuAD normalized exact match; QA only. Malformed empty outputs are not abstentions.",
+      "token_f1": "Maximum token F1 over reference spans; QA only; not embedding similarity.",
+      "field_accuracy": "Correct typed leaf fields / union of predicted and expected field paths, preserving array order.",
+      "recovery_rate": "Initially reference-incorrect answers corrected and delivered / initially incorrect answers.",
+      "regression_rate": "Initially correctly delivered tasks not correctly delivered at end / initially correctly delivered tasks.",
+      "answer_regression_rate": "Initially reference-correct answers becoming reference-incorrect / initially reference-correct answers, independent of delivery.",
+      "false_accept_rate": "Reference-incorrect accepted outputs / all accepted outputs, including explicit abstentions.",
+      "cost": "Logical standalone cost per policy includes shared initial generation. Actual study calls are tracked separately. Unknown usage blocks token-efficiency claims.",
+      "latency": "Logical cold end-to-end latency including shared initial generation. Hardware development activity may overlap.",
+      "intervals": "Paired percentile case bootstrap, 2000 draws. Small public-derived subset, not general accuracy or unseen training data."
+    }
+  },
+  "embedding_warmup": {
+    "latency_ms": 3652.5499159979518,
+    "available": true,
+    "model_calls": 0,
+    "included_in_trial_latency": false
+  },
+  "actual_usage": {
+    "calls": 7,
+    "observed_tokens": 8439,
+    "total_tokens": null,
+    "usage_known": false,
+    "shared_initial_generations": 2,
+    "logical_policy_tokens_are_not_actual_study_tokens": true
+  },
+  "elapsed_seconds": 239.04091899999912,
+  "finished_at": "2026-11-12T06:11:33.282106+00:00",
+  "source_unchanged": true
+}
