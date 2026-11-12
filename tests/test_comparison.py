@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import json
 from pathlib import Path
 
@@ -10,6 +11,12 @@ from agentproof.comparison import ComparisonError, compare_reports
 @pytest.fixture
 def report():
     return json.loads((Path(__file__).parents[1] / "reports/fixture-v1.json").read_text())
+
+
+def rehash_configuration(document):
+    document["config_hash"] = hashlib.sha256(
+        json.dumps(document["configuration"], sort_keys=True).encode()
+    ).hexdigest()
 
 
 def mark_failure(run):
@@ -76,8 +83,18 @@ def test_false_grade_detected_by_independent_regrading(report):
 
 
 def test_model_settings_mismatch_refused(report):
+    # Both budgets are valid for this one-attempt case. Reject the contrast,
+    # rather than merely rejecting an impossible budget or a stale hash.
+    report["scenarios"] = [s for s in report["scenarios"] if s["id"] == "eligible"]
+    report["runs"] = [r for r in report["runs"] if r["scenario_id"] == "eligible"]
+    report["configuration"]["scenario_ids"] = ["eligible"]
+    report["suite_hash"] = hashlib.sha256(
+        json.dumps(report["scenarios"], sort_keys=True).encode()
+    ).hexdigest()
+    rehash_configuration(report)
     other = copy.deepcopy(report)
-    other["configuration"]["max_proposals"] = 5
+    other["configuration"]["max_proposals"] = 1
+    rehash_configuration(other)
     with pytest.raises(ComparisonError, match="max_proposals"):
         compare_reports(report, other)
 
@@ -85,6 +102,7 @@ def test_model_settings_mismatch_refused(report):
 def test_scripted_comparison_ignores_unused_live_settings(report):
     other = copy.deepcopy(report)
     other["configuration"].update(model_revision="unrecorded", disable_thinking=False)
+    rehash_configuration(other)
     assert compare_reports(report, other)["gate"]["passed"]
 
 
@@ -92,6 +110,7 @@ def test_live_comparison_requires_matching_generation_settings():
     report = json.loads((Path(__file__).parents[1] / "reports/qwen35-4b-live-v1.json").read_text())
     other = copy.deepcopy(report)
     other["configuration"]["temperature"] = .8
+    rehash_configuration(other)
     with pytest.raises(ComparisonError, match="temperature"):
         compare_reports(report, other)
 
@@ -114,10 +133,10 @@ def test_invalid_metrics_refused(report, value):
 
 def test_prompt_source_changes_are_recorded_not_rejected(report):
     other = copy.deepcopy(report)
-    other["prompt_hash"] = "new-prompt"
-    other["server_metadata"] = {"backend_source_sha256": "new-source"}
+    other["prompt_hash"] = hashlib.sha256(b"new-prompt").hexdigest()
+    other["server_metadata"] = {"backend_source_sha256": hashlib.sha256(b"new-source").hexdigest()}
     for run in other["runs"]:
-        run["prompt_hash"] = "new-prompt"
+        run["prompt_hash"] = other["prompt_hash"]
     result = compare_reports(report, other)
     assert result["prompt_changed"] and result["source_changed"]
     assert result["gate"]["passed"]

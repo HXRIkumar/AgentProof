@@ -23,16 +23,75 @@ MODEL_SETTINGS = (
 )
 
 
+def _is_sha256(value):
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(char in "0123456789abcdef" for char in value)
+    )
+
+
+def _validated_configuration(document):
+    """Agreement between two documents does not make either configuration valid."""
+    config = document["configuration"]
+    if not isinstance(config, dict):
+        raise ComparisonError("Configuration must be an object")
+    missing = [key for key in (*MODEL_SETTINGS, "scenario_ids") if key not in config]
+    if missing:
+        raise ComparisonError("Missing evaluation settings: " + ", ".join(missing))
+    if set(config) - {*MODEL_SETTINGS, "scenario_ids", "base_url_sha256"}:
+        raise ComparisonError("Configuration contains unsupported evaluation settings")
+    if config["provider"] not in ("scripted", "openai"):
+        raise ComparisonError("Unsupported provider in configuration")
+    for key in ("model", "model_revision"):
+        if not isinstance(config[key], str) or not config[key].strip():
+            raise ComparisonError(f"Invalid model identity setting: {key}")
+    if config["provider"] == "openai" and config["model_revision"].strip() == "unrecorded":
+        raise ComparisonError("Live comparison requires a recorded model revision")
+    if type(config["disable_thinking"]) is not bool:
+        raise ComparisonError("disable_thinking must be a boolean")
+    temperature = config["temperature"]
+    if (
+        type(temperature) not in (int, float)
+        or not 0 <= temperature <= 2
+        or not math.isfinite(temperature)
+    ):
+        raise ComparisonError("temperature must be a finite number between zero and two")
+    timeout = config["timeout_seconds"]
+    if (timeout is not None or config["provider"] == "openai") and (
+        type(timeout) not in (int, float)
+        or not 1 <= timeout <= 120
+        or not math.isfinite(timeout)
+    ):
+        raise ComparisonError("timeout_seconds must be finite and between 1 and 120")
+    tokens = config["max_tokens"]
+    if (tokens is not None or config["provider"] == "openai") and (
+        type(tokens) is not int or not 128 <= tokens <= 2048
+    ):
+        raise ComparisonError("max_tokens must be an integer between 128 and 2048")
+    if type(config["max_proposals"]) is not int or config["max_proposals"] not in (1, 3):
+        raise ComparisonError("max_proposals must be the integer 1 or 3")
+    if config["variant_order"] != "alternating_by_scenario_and_repeat":
+        raise ComparisonError("Unsupported variant_order")
+    if "base_url_sha256" in config and not _is_sha256(config["base_url_sha256"]):
+        raise ComparisonError("Malformed endpoint fingerprint")
+    if not _is_sha256(document.get("prompt_hash")):
+        raise ComparisonError("Missing or malformed prompt fingerprint")
+    if not _is_sha256(document.get("config_hash")):
+        raise ComparisonError("Missing or malformed config_hash")
+    canonical = json.dumps(config, sort_keys=True, allow_nan=False).encode()
+    if hashlib.sha256(canonical).hexdigest() != document["config_hash"]:
+        raise ComparisonError("Configuration content does not match its config_hash")
+    return config
+
+
 def _validated_report(document: dict) -> dict:
     try:
         if document["status"] != "completed":
             raise ComparisonError("Both experiments must be completed, not partial or cancelled")
         if document.get("error") is not None:
             raise ComparisonError("Completed experiment exports must not contain an error")
-        config = document["configuration"]
-        missing = [key for key in MODEL_SETTINGS if key not in config]
-        if missing:
-            raise ComparisonError("Missing evaluation settings: " + ", ".join(missing))
+        config = _validated_configuration(document)
         scenarios = [Scenario.model_validate(s) for s in document["scenarios"]]
         scenario_map = {s.id: s for s in scenarios}
         if not scenarios or len(scenario_map) != len(scenarios):
@@ -68,12 +127,29 @@ def _validated_report(document: dict) -> dict:
                 raise ComparisonError("Run provider/model differs from experiment configuration")
             if run["prompt_hash"] != document["prompt_hash"]:
                 raise ComparisonError("Run prompt differs from experiment prompt")
+            if "engine_options" in run:
+                options = run["engine_options"]
+                if (
+                    not isinstance(options, dict)
+                    or set(options) != {"max_proposals"}
+                    or type(options["max_proposals"]) is not int
+                    or options["max_proposals"] != config["max_proposals"]
+                ):
+                    raise ComparisonError("Run engine_options differ from its declared proposal budget")
+            if "proposal_calls" in run:
+                limit = config["max_proposals"] if run["variant"] == "guarded" else 1
+                if type(run["proposal_calls"]) is not int or not 0 <= run["proposal_calls"] <= limit:
+                    raise ComparisonError("Proposal-call count exceeds the declared run budget")
             if run.get("approval_decision") is not None or run["final_state"].get("approval") is not None:
                 raise ComparisonError("Compare pre-approval exports; later human actions alter outcomes")
             for metric in ("latency_ms", "model_calls", "token_usage", "retries"):
                 value = run[metric]
                 allowed = (int, float) if metric == "latency_ms" else (int,)
-                if type(value) not in allowed or not math.isfinite(value) or value < 0:
+                try:
+                    finite = type(value) in allowed and math.isfinite(value)
+                except OverflowError:
+                    finite = False
+                if not finite or value < 0:
                     raise ComparisonError(f"Invalid run metric: {metric}")
             effects = run["final_state"]["effects"]
             if not isinstance(effects, list):
@@ -99,10 +175,6 @@ def _validated_report(document: dict) -> dict:
             raise ComparisonError("Incomplete or duplicate coverage: every case needs both variants")
         if document["provider"] != config["provider"]:
             raise ComparisonError("Provider metadata is inconsistent")
-        if document["provider"] == "openai" and config.get("model_revision") in (
-            None, "", "unrecorded"
-        ):
-            raise ComparisonError("Live comparison requires a recorded model revision")
         return {"groups": groups, "config": config, "suite": canonical, "hash": digest}
     except ComparisonError:
         raise

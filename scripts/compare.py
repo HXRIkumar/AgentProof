@@ -4,11 +4,41 @@
 import argparse
 import hashlib
 import json
+import math
 import os
-import tempfile
+import stat
+import uuid
+from contextlib import ExitStack
 from pathlib import Path
 
 from agentproof.comparison import ComparisonError, compare_reports
+
+
+def unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ComparisonError("Comparison input contains duplicate JSON keys")
+        result[key] = value
+    return result
+
+
+def invalid_constant(_value):
+    raise ComparisonError("Comparison input contains a non-finite JSON number")
+
+
+def finite_float(value):
+    number = float(value)
+    if not math.isfinite(number):
+        invalid_constant(value)
+    return number
+
+
+def decode_report(raw):
+    return json.loads(
+        raw, object_pairs_hook=unique_object,
+        parse_constant=invalid_constant, parse_float=finite_float,
+    )
 
 
 def output_paths(prefix, inputs, *, overwrite):
@@ -26,24 +56,50 @@ def output_paths(prefix, inputs, *, overwrite):
     return paths
 
 
-def publish(path, contents, *, overwrite):
-    """Publish a complete file; default mode cannot clobber a concurrent writer."""
-    with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, delete=False) as stream:
-        temporary = Path(stream.name)
-        try:
+def file_identity(metadata):
+    return metadata.st_dev, metadata.st_ino
+
+
+def check_destination(directory_fd, name, input_identities, *, overwrite):
+    try:
+        destination = os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
+    except FileNotFoundError:
+        return
+    if file_identity(destination) in input_identities:
+        raise ValueError("Comparison output must not replace an input report")
+    if stat.S_ISLNK(destination.st_mode):
+        raise ValueError("Comparison output must not replace a symbolic link")
+    if not overwrite:
+        raise ValueError("Comparison output already exists; choose a new path or --overwrite")
+    if not stat.S_ISREG(destination.st_mode):
+        raise ValueError("Comparison output must be a regular file")
+
+
+def publish(directory_fd, name, contents, *, overwrite, input_identities):
+    """Publish through a pinned POSIX directory, never a re-resolved parent path."""
+    temporary = ".agentproof-compare-" + uuid.uuid4().hex + ".tmp"
+    descriptor = os.open(
+        temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600, dir_fd=directory_fd
+    )
+    try:
+        with os.fdopen(descriptor, "w") as stream:
             stream.write(contents)
             stream.flush()
             os.fsync(stream.fileno())
-        except BaseException:
-            temporary.unlink(missing_ok=True)
-            raise
-    try:
+        check_destination(directory_fd, name, input_identities, overwrite=overwrite)
         if overwrite:
-            os.replace(temporary, path)
+            os.replace(temporary, name, src_dir_fd=directory_fd, dst_dir_fd=directory_fd)
         else:
-            os.link(temporary, path)
+            os.link(
+                temporary, name, src_dir_fd=directory_fd, dst_dir_fd=directory_fd,
+                follow_symlinks=False,
+            )
+        os.fsync(directory_fd)
     finally:
-        temporary.unlink(missing_ok=True)
+        try:
+            os.unlink(temporary, dir_fd=directory_fd)
+        except FileNotFoundError:
+            pass
 
 
 def main():
@@ -54,15 +110,21 @@ def main():
     parser.add_argument("--minimum-rate", type=float, default=.9)
     parser.add_argument("--overwrite", action="store_true", help="Replace derived outputs, never inputs")
     args = parser.parse_args()
+    with ExitStack() as stack:
+        return execute(args, parser, stack)
+
+
+def execute(args, parser, stack):
     try:
         paths = output_paths(args.output, (args.reference, args.candidate), overwrite=args.overwrite)
-        old, new = args.reference.read_bytes(), args.candidate.read_bytes()
-        report = compare_reports(json.loads(old), json.loads(new), args.minimum_rate)
+        sources = [stack.enter_context(path.open("rb")) for path in (args.reference, args.candidate)]
+        input_identities = {file_identity(os.fstat(source.fileno())) for source in sources}
+        old, new = (source.read() for source in sources)
+        report = compare_reports(decode_report(old), decode_report(new), args.minimum_rate)
     except (OSError, ValueError, ComparisonError) as exc:
         parser.exit(2, f"Comparison refused: {exc}\n")
     report["reference_sha256"] = hashlib.sha256(old).hexdigest()
     report["candidate_sha256"] = hashlib.sha256(new).hexdigest()
-    args.output.parent.mkdir(parents=True, exist_ok=True)
     lines = ["# Release comparison", "", "| Strategy | Before | After | Tokens before / after | p95 ms before / after |", "|---|---:|---:|---:|---:|"]
     for name, row in report["variants"].items():
         a, b = row["before"], row["after"]
@@ -76,11 +138,23 @@ def main():
     lines += ["", "## Limits", ""] + ["- " + item for item in report["limitations"]]
     lines += ["", f"Reference SHA-256: `{report['reference_sha256']}`", f"Candidate SHA-256: `{report['candidate_sha256']}`", ""]
     try:
-        # Recheck input aliases immediately before publishing. --overwrite applies
-        # only to derived reports, never the raw evidence used in this invocation.
+        if os.name != "posix" or not hasattr(os, "O_DIRECTORY"):
+            raise ValueError("Safe comparison publication requires POSIX directory handles (macOS/Linux)")
+        args.output.parent.mkdir(parents=True, exist_ok=True)
         output_paths(args.output, (args.reference, args.candidate), overwrite=args.overwrite)
-        publish(paths[0], json.dumps(report, indent=2) + "\n", overwrite=args.overwrite)
-        publish(paths[1], "\n".join(lines), overwrite=args.overwrite)
+        directory_fd = os.open(args.output.parent, os.O_RDONLY | os.O_DIRECTORY)
+        stack.callback(os.close, directory_fd)
+        # These checks use the actually opened input files and pinned destination
+        # directory. Replacing a parent path later cannot redirect the writes.
+        for path in paths:
+            check_destination(directory_fd, path.name, input_identities, overwrite=args.overwrite)
+        for path, contents in zip(paths, (json.dumps(report, indent=2) + "\n", "\n".join(lines))):
+            publish(
+                directory_fd, path.name, contents, overwrite=args.overwrite,
+                input_identities=input_identities,
+            )
+        if file_identity(args.output.parent.stat()) != file_identity(os.fstat(directory_fd)):
+            raise ValueError("Output directory changed; outputs remain in the originally opened directory")
     except (OSError, ValueError) as exc:
         parser.exit(2, f"Comparison output refused: {exc}\n")
     print(json.dumps({"gate": report["gate"], "variants": report["variants"]}, indent=2))
