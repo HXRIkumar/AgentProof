@@ -251,10 +251,17 @@ export default function Experiments({
       render: (m) => [percent(m.field_accuracy)],
     },
     {
-      label: "Error recovery",
+      label: "Answer error recovery",
       render: (m) => [
         percent(m.recovery_rate),
-        `${m.recovered} / ${m.initial_failures} initial failures`,
+        `${m.recovered} / ${m.initial_failures} initially incorrect answers`,
+      ],
+    },
+    {
+      label: "Task delivery recovery",
+      render: (m) => [
+        percent(m.task_recovery_rate),
+        `${number(m.task_recovered)} / ${number(m.initial_task_failures)} initially unsuccessful tasks`,
       ],
     },
     {

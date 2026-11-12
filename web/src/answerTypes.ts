@@ -133,6 +133,9 @@ export type StrategyMetrics = {
   recovered: number;
   initial_failures: number;
   recovery_rate: number | null;
+  task_recovered?: number;
+  initial_task_failures?: number;
+  task_recovery_rate?: number | null;
   regressed: number;
   initial_successes: number;
   regression_rate: number | null;
