@@ -28,6 +28,8 @@ from .providers import PROMPT_HASH, LiveProvider, provider_for
 from .scenarios import SCENARIOS, SUITE_HASH, SUITE_VERSION, public_scenario
 from .store import Store
 from .summary import summarize
+from .support import SupportService
+from .support import create_router as create_support_router
 
 
 def runtime_configuration(adapter) -> dict:
@@ -44,7 +46,7 @@ def runtime_configuration(adapter) -> dict:
 
 def create_app(
     db_path: str | Path | None = None, provider_factory=None, *, evidence_root: Path | None = None,
-    answer_service=None,
+    answer_service=None, support_service=None,
 ) -> FastAPI:
     # Snapshot at app construction, not request time; no hostnames, usernames or absolute paths.
     source_hash = hashlib.sha256()
@@ -63,9 +65,13 @@ def create_app(
     async def lifespan(app):
         app.state.worker.start()
         try:
+            app.state.support_service.start()
             yield
         finally:
-            await asyncio.to_thread(app.state.worker.stop)
+            await asyncio.gather(
+                asyncio.to_thread(app.state.worker.stop),
+                asyncio.to_thread(app.state.support_service.stop),
+            )
 
     application = FastAPI(
         title="AgentProof",
@@ -73,12 +79,15 @@ def create_app(
         docs_url="/api/docs",
         openapi_url="/api/openapi.json",
         redoc_url="/api/redoc",
-        description="Local synthetic agent release-testing workbench. No real payment tools.",
+        description="Document-grounded support drafting, explicit human review, and an inspectable LLM reliability runtime.",
         lifespan=lifespan,
     )
     application.add_middleware(
         RequestBodyLimitMiddleware,
-        post_path_limits={"/api/support/documents": 8 * 1024 * 1024},
+        post_path_limits={
+            "/api/support/documents": 8 * 1024 * 1024,
+            "/api/support/tickets/import": 2 * 1024 * 1024,
+        },
     )
     application.add_middleware(
         TrustedHostMiddleware,
@@ -98,6 +107,12 @@ def create_app(
             reports_dir=Path(__file__).resolve().parents[2] / "reports" / "answers",
         )
     )
+    support_path = Path(store.path).with_name(Path(store.path).stem + ".support.sqlite3")
+    application.state.support_service = support_service or SupportService(
+        os.getenv("AGENTPROOF_SUPPORT_DB", str(support_path)),
+        application.state.answer_service,
+    )
+    application.include_router(create_support_router(application.state.support_service))
     evidence_library = EvidenceLibrary(evidence_root)
     max_queued = max(1, min(100, int(os.getenv("AGENTPROOF_MAX_QUEUED", "8"))))
 

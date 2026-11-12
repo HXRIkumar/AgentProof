@@ -43,7 +43,8 @@ messages. IDs are server UUIDs. Times ISO8601 UTC. Record versions are integers.
 - `POST /tickets`: `{title, body, external_id?:string}`. Title max200, body max20000.
 - `POST /tickets/import`: `{filename, content_base64}` accepting CSV or JSON list;
   CSV headers `title,body,external_id` (subject/description aliases acceptable).
-  At most50 rows, validate before writes; return `{tickets, created_count,
+  At most50 rows and1MiB decoded content (2MiB request-body allowance for base64),
+  validate before writes; return `{tickets, created_count,
   duplicate_count}`. Same external ID+content is idempotent; changed content409.
 - `GET /tickets/{id}`: Ticket + `result` (nullable), `events`, `active_job` nullable.
 - `POST /tickets/{id}/process`: `{strategy?:"adaptive"|"validated"|"baseline",
