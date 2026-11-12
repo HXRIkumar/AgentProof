@@ -212,6 +212,59 @@ def test_queued_cancel_restart_and_single_worker_ownership(tmp_path):
         reloaded.stop()
 
 
+def test_regeneration_keeps_prior_job_output_sources_and_read_time_freshness(tmp_path, monkeypatch):
+    service, answers, document, ticket = setup(tmp_path)
+    original = queued(service, ticket)
+    assert service.job(original["id"])["result"] is None
+    service.start()
+    try:
+        assert wait_terminal(service, original)["status"] == "completed"
+        first = service.job(original["id"])["result"]
+        assert first["stale"] is False
+        with service.store.connect() as db:
+            immutable = db.execute(
+                "SELECT result_json FROM support_jobs WHERE id=?", (original["id"],)
+            ).fetchone()[0]
+
+        changed_document = service.add_document(
+            "manual.md", content("For the revised workflow, choose Account then Download.")
+        )
+        assert service.job(original["id"])["result"]["stale"] is True
+        run = answers.run
+
+        def changed_reply(request):
+            result = run(request)
+            result["data"]["draft_reply"] = "The revised response uses Account then Download."
+            return result
+
+        monkeypatch.setattr(answers, "run", changed_reply)
+        latest = queued(service, ticket, "regenerate")
+        assert wait_terminal(service, latest)["status"] == "completed"
+        current = service.ticket(ticket["id"])["result"]
+        retained = service.job(original["id"])["result"]
+        assert current["stale"] is False and retained["stale"] is True
+        assert current["answer_run"]["id"] != retained["answer_run"]["id"]
+        assert retained["data"] == first["data"]
+        assert current["data"]["draft_reply"] != retained["data"]["draft_reply"]
+        assert retained["sources"][1]["document_id"] == document["id"]
+        assert retained["sources"][1]["version"] == 1
+        assert "Settings" in retained["sources"][1]["text"]
+        assert current["sources"][1]["document_id"] == changed_document["id"]
+        with service.store.connect() as db:
+            assert (
+                db.execute(
+                    "SELECT result_json FROM support_jobs WHERE id=?", (original["id"],)
+                ).fetchone()[0]
+                == immutable
+            )
+        app = FastAPI()
+        app.include_router(create_router(service))
+        with TestClient(app) as client:
+            assert client.get(f"/api/support/jobs/{original['id']}").json()["result"] == retained
+    finally:
+        service.stop()
+
+
 def test_running_cancel_retains_actual_result_and_usage(tmp_path):
     service, answers, _, ticket = setup(tmp_path, block=True)
     job = queued(service, ticket)

@@ -52,7 +52,12 @@ messages. IDs are server UUIDs. Times ISO8601 UTC. Record versions are integers.
   document-version snapshot at enqueue. Duplicate key+same request returns same
   job; conflicting key or already-active ticket409. Unconfigured provider503;
   no active knowledge422. Snapshot must remain readable after docs change.
-- `GET /jobs/{id}`: Job with progress/state and safe error.
+- `GET /jobs/{id}`: Job with progress/state, safe error and `result: Result|null`.
+  Completed, failed and cancelled jobs retain any captured result, sources and
+  actual usage independently of the ticket's newest draft. `result.stale` is
+  recomputed against current knowledge when read; the saved result is not changed.
+  Use job IDs from ticket events to inspect an earlier attempt after regeneration.
+  Enqueue and cancel responses keep their existing Job metadata shape.
 - `POST /jobs/{id}/cancel`: queued job cancels immediately; running job requests
   cancellation after the current bounded ticket inference finishes. Retain any
   actual result/usage; do not claim interruption of an in-flight provider call.
@@ -76,6 +81,7 @@ category|null, priority|null`. States: `open, queued, processing, review, approv
 escalated, failed, cancelled`. Detail extends with result/events/active_job.
 
 Job: `id,ticket_id,status,created_at,started_at,finished_at,cancel_requested,error`.
+The job-detail GET additionally includes nullable `result`, using the Result shape below.
 States: `queued,running,completed,failed,cancelled`. Restart marks interrupted jobs
 failed with an explicit interrupted reason (no silent paid retry); queued jobs
 remain durable. Single active worker avoids local-model contention. Stop owned

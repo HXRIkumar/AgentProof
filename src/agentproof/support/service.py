@@ -438,9 +438,14 @@ class SupportService:
 
     def job(self, job_id):
         with self.store.connect() as db:
-            return self._job(
-                db.execute("SELECT * FROM support_jobs WHERE id=?", (job_id,)).fetchone()
-            )
+            row = db.execute("SELECT * FROM support_jobs WHERE id=?", (job_id,)).fetchone()
+            job = self._job(row)
+            result = json.loads(row["result_json"]) if row["result_json"] else None
+            if result:
+                # Historical evidence is immutable; freshness is a read-time view.
+                result["stale"] = result["knowledge_revision"] != self._revision(db)
+            job["result"] = result
+            return job
 
     def cancel(self, job_id):
         with self.store.connect(write=True) as db:
