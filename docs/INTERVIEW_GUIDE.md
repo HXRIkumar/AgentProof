@@ -101,6 +101,19 @@ efficiency analysis cannot approve a cost claim when any actual model response
 has unknown accounting. Older exports are explicitly labelled as aggregate-only
 evidence; their absent details cannot be reconstructed.
 
+**Did you test whether retries help?** Yes: a separate study kept the guarded
+workflow fixed and compared one versus up to three proposals. Challenge correct
+outcomes rose from 30/60 to 54/60, but reported tokens rose from 23,802 to 47,658.
+That violated the predeclared token-efficiency threshold. It supports a bounded
+correctness benefit, not a claim that more retries are always worth their cost.
+It also does not isolate wording from the opportunity to try again.
+
+**What does tracing add?** One run span contains its stage spans, and the saved
+run includes the same trace and span IDs received by a real OTLP collector in
+tests. Span status OK means the evaluation finished; task correctness is a
+separate attribute. An interrupted evaluation does not export the run object's
+initial safety flag as a verified result.
+
 **What did you deliberately omit?** A vector database for a tiny exact policy,
 unnecessary multi-agent personas, and an LLM-generated "reliability score" that
 does not correspond to observable correctness.

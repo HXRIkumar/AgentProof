@@ -2,7 +2,50 @@
 
 Checked on 12 November 2026, Apple M4, 24 GB unified memory, macOS 26.5.1.
 
-## Version 0.2 candidate
+## Version 0.4 integration checks
+
+[GitHub Actions run 43122576001](https://github.com/HXRIkumar/AgentProof/actions/runs/43122576001)
+passed for `60ff899`: **494 Python tests**, Ruff, four web test groups and production
+build, four real browser workflows, fixture comparison, and production-container
+checks. This is a source-specific verification record, not a claim about later
+changes or a hosted production deployment.
+
+The Linux container checks inspected all five historical model reports before
+running any experiments, verified each exact download hash, and independently
+queried SQLite to confirm that archive browsing left both the experiment and run
+tables empty. No live provider was configured. The same job then executed 48
+original and 60 challenge fixture trials and verified persisted evidence after a
+container restart.
+
+The four browser workflows cover classic experiment/replay/approval/export;
+background progress, reload and cancellation; exact-snapshot release comparison;
+and read-only archive inspection. Archive QA also creates a deliberate local ID
+collision and confirms that approving the local run cannot change the historical
+record. Desktop and mobile checks reported no JavaScript errors or horizontal
+overflow.
+
+The separate HTTP service lab completed six process-boundary tests, including a
+committed effect followed by a lost acknowledgement, restart and reconciliation,
+eight concurrent requests using one key, conflicting arguments, unresolved
+lookup, and a new-key negative control. Its independently inspected ledger results
+are in [the saved report](../reports/remote-tool-lab-v1/report.md). They are not
+real payment transactions or model benchmarks.
+
+At this checkpoint, `npm audit` reported zero known vulnerabilities. `pip-audit`
+also reported none in the Python environment it inspected; the editable project
+itself was excluded, and the temporary audit tool's dependencies were included.
+These are point-in-time advisory checks, not a source-code security assessment.
+
+Completed real-model findings are recorded separately:
+[original v0.1](../reports/LIVE_FINDINGS.md),
+[challenge comparison](../reports/CHALLENGE_FINDINGS.md),
+[original regression](../reports/ORIGINAL_REGRESSION_FINDINGS.md), and
+[independent verification](../reports/INDEPENDENT_VERIFICATION_FINDINGS.md).
+The [rules-only control](../reports/RULES_REFERENCE_FINDINGS.md) answers whether
+inference is necessary for the structured policy; its trials are not pooled with
+the model studies.
+
+## Historical version 0.2 checkpoint
 
 - Python: **228 tests passed**, Ruff clean. Includes independent evidence-integrity
   checks, queue races and restart recovery, provider usage validation, actionable
@@ -31,8 +74,8 @@ Checked on 12 November 2026, Apple M4, 24 GB unified memory, macOS 26.5.1.
   verification was not substituted for the successful Linux CI build. Existing
   unrelated containers were preserved.
 
-Live before/after evaluation remains in progress at this checkpoint. Its final
-results will be recorded after completion; none is inferred from unit tests.
+Live before/after evaluation was still in progress at this historical checkpoint.
+The completed reports are linked above; their results were not inferred from tests.
 
 ## Published version 0.1 checks
 

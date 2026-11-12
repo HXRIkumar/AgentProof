@@ -1,8 +1,11 @@
-# Next experiment: what does bounded recovery contribute?
+# Predeclared experiment: what does bounded recovery contribute?
 
-**Status: proposed; no results claimed.** Implement and freeze this experiment
-only after the current candidate evaluation finishes. Keep the present raw
-reports and frozen challenge JSON unchanged.
+**Status: the A1/A3 minimum experiment completed on 12 November 2026.**
+[Results, frozen source and original reports](../reports/ABLATION_FINDINGS.md)
+show a correctness benefit and a failed token-efficiency threshold. The four-arm
+mechanism experiment below remains a proposal, with no implementation or results
+claimed. The protocol text below retains the predeclared design; original reports
+and the frozen challenge JSON remain unchanged.
 
 The existing baseline-versus-guarded comparison combines policy validation,
 approval, retries and idempotency. This experiment holds all deterministic

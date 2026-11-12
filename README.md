@@ -211,6 +211,24 @@ This is an evaluation workbench for inspecting model workflows, not a claim that
 all business rules should use an LLM. Choosing ordinary code when it is sufficient
 is one of the project's findings.
 
+## Measure what extra recovery costs
+
+A frozen, balanced **216-trial A1/A3 study** held the guarded workflow constant
+and varied only its proposal budget. Original-suite correctness rose **40/48 to
+48/48**; challenge correctness rose **30/60 to 54/60**, with no per-case losses
+and all defined effect checks passing. Challenge reported tokens rose **100.2%**,
+so the result **fails the predeclared token-efficiency threshold** despite its
+correctness gain. The two suites remain separate; repeats are correlated.
+[Protocol, complete results and original evidence](reports/ABLATION_FINDINGS.md).
+
+```sh
+uv run python scripts/ablate.py run --provider openai --output-dir artifacts/my-ablation
+```
+
+This experiment accepts only a local inference endpoint. It is not a release
+comparison or an equal-compute test. Existing reports retain aggregate-only usage
+limitations; newer diagnostics make unknown per-response accounting explicit.
+
 ## Cross a real service boundary
 
 ```sh
@@ -245,7 +263,7 @@ flowchart LR
     GATE --> LEDGER[Transactional simulated refund ledger]
     APPROVAL --> LEDGER
     LEDGER --> GRADE[Independent final-state checks]
-    GRAPH --> TRACE[OpenTelemetry stage spans]
+    GRAPH --> TRACE[Run span with child stage spans]
     GRADE --> DB[(SQLite run journal)]
     DB --> UI
 ```
@@ -254,6 +272,9 @@ Python/FastAPI/Pydantic handle typed boundaries; LangGraph makes the workflow
 explicit; SQLite owns transaction identity and evidence; React/TypeScript makes
 the comparison inspectable. Optional OTLP export is configured using
 `OTEL_EXPORTER_OTLP_ENDPOINT`. No prompt bodies or credentials are span attributes.
+Persisted run IDs correlate with actual OTLP trace/span IDs when tracing is
+configured; disabled mode records no borrowed IDs. [Tracing behavior and tested
+boundaries](docs/TRACE_CONTEXT.md).
 
 ## Scope and honest limits
 
@@ -271,6 +292,7 @@ the comparison inspectable. Optional OTLP export is configured using
 
 ## Start here for interviews
 
+[Two-minute walkthrough of actual saved evidence](docs/DEMO.md) ·
 [Five-minute demonstration and architecture questions](docs/INTERVIEW_GUIDE.md) ·
 [Research and technology decisions](docs/RESEARCH.md) ·
 [Evaluation methodology](docs/EVALUATION_PROTOCOL.md) ·
