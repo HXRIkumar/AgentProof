@@ -575,6 +575,11 @@ class AnswerService:
                         "checks": review_checks,
                         "response": asdict(review_response),
                     }
+                    if not review_response.request_sent:
+                        result["status"] = "error"
+                        result["cache"]["status"] = "verification_blocked"
+                        result["quality"]["checks"] = deterministic + review_checks
+                        return finish()
                     if all(item["passed"] for item in review_checks):
                         result.update(candidate.model_dump())
                         result["status"] = "accepted"

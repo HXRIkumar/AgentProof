@@ -1,5 +1,6 @@
 """Independent cascade guards; in-memory adapters only, no keys or network."""
 
+import test_answers_runtime as cache_fixtures
 from test_answer_cascade import answer, critique, request, service
 
 from agentproof.answers import ModelResponse
@@ -35,3 +36,29 @@ def test_failed_escalation_cannot_replace_better_earlier_candidate(tmp_path):
     assert result["attempts"][0]["generation"]["model"] == "draft-model"
     assert result["attempts"][1]["generation"]["model"] == "reviewer-model"
     assert result["usage"]["calls"] == 3
+
+
+def test_blocked_semantic_verification_stops_before_fresh_generation(tmp_path):
+    blocked = ModelResponse("", error="Budget denied", request_sent=False,
+                            blocked_reason="budget_exhausted", model="reviewer-model")
+    runtime = cache_fixtures.service(
+        tmp_path, [cache_fixtures.answer(), cache_fixtures.critic(), blocked,
+                   cache_fixtures.answer(), cache_fixtures.critic()],
+        cache_fixtures.ConstantEmbeddings(),
+    )
+    seed = runtime.run(cache_fixtures.request())
+    assert seed["status"] == "accepted"
+    paraphrase = cache_fixtures.request().model_copy(
+        update={"question": "In which year was the service launched?"}
+    )
+    result = runtime.run(paraphrase)
+    assert [purpose for purpose, _ in runtime.adapter.calls] == ["generate", "critic", "critic"]
+    assert result["status"] == "error" and result["cache"]["status"] == "verification_blocked"
+    assert result["answer"] == "" and result["attempts"] == []
+    assert result["usage"]["actual_calls"] == 0 and result["usage"]["blocked_calls"] == 1
+    assert result["cache"]["verification"]["response"]["blocked_reason"] == "budget_exhausted"
+    assert result["quality"]["checks"] and any(
+        not check["passed"] for check in result["quality"]["checks"]
+    )
+    assert runtime.run(cache_fixtures.request())["cache"]["status"] == "exact_hit"
+    assert len(runtime.adapter.calls) == 3
