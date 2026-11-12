@@ -1,0 +1,16 @@
+{
+  "format": "agentproof-answer-release-v1",
+  "core_source_revision": "4ffa994f70cab27a3c170ba4621e4ff866534d12",
+  "primary_unique_cases": 64,
+  "secondary_repeat_adds_unique_cases": false,
+  "answers": {
+    "mini-hosted-repeat-v1": "e9b4f6a26dcb696d64592336557c23e1f3a1e56361fb33b032686a3673eb8095",
+    "mini-hosted-v1": "cac17181e9d54f15dcec7e86ec2ab34a10075e88b6e2b48bf62d41f784695c56",
+    "qwen-local-v1": "ca72f38dd6495bde37e8412d4b0a9d43f352cfac7c7096f386cd7a2308b77e85",
+    "qwen-mini-cascade-v1": "85009b12708b75612021b5d1cba31c85cf35a04b9b02d7df84cf922b45c3e51a",
+    "qwen-mini-critic-v1": "7980d2205e5a3a308fbe71649d6d040ef1d750802627171cd7896284ce982588"
+  },
+  "cache": {
+    "qwen-cache-v1": "88311d147fcc9a66be324bbc233a04365d393230197045999759a5c617cb90ed"
+  }
+}

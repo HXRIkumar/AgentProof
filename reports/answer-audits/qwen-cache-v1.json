@@ -1,0 +1,118 @@
+{
+  "format": "answer-cache-audit-v1",
+  "passed": true,
+  "report_sha256": "88311d147fcc9a66be324bbc233a04365d393230197045999759a5c617cb90ed",
+  "source_files_checked_on_disk": true,
+  "suite_sha256": "34ac6b3a7eb0080ee07b827c8b45464781e0aa05c997fd190d10eafc7ff53163",
+  "requests": 36,
+  "actual_usage": {
+    "calls": 34,
+    "actual_calls": 34,
+    "reused_calls": 0,
+    "prompt_tokens": 19761,
+    "completion_tokens": 1856,
+    "total_tokens": 21617,
+    "actual_total_tokens": 21617,
+    "known": true,
+    "unknown_calls": 0
+  },
+  "correct_pair_speedup_p50": 8233.516542277846,
+  "correct_paired_groups": 4,
+  "summary": {
+    "complete": true,
+    "planned_groups": 4,
+    "planned_exact_replays": 20,
+    "planned_semantic_queries": 12,
+    "cold_requests": 4,
+    "cold_correct": 4,
+    "cold_incorrect": 0,
+    "exact_replay_requests": 20,
+    "exact_hits": 20,
+    "exact_answer_matches": 20.0,
+    "exact_hit_rate": 1.0,
+    "exact_false_hits": 0,
+    "exact_false_hit_rate": 0.0,
+    "paired_cold_requests": 4,
+    "cold_p50_ms": 13453.043041499768,
+    "warm_p50_ms": 1.5639999983250163,
+    "p50_exact_replay_speedup": 8601.689933444666,
+    "correct_paired_groups": 4,
+    "correct_pair_speedup_p50": 8233.516542277846,
+    "semantic_queries": 12,
+    "semantic_hits": 2,
+    "semantic_false_hits": 0,
+    "semantic_false_hit_rate": 0.0,
+    "semantic_total_correct": 10,
+    "negative_query_hits": 0,
+    "rejected_candidates": 1,
+    "actual_calls": 34,
+    "tokens": 21617,
+    "observed_tokens": 21617,
+    "usage_known": true,
+    "source_unchanged": true,
+    "by_kind": {
+      "entity-swap": {
+        "requests": 2,
+        "correct": 2,
+        "hits": 0,
+        "false_hits": 0,
+        "rejected_candidates": 0
+      },
+      "event-swap": {
+        "requests": 1,
+        "correct": 1,
+        "hits": 0,
+        "false_hits": 0,
+        "rejected_candidates": 0
+      },
+      "exception": {
+        "requests": 1,
+        "correct": 0,
+        "hits": 0,
+        "false_hits": 0,
+        "rejected_candidates": 0
+      },
+      "negation": {
+        "requests": 1,
+        "correct": 1,
+        "hits": 0,
+        "false_hits": 0,
+        "rejected_candidates": 1
+      },
+      "number-swap": {
+        "requests": 1,
+        "correct": 0,
+        "hits": 0,
+        "false_hits": 0,
+        "rejected_candidates": 0
+      },
+      "object-swap": {
+        "requests": 1,
+        "correct": 1,
+        "hits": 0,
+        "false_hits": 0,
+        "rejected_candidates": 0
+      },
+      "paraphrase": {
+        "requests": 4,
+        "correct": 4,
+        "hits": 2,
+        "false_hits": 0,
+        "rejected_candidates": 0
+      },
+      "unanswerable": {
+        "requests": 1,
+        "correct": 1,
+        "hits": 0,
+        "false_hits": 0,
+        "rejected_candidates": 0
+      }
+    },
+    "failed_outputs": 1,
+    "latency_scope": "End-to-end service.run including persistence. Ratio of median cold requests to median replays for groups where every planned replay hit; excludes non-hit groups, retains incorrect hits. Not new-query speed or throughput.",
+    "correct_pair_scope": "Median per-group cold/warm-median ratio restricted to reference-correct cold and warm outputs; conditional subset with explicit denominator.",
+    "negative_scope": "Negative labels mean reuse of the seed answer is not expected; a later cache entry may correctly answer them. False-hit rate uses reference grading, not the label alone.",
+    "calls_scope": "Actual adapter inference attempts reconstructed from saved generation/critic responses, including failed calls; no external billing attestation."
+  },
+  "scope": "Production cache-provenance/coverage regrade plus independent reference grading, raw call/token accounting and per-group speedup recomputation; no new inference."
+}
