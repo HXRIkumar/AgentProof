@@ -1,8 +1,9 @@
 # Optional hosted inference with a shared spending guard
 
 Hosted requests are **off by default**. The local generator and critic continue to
-work without an OpenAI key. No hosted request was made to implement or test this
-adapter; tests use fake credentials and mocked HTTP.
+work without an OpenAI key. Automated adapter tests use fake credentials and mocked
+HTTP. Separately enabled live studies record their real calls, tokens and estimated
+costs in the evidence archive.
 
 The adapter permits one paid snapshot: `gpt-5.4-mini-2026-03-17`, at the exact
 endpoint `https://api.openai.com/v1`. Other paid models/endpoints are rejected.
@@ -96,8 +97,11 @@ status = BudgetLedger().snapshot()
 
 Snapshots report `ceiling_usd`, `accounted_usd`, `reported_usage_estimate_usd`,
 `remaining_reservable_usd`, `reservations`, `unresolved_reservations`, and `frozen`.
-The difference between snapshots before and after a study is its actual additional
-accounted amount. These cumulative totals include earlier studies using the ledger.
+The difference between snapshots before and after a study is its additional
+accounted amount only when no other paid study overlaps it. These cumulative totals
+include every process using the ledger. For concurrent studies, use each report's
+`actual_usage` to attribute calls and estimated costs; do not assign the entire
+shared-ledger change to one study.
 
 Each model response records whether a request was actually sent and its reservation
 state. Run usage separates logical policy cost (including a shared initial answer)
