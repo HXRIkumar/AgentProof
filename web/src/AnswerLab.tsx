@@ -191,23 +191,31 @@ function Method() {
           <dl>
             <dt>Task success</dt>
             <dd>
-              Correct final answers divided by evaluated cases. QA uses exact
-              match; extraction checks fields against the reference.
+              Reference-correct answers delivered as accepted or abstained,
+              divided by all evaluated cases. QA uses normalized exact match;
+              extraction requires matching typed fields and a valid schema.
             </dd>
             <dt>Token F1</dt>
             <dd>
               Token overlap with reference answers, balancing precision and
               recall. Useful when an answer is partially correct.
             </dd>
-            <dt>Error recovery</dt>
+            <dt>Answer error recovery</dt>
             <dd>
-              Initially incorrect cases that finish correct, divided by
-              initially incorrect cases.
+              Initially reference-incorrect answers corrected and delivered,
+              divided by initially reference-incorrect answers.
+            </dd>
+            <dt>Task delivery recovery</dt>
+            <dd>
+              Initially unsuccessful tasks made reference-correct and deliverable.
+              This also includes repairing an already correct answer's format or
+              citation checks.
             </dd>
             <dt>Regression rate</dt>
             <dd>
-              Initially correct cases made incorrect by the strategy, divided by
-              initially correct cases.
+              Initially successful tasks that cease to succeed, divided by
+              initially successful tasks. Rejection of a correct answer also
+              counts as a task regression.
             </dd>
           </dl>
         </section>
@@ -246,6 +254,12 @@ function Method() {
             Reference grading measures false acceptance explicitly. Inspect
             individual cases and confidence intervals before treating a change
             as an improvement.
+          </p>
+          <p>
+            An exact-match failure is not automatically a hallucination. A longer
+            answer span can miss the reference wording even when it conveys the
+            right fact. Raw answers and token F1 remain visible alongside the
+            strict score.
           </p>
           <div className="al-method-links">
             <a
