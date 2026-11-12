@@ -29,7 +29,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { api } from "./api";
+import { api, evidenceDownloadUrl, RECORDED_ONLY } from "./api";
 import ReleaseComparison from "./ReleaseComparison";
 import {
   exampleScenarios,
@@ -644,7 +644,7 @@ export default function App() {
   const [library, setLibrary] = useState<EvidenceCatalogItem[]>([]);
   const [archiveError, setArchiveError] = useState("");
   const [selectionPending, setSelectionPending] = useState(false);
-  const readOnly = source?.kind === "archive";
+  const readOnly = RECORDED_ONLY || source?.kind === "archive";
   function selectSource(next: ExperimentSource) {
     sourceRef.current = next;
     setSource(next);
@@ -664,6 +664,7 @@ export default function App() {
   const inspectorAnchor = useRef<HTMLDivElement>(null);
 
   async function openExperiment(id: string) {
+    if (RECORDED_ONLY) return;
     const version = ++selectionVersion.current;
     ++inspectorVersion.current;
     setSelectionPending(true);
@@ -691,7 +692,7 @@ export default function App() {
       if (version === selectionVersion.current) setSelectionPending(false);
     }
   }
-  async function openArchive(archiveId: string) {
+  async function openArchive(archiveId: string, initialFilter = "all") {
     const version = ++selectionVersion.current;
     ++inspectorVersion.current;
     setSelectionPending(true);
@@ -709,7 +710,7 @@ export default function App() {
       setSelectedRun(null);
       setComposer(false);
       setSearch("");
-      setFilter("all");
+      setFilter(initialFilter);
     } catch (err) {
       if (version === selectionVersion.current)
         setError(
@@ -726,6 +727,15 @@ export default function App() {
     setError("");
     const version = selectionVersion.current;
     try {
+      if (RECORDED_ONLY) {
+        const recorded = await api<EvidenceCatalogItem[]>("/evidence");
+        setLibrary(recorded);
+        setArchiveError("");
+        if (version === selectionVersion.current)
+          await openArchive(sourceRef.current?.kind === "archive"
+            ? sourceRef.current.archiveId : "independent-v03");
+        return;
+      }
       const [newScenarios, newConfig, experiments, recorded] =
         await Promise.all([
           api<Scenario[]>("/scenarios"),
@@ -829,6 +839,7 @@ export default function App() {
   }, [experiment?.id, selectedActive, historyActive, busy]);
 
   async function runExperiment(body: object) {
+    if (RECORDED_ONLY) return;
     setBusy(true);
     setError("");
     setNotice("");
@@ -865,6 +876,7 @@ export default function App() {
   }
   async function cancelExperiment() {
     if (
+      RECORDED_ONLY ||
       sourceRef.current?.kind !== "workspace" ||
       selectionPending ||
       !experiment ||
@@ -898,6 +910,7 @@ export default function App() {
   }
   async function runAction(action: "replay" | "approve", approved = true) {
     if (
+      RECORDED_ONLY ||
       sourceRef.current?.kind !== "workspace" ||
       selectionPending ||
       !selectedRun
@@ -1010,6 +1023,7 @@ export default function App() {
           <span className="workspace-dot" />
           Refund operations<span className="mono">LAB</span>
         </div>
+        {!RECORDED_ONLY && (<>
         <button
           className="nav-active"
           onClick={() => {
@@ -1060,6 +1074,7 @@ export default function App() {
             </p>
           )}
         </nav>
+        </>)}
         <section
           className="archive-library"
           aria-label="Recorded evidence library"
@@ -1108,13 +1123,13 @@ export default function App() {
       <main id="main" className="main-content">
         <header className="topbar">
           <div>
-            <span>Workspace</span>
+            <span>{RECORDED_ONLY ? "Recorded demo" : "Workspace"}</span>
             <ChevronRight size={13} />
             <b>Agent reliability</b>
           </div>
           <span className={`connection ${config ? "connected" : ""}`}>
             <span />
-            {loading
+            {RECORDED_ONLY ? "Static evidence · no backend" : loading
               ? "Connecting"
               : config
                 ? "API connected"
@@ -1122,14 +1137,31 @@ export default function App() {
           </span>
         </header>
         <div className="page-content">
+          {RECORDED_ONLY && (
+            <section className="static-demo-notice" aria-label="Recorded-only demonstration">
+              <LockKeyhole size={20} />
+              <div>
+                <strong>Recorded evidence demo · no backend or model is running</strong>
+                <p>Browse recorded local-model trials in a synthetic refund lab. Nothing executes here.</p>
+                <div className="static-demo-actions">
+                  <button className="button small" disabled={selectionPending}
+                    onClick={() => void openArchive("challenge-v02", "failed")}>
+                    Inspect recorded challenge failures
+                  </button>
+                  <a href="https://github.com/HXRIkumar/AgentProof#run-it" target="_blank" rel="noreferrer">Run the full local application <ArrowRight size={13} /></a>
+                </div>
+              </div>
+            </section>
+          )}
           <div className="page-heading">
             <div>
               <div className="eyebrow">Evaluate before you release</div>
-              <h1>Experiment workbench</h1>
+              <h1>{RECORDED_ONLY ? "Recorded evidence workbench" : "Experiment workbench"}</h1>
               <p>
                 Compare agent decisions when tools, policies, and context fail.
               </p>
             </div>
+            {!RECORDED_ONLY && (
             <button
               className="button primary"
               onClick={() => setComposer(!composer)}
@@ -1138,6 +1170,7 @@ export default function App() {
               {composer ? <X size={16} /> : <Plus size={16} />}
               {composer ? "Close setup" : "New experiment"}
             </button>
+            )}
           </div>
           {selectionPending && (
             <p className="selection-loading" role="status">
@@ -1157,7 +1190,7 @@ export default function App() {
                 onClick={() => void initialize()}
                 disabled={busy}
               >
-                Reconnect
+                {RECORDED_ONLY ? "Reload evidence" : "Reconnect"}
               </button>
               <button
                 className="icon-button"
@@ -1187,7 +1220,7 @@ export default function App() {
               <p>{syncError}</p>
             </div>
           )}
-          {composer && (
+          {!RECORDED_ONLY && composer && (
             <NewExperiment
               scenarios={scenarios}
               config={config}
@@ -1202,7 +1235,7 @@ export default function App() {
               <p>Loading the workbench…</p>
             </div>
           )}
-          {!loading && !experiment && !composer && (
+          {!RECORDED_ONLY && !loading && !experiment && !composer && (
             <section className="welcome">
               <div className="welcome-visual">
                 <div className="rail-label">BASELINE</div>
@@ -1363,7 +1396,7 @@ export default function App() {
                     className="button"
                     href={
                       readOnly && archive
-                        ? archive.download_url
+                        ? evidenceDownloadUrl(archive)
                         : `/api/experiments/${encodeURIComponent(experiment.id)}/export`
                     }
                     download
@@ -1490,8 +1523,9 @@ export default function App() {
               )}
               {readOnly && (
                 <p className="archive-comparison-note">
-                  This historical snapshot is preserved. Release comparisons are
-                  available for experiments in your workspace.
+                  {RECORDED_ONLY
+                    ? "This historical snapshot is preserved. Run the full local application to execute and compare new experiments."
+                    : "This historical snapshot is preserved. Release comparisons are available for experiments in your workspace."}
                 </p>
               )}
               <div
@@ -1659,8 +1693,8 @@ export default function App() {
             <p>
               Deterministic checks. Visible decisions. Reproducible experiments.
             </p>
-            <a href="/api/docs">
-              API reference
+            <a href={RECORDED_ONLY ? "https://github.com/HXRIkumar/AgentProof" : "/api/docs"}>
+              {RECORDED_ONLY ? "Source and methodology" : "API reference"}
               <ArrowRight size={12} />
             </a>
           </footer>

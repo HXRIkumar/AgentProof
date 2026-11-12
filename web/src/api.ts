@@ -1,32 +1,8 @@
-export async function api<T>(
-  path: string,
-  body?: unknown,
-  signal?: AbortSignal,
-): Promise<T> {
-  const response = await fetch(
-    `/api${path}`,
-    body === undefined
-      ? { signal }
-      : {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-          signal,
-        },
-  );
-  const contentType = response.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json"))
-    throw new Error(
-      "The API did not return JSON. Check that the AgentProof server is running on port 8010.",
-    );
-  const data = await response.json();
-  if (!response.ok) {
-    const detail = data.detail;
-    throw new Error(
-      typeof detail === "string"
-        ? detail
-        : `Request failed (${response.status}). ${detail ? JSON.stringify(detail) : "Try again after checking the server."}`,
-    );
-  }
-  return data as T;
-}
+import { createTransport, recordedDownload } from "./transport";
+import type { RecordedEvidence } from "./types";
+
+export const RECORDED_ONLY = import.meta.env.VITE_RECORDED_ONLY === "true";
+export const api = createTransport(RECORDED_ONLY, import.meta.env.BASE_URL);
+export const evidenceDownloadUrl = (archive: RecordedEvidence) => RECORDED_ONLY
+  ? recordedDownload(archive, import.meta.env.BASE_URL)
+  : archive.download_url;
