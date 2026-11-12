@@ -14,6 +14,11 @@ export ANSWER_LAB_MODEL=YOUR_LOCAL_MODEL_NAME
 export ANSWER_LAB_DISABLE_THINKING=true
 export ANSWER_LAB_MAX_TOKENS=1024
 export ANSWER_LAB_ENABLE_PAID=0
+export ANSWER_LAB_CRITIC_BASE_URL="$ANSWER_LAB_BASE_URL"
+export ANSWER_LAB_CRITIC_MODEL="$ANSWER_LAB_MODEL"
+export ANSWER_LAB_CRITIC_DISABLE_THINKING=true
+export ANSWER_LAB_ESCALATE_FINAL=false
+unset ANSWER_LAB_API_KEY ANSWER_LAB_CRITIC_API_KEY OPENAI_API_KEY
 .venv/bin/uvicorn agentproof.api:app --host 127.0.0.1 --port 8010
 ```
 
@@ -41,7 +46,7 @@ Uploading a changed file under the same filename creates a new version. Removing
 
 ## Queue and review behavior
 
-Queued cancellation is immediate. Running cancellation takes effect after the current bounded model work; it does not pretend to interrupt a provider HTTP request. Actual results and usage remain stored. After a process restart, queued jobs remain queued and interrupted jobs are marked failed; the operator chooses whether to retry.
+Queued cancellation is immediate. Running cancellation takes effect after the current bounded model work; it does not pretend to interrupt a provider HTTP request. Actual results and usage remain stored. After a process restart, queued jobs resume automatically; interrupted running jobs are marked failed and the operator chooses whether to retry them.
 
 An idempotency key identifies one logical processing request. Reuse it when investigating an uncertain submission; use a new key for intentional regeneration. The Python SDK has the same behavior as the UI. Review uses optimistic record versions so an old screen cannot silently approve a newly changed ticket.
 

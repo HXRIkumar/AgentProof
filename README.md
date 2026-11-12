@@ -97,7 +97,7 @@ These are **answer-engine measurements, not accuracy on the four support tickets
 
 ## Current scope
 
-This is a working **single-user local application and integration SDK**, not a deployed multi-tenant helpdesk. It has no user authentication, email delivery, tenant isolation or live account access. Keep the API on localhost. Scanned PDFs need external OCR. Ticket analysis uses a bounded excerpt; truncation is visible and blocks reply approval. Citation matching verifies a quotation exists, not that every conclusion is true, so review remains necessary. Interrupted jobs are marked explicitly and are not silently billed or retried.
+This is a working **single-user local application and integration SDK**, not a deployed multi-tenant helpdesk. It has no user authentication, email delivery, tenant isolation or live account access. Keep the API on localhost. Scanned PDFs need external OCR. Ticket analysis uses a bounded excerpt; truncation is visible and blocks reply approval. Citation matching verifies a quotation exists, not that every conclusion is true, so review remains necessary. Interrupted running jobs are marked failed and are not automatically retried; an already-sent hosted request may still incur a charge.
 
 The engineering contribution is the connected workflow and its failure semantics: knowledge snapshots, durable jobs, idempotency, measured correction, inspectable evidence and review-aware exports. Existing support products solve related problems; this project does not claim to invent the category or to have real customer adoption.
 

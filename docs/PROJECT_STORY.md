@@ -63,7 +63,7 @@ No. Exact matching checks that quoted text exists. It does not prove the interpr
 Uploading a changed document creates a new version. The previous passage remains available for history, but old results become stale. Approval/export requires current knowledge, so the operator must regenerate and review.
 
 **Can it send replies or issue refunds?**
-No. It exports a reviewed reply or handoff JSON. External sending, authentication, permissions and account actions need a separate integration. Financial/account-changing requests are blocked from reply approval in the current product.
+No. It exports a reviewed reply or handoff JSON. External sending, authentication, permissions and account actions need a separate integration. Detected financial/account-changing requests, such as the recorded refund request, are blocked from reply approval. The current keyword guard and model do not guarantee detection of every possible wording.
 
 **What would you do next for production?**
 First secure a specific deployment: tenant isolation, authentication, retention controls and access checks. Then pilot on representative, permissioned tickets with human-reviewed labels, measuring factual errors, review time and acceptance rate. Add a helpdesk adapter only for that real workflow. Those are future requirements, not completed features.
