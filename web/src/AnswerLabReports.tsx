@@ -389,6 +389,13 @@ export default function Experiments({
                 <span>{report.suite.case_count} cases</span>
                 <span>{date(report.created_at)}</span>
               </div>
+              {report.id === "mini-hosted-repeat-v1" && (
+                <p className="al-evaluation-footnote">
+                  Secondary repeat of the same {report.suite.case_count} questions,
+                  with unchanged runtime and scoring. The primary run is retained
+                  separately; this does not add new evaluation cases.
+                </p>
+              )}
               <ModelMetadata
                 provider={report.configuration.runtime?.provider}
                 model={report.model}

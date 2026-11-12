@@ -148,11 +148,12 @@ test("identically titled formal configurations have distinct accessible report l
     "qwen-mini-critic-v1",
     "qwen-mini-cascade-v1",
     "mini-hosted-v1",
+    "mini-hosted-repeat-v1",
   ];
   const labels = ids.map((id) =>
     reportLabel({ id, title: "Paired policy comparison" }),
   );
-  assert.equal(new Set(labels).size, 4);
+  assert.equal(new Set(labels).size, 5);
   ids.forEach((id, index) => assert.ok(labels[index].includes(id)));
   assert.equal(
     reportLabel({ id: "future-study", title: "Another run" }),

@@ -25,6 +25,7 @@ export function reportLabel(
     "qwen-mini-critic-v1": "Qwen draft · mini critic",
     "qwen-mini-cascade-v1": "Qwen draft · mini critic + final escalation",
     "mini-hosted-v1": "GPT-5.4 mini · hosted draft and critic",
+    "mini-hosted-repeat-v1": "GPT-5.4 mini · secondary repeat of the same cases",
   };
   return `${labels[entry.id] || entry.title || "Experiment"} · ${entry.id}`;
 }
