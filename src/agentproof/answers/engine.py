@@ -669,6 +669,10 @@ class AnswerService:
                 break
             if response.error:
                 break
+            # A preflight denial is a controlled stop, not corrective feedback.
+            # Retain its attempt above but do not spend on any later generation.
+            if critic_response is not None and not critic_response.request_sent:
+                break
             previous = candidate.model_dump() if candidate else response.text[:12000]
         if best:
             (passed, _, _, score), candidate, checks, index = best
