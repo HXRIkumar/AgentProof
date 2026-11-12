@@ -23,6 +23,7 @@ import {
   percent,
 } from "./answerUtils";
 import { ResultInspector } from "./AnswerLabResult";
+import { ModelMetadata } from "./AnswerLabAccounting";
 
 export default function CachePerformance({
   entries,
@@ -151,6 +152,7 @@ export default function CachePerformance({
                 <span>{summary.semantic_queries} semantic probes</span>
                 <span>{date(report.created_at)}</span>
               </div>
+              <ModelMetadata provider={report.configuration.provider} />
               <div className="al-cache-latency">
                 <div className="al-cache-latency-heading">
                   <div>
@@ -379,7 +381,11 @@ export default function CachePerformance({
                       <X size={18} />
                     </button>
                   </div>
-                  <ResultInspector result={selectedResult} compact />
+                  <ResultInspector
+                    result={selectedResult}
+                    provider={report.configuration.provider}
+                    compact
+                  />
                 </aside>
               )}
             </>

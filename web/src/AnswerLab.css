@@ -1374,6 +1374,85 @@
   padding: 40px 0;
   font-size: 12px;
 }
+.al-model-metadata {
+  margin: 0 0 20px;
+  padding: 14px 0;
+  border-top: 1px solid var(--al-line);
+  border-bottom: 1px solid var(--al-line);
+}
+.al-model-metadata dl,
+.al-accounting-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 14px 24px;
+  margin: 0;
+}
+.al-model-metadata dt,
+.al-accounting-grid dt {
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+.al-accounting-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+}
+.al-model-metadata dd,
+.al-accounting-grid dd {
+  margin: 0;
+  color: #27364b;
+  font: 11px/1.6 var(--al-mono);
+  overflow-wrap: anywhere;
+}
+.al-model-metadata p,
+.al-study-accounting p,
+.al-run-accounting p {
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.65;
+  margin: 10px 0 0;
+}
+.al-study-accounting {
+  margin: -5px 0 24px;
+  padding: 17px 20px;
+  background: #f3f6fa;
+  border-left: 2px solid #8ba0b9;
+}
+.al-study-accounting h3 {
+  margin: 0 0 14px;
+  font-size: 12px;
+  font-weight: 650;
+}
+.al-run-accounting {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--al-line);
+}
+.al-run-accounting > summary {
+  color: #53657a;
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.al-run-accounting > summary b {
+  margin-left: 14px;
+  color: #253a52;
+  font: 10px var(--al-mono);
+}
+.al-run-accounting .al-model-metadata {
+  border-top: 0;
+  margin: 0 0 14px;
+}
+.al-billing-details {
+  margin-top: 12px;
+}
+.al-billing-details > summary {
+  color: #53657a;
+  font-size: 10px;
+  cursor: pointer;
+}
+.al-billing-details[open] > summary {
+  margin-bottom: 14px;
+}
 .al-quality-chart {
   background: white;
   padding: 22px 24px 16px;

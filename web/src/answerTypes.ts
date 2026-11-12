@@ -12,6 +12,28 @@ export type AnswerUsage = {
   actual_calls?: number;
   reused_calls?: number;
   actual_total_tokens?: number | null;
+  paid_calls?: number;
+  actual_paid_calls?: number;
+  estimated_cost_usd?: number | null;
+  accounted_cost_usd?: number | null;
+  actual_accounted_cost_usd?: number | null;
+  cost_known?: boolean;
+  cost_label?: string;
+};
+export type AnswerProviderMetadata = {
+  model?: string;
+  critic_model?: string;
+  generator_provider?: string;
+  critic_provider?: string;
+};
+export type AnswerRuntimeMetadata = {
+  provider?: AnswerProviderMetadata;
+};
+export type AnswerBudgetSnapshot = {
+  ledger_id?: string;
+  accounted_usd?: number;
+  reported_usage_estimate_usd?: number;
+  unresolved_reservations?: number;
 };
 export type AnswerCritic = {
   supported: boolean;
@@ -49,6 +71,9 @@ export type AnswerResult = {
   usage: AnswerUsage;
   latency_ms: number;
   model: string;
+  critic_model?: string;
+  generator_provider?: string;
+  critic_provider?: string;
   source_hash: string;
   config_hash: string;
   sources?: AnswerSource[];
@@ -115,6 +140,10 @@ export type StrategyMetrics = {
   tokens_per_correct: number | null;
   latency_p50_ms: number | null;
   latency_p95_ms: number | null;
+  estimated_cost_usd?: number | null;
+  accounted_cost_usd?: number | null;
+  cost_known?: boolean;
+  cost_per_correct_usd?: number | null;
 };
 export type AnswerSummary = {
   complete: boolean;
@@ -138,9 +167,26 @@ export type AnswerReport = {
   created_at: string;
   status: string;
   suite: { sha256: string; split: string; case_count: number };
-  configuration: Record<string, unknown>;
+  configuration: Record<string, unknown> & {
+    runtime?: AnswerRuntimeMetadata;
+  };
   trials: AnswerTrial[];
   summary: AnswerSummary;
+  actual_usage?: {
+    calls: number;
+    total_tokens: number | null;
+    usage_known: boolean;
+    shared_initial_generations: number;
+    estimated_cost_usd?: number | null;
+    accounted_cost_usd?: number | null;
+    cost_known?: boolean;
+  };
+  hosted_experiment?: {
+    mode?: string;
+    budget_before?: AnswerBudgetSnapshot;
+    budget_after?: AnswerBudgetSnapshot;
+    cost_note?: string;
+  };
 };
 export type AnswerReportEntry = Pick<
   AnswerReport,
@@ -178,7 +224,7 @@ export type CacheReport = {
   status: string;
   created_at: string;
   suite_sha256: string;
-  configuration: Record<string, unknown>;
+  configuration: Record<string, unknown> & AnswerRuntimeMetadata;
   scope: string;
   summary: CacheReportSummary;
   groups: {

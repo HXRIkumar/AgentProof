@@ -1,4 +1,9 @@
-import type { AnswerReport, AnswerStrategy, AnswerTrial } from "./answerTypes";
+import type {
+  AnswerBudgetSnapshot,
+  AnswerReport,
+  AnswerStrategy,
+  AnswerTrial,
+} from "./answerTypes";
 
 export const STRATEGIES: AnswerStrategy[] = [
   "baseline",
@@ -26,6 +31,33 @@ export const duration = (value: number | null | undefined) =>
     : value < 1000
       ? `${number(value, 1)} ms`
       : `${number(value / 1000, 2)} s`;
+export const usd = (value: number | null | undefined) =>
+  value == null || !Number.isFinite(value) || value < 0
+    ? "Unknown"
+    : value === 0
+      ? "$0.00"
+      : value < 0.000001
+        ? "<$0.000001"
+        : `$${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`;
+export function budgetDelta(
+  before: AnswerBudgetSnapshot | undefined,
+  after: AnswerBudgetSnapshot | undefined,
+  key: "accounted_usd" | "reported_usage_estimate_usd",
+): number | null {
+  if (!before?.ledger_id || before.ledger_id !== after?.ledger_id) return null;
+  const first = before[key],
+    last = after[key];
+  if (
+    first == null ||
+    last == null ||
+    !Number.isFinite(first) ||
+    !Number.isFinite(last) ||
+    first < 0 ||
+    last < first
+  )
+    return null;
+  return last - first;
+}
 export const human = (value: string) =>
   value.replaceAll("_", " ").replaceAll("-", " ");
 export const date = (value: string) => {

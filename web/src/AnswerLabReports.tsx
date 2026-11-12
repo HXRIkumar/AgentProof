@@ -13,6 +13,7 @@ import type {
   AnswerReport,
   AnswerReportEntry,
   AnswerStrategy,
+  AnswerProviderMetadata,
   StrategyMetrics,
 } from "./answerTypes";
 import {
@@ -27,9 +28,11 @@ import {
   percent,
   STRATEGIES,
   STRATEGY_LABELS,
+  usd,
 } from "./answerUtils";
 import type { CaseRow } from "./answerUtils";
 import { ResultInspector } from "./AnswerLabResult";
+import { ModelMetadata, StudyAccounting } from "./AnswerLabAccounting";
 
 function MetricCell({ value, hint }: { value: string; hint?: string }) {
   return (
@@ -75,7 +78,15 @@ function QualityChart({
     </div>
   );
 }
-function CaseDetail({ row, onClose }: { row: CaseRow; onClose: () => void }) {
+function CaseDetail({
+  row,
+  onClose,
+  provider,
+}: {
+  row: CaseRow;
+  onClose: () => void;
+  provider?: AnswerProviderMetadata;
+}) {
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -156,7 +167,7 @@ function CaseDetail({ row, onClose }: { row: CaseRow; onClose: () => void }) {
               </pre>
             </details>
           ) : null}
-          <ResultInspector result={trial.result} compact />
+          <ResultInspector result={trial.result} provider={provider} compact />
         </>
       )}
     </aside>
@@ -270,6 +281,14 @@ export default function Experiments({
       render: (m) => [number(m.tokens_per_correct, 1)],
     },
     {
+      label: "Estimated API cost · policy",
+      render: (m) => [usd(m.cost_known ? m.estimated_cost_usd : null)],
+    },
+    {
+      label: "Estimated API cost / correct",
+      render: (m) => [usd(m.cost_known ? m.cost_per_correct_usd : null)],
+    },
+    {
       label: "Latency · p50 / p95",
       render: (m) => [
         duration(m.latency_p50_ms),
@@ -360,9 +379,12 @@ export default function Experiments({
                   {report.summary.planned_trials} trials
                 </span>
                 <span>{report.suite.case_count} cases</span>
-                <span>{report.model}</span>
                 <span>{date(report.created_at)}</span>
               </div>
+              <ModelMetadata
+                provider={report.configuration.runtime?.provider}
+                model={report.model}
+              />
               <QualityChart metrics={metrics} />
               <div className="al-metrics-table-wrap">
                 <table className="al-metrics-table">
@@ -402,6 +424,7 @@ export default function Experiments({
                   </tbody>
                 </table>
               </div>
+              <StudyAccounting report={report} />
               {report.summary.comparisons.length > 0 && (
                 <div className="al-comparison-notes">
                   {report.summary.comparisons.map((c) => (
@@ -524,6 +547,7 @@ export default function Experiments({
               </div>
               {selectedCase && (
                 <CaseDetail
+                  provider={report.configuration.runtime?.provider}
                   key={selectedCase.id}
                   row={selectedCase}
                   onClose={() => setSelectedCase(null)}

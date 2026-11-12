@@ -14,7 +14,12 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import type { AnswerAttempt, AnswerResult } from "./answerTypes";
+import type {
+  AnswerAttempt,
+  AnswerResult,
+  AnswerProviderMetadata,
+} from "./answerTypes";
+import { RunAccounting } from "./AnswerLabAccounting";
 import {
   date,
   downloadJson,
@@ -170,9 +175,11 @@ function AttemptPanel({
 export function ResultInspector({
   result,
   compact = false,
+  provider,
 }: {
   result: AnswerResult;
   compact?: boolean;
+  provider?: AnswerProviderMetadata;
 }) {
   const [tab, setTab] = useState<"answer" | "trace" | "raw">("answer");
   useEffect(() => setTab("answer"), [result.id]);
@@ -215,6 +222,7 @@ export function ResultInspector({
           <b>{human(result.cache.status)}</b>
         </div>
       </div>
+      <RunAccounting result={result} provider={provider} />
       <div className="al-tabs" role="tablist" aria-label="Result details">
         {(["answer", "trace", "raw"] as const).map((t) => (
           <button

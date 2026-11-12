@@ -6,6 +6,8 @@ import {
   groupCases,
   number,
   percent,
+  usd,
+  budgetDelta,
 } from "./answerUtils.ts";
 import type { AnswerReport, AnswerResult, AnswerTrial } from "./answerTypes.ts";
 
@@ -70,4 +72,30 @@ test("incomplete comparisons are never labelled unchanged or recovered", () => {
   );
   assert.equal(caseChange(rows[0]), "incomplete");
   assert.equal(caseChange(rows[1]), "incomplete");
+});
+
+test("API cost never renders missing or tiny positive amounts as zero", () => {
+  for (const value of [undefined, null, NaN, Infinity, -1])
+    assert.equal(usd(value), "Unknown");
+  assert.equal(usd(0), "$0.00");
+  assert.equal(usd(0.0000001), "<$0.000001");
+  assert.equal(usd(0.00125), "$0.00125");
+});
+
+test("study cost requires matching ledger identity and complete monotonic snapshots", () => {
+  const before = { ledger_id: "ledger-a", accounted_usd: 0.02 };
+  const after = { ledger_id: "ledger-a", accounted_usd: 0.12 };
+  assert.ok(
+    Math.abs(budgetDelta(before, after, "accounted_usd")! - 0.1) < 1e-10,
+  );
+  assert.equal(budgetDelta(undefined, after, "accounted_usd"), null);
+  assert.equal(
+    budgetDelta(before, { ...after, ledger_id: "ledger-b" }, "accounted_usd"),
+    null,
+  );
+  assert.equal(
+    budgetDelta(before, { ...after, accounted_usd: 0.01 }, "accounted_usd"),
+    null,
+  );
+  assert.equal(budgetDelta(before, after, "reported_usage_estimate_usd"), null);
 });
