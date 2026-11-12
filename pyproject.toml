@@ -4,9 +4,20 @@ version = "0.4.0"
 description = "A reproducible release-testing workbench for stateful tool-using agents"
 requires-python = ">=3.12,<3.15"
 dependencies = [
-  "fastapi>=0.115,<1", "uvicorn[standard]>=0.34,<1", "pydantic>=2.10,<3",
-  "langgraph>=1,<2", "httpx>=0.28,<1", "opentelemetry-api>=1.30,<2",
-  "opentelemetry-sdk>=1.30,<2", "opentelemetry-exporter-otlp-proto-http>=1.30,<2",
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.34,<1",
+  "pydantic>=2.10,<3",
+  "langgraph>=1,<2",
+  "httpx>=0.28,<1",
+  "opentelemetry-api>=1.30,<2",
+  "opentelemetry-sdk>=1.30,<2",
+  "opentelemetry-exporter-otlp-proto-http>=1.30,<2",
+  "jsonschema>=4.23,<5",
+]
+
+[project.optional-dependencies]
+embeddings = [
+    "sentence-transformers>=3,<6",
 ]
 
 [dependency-groups]

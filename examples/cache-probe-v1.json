@@ -1,0 +1,46 @@
+{
+  "version": "cache-probe-v1",
+  "provenance": "Authored synthetic document QA cache stress cases, frozen before model outputs. These are not customer records or a public benchmark.",
+  "groups": [
+    {
+      "id": "release-dates",
+      "source": {"id":"release","title":"Release ledger","text":"The Atlas desktop application launched on 12 March 2024. The Beacon desktop application launched on 19 August 2025. Atlas was discontinued on 30 June 2026. Beacon remains supported."},
+      "seed": {"question":"On what date did Atlas launch?","answers":["12 March 2024"]},
+      "queries": [
+        {"kind":"paraphrase","question":"What was the launch date of Atlas?","answers":["12 March 2024"],"reuse_expected":true},
+        {"kind":"entity-swap","question":"On what date did Beacon launch?","answers":["19 August 2025"],"reuse_expected":false},
+        {"kind":"event-swap","question":"On what date was Atlas discontinued?","answers":["30 June 2026"],"reuse_expected":false}
+      ]
+    },
+    {
+      "id": "retention",
+      "source": {"id":"retention","title":"Data retention policy","text":"The Standard plan retains audit logs for 30 days. The Enterprise plan retains audit logs for 365 days. Backups are retained for 14 days on both plans. Deleted records are not recoverable after the backup window."},
+      "seed": {"question":"How many days are audit logs retained on the Standard plan?","answers":["30","30 days"]},
+      "queries": [
+        {"kind":"paraphrase","question":"What is the audit-log retention period for Standard?","answers":["30","30 days"],"reuse_expected":true},
+        {"kind":"entity-swap","question":"How many days are audit logs retained on the Enterprise plan?","answers":["365","365 days"],"reuse_expected":false},
+        {"kind":"object-swap","question":"How many days are backups retained on the Standard plan?","answers":["14","14 days"],"reuse_expected":false}
+      ]
+    },
+    {
+      "id": "approvals",
+      "source": {"id":"expenses","title":"Expense approval rules","text":"Expense requests up to and including 500 dollars require approval by the team lead. Requests above 500 dollars require approval by the finance director. Travel bookings require finance director approval at every amount."},
+      "seed": {"question":"Who approves an expense request for 500 dollars?","answers":["team lead","the team lead"]},
+      "queries": [
+        {"kind":"paraphrase","question":"Whose approval is needed for a 500 dollar expense?","answers":["team lead","the team lead"],"reuse_expected":true},
+        {"kind":"number-swap","question":"Who approves an expense request for 501 dollars?","answers":["finance director","the finance director"],"reuse_expected":false},
+        {"kind":"exception","question":"Who approves a travel booking for 500 dollars?","answers":["finance director","the finance director"],"reuse_expected":false}
+      ]
+    },
+    {
+      "id": "regional-availability",
+      "source": {"id":"regions","title":"Regional product availability","text":"Offline mode is available in the North region. Offline mode is not available in the South region. The East region is scheduled for an offline-mode trial, but the launch date has not been announced."},
+      "seed": {"question":"In which region is offline mode available?","answers":["North","North region","the North region"]},
+      "queries": [
+        {"kind":"paraphrase","question":"Which region currently offers offline mode?","answers":["North","North region","the North region"],"reuse_expected":true},
+        {"kind":"negation","question":"In which region is offline mode not available?","answers":["South","South region","the South region"],"reuse_expected":false},
+        {"kind":"unanswerable","question":"On what date will offline mode launch in the East region?","answers":[""],"reuse_expected":false}
+      ]
+    }
+  ]
+}

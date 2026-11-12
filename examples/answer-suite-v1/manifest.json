@@ -1,0 +1,27 @@
+{
+  "version": "answer-suite-v1",
+  "seed": 20261112,
+  "upstream_url": "https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.json",
+  "upstream_sha256": "80a5225e94905956a6446d296ca1093975c4d3b3260f1d6c8f68bc2ab77182d8",
+  "upstream_license": "CC BY-SA 4.0",
+  "upstream_version": "v2.0",
+  "selection": "SHA256(seed:question_id), topic round-robin, distinct paragraphs across splits, contexts 150-2400 characters. Select 30 answerable and 30 unanswerable; first 6 of each form development and remaining 24 of each evaluation.",
+  "distractors": "Two full 150-650 character paragraphs from different topics, outside selected question paragraphs; exclude occurrences of known reference answer strings. Source order shuffled by per-case hash. Added passages change the official task; alternative answerability is not independently relabeled.",
+  "scope": "SQuAD-derived multi-source public development-set subset, not an official leaderboard evaluation or an unseen-data claim. Authored extraction cases are synthetic and separately reported.",
+  "extractor_sha256": "3602617b748a8f426950ec04f680642c0214e3cdb9e184f5359d3cefb81d54c2",
+  "authored_source_sha256": "1d1fa445fc6685c9fa6ca0702c642d51598b97b7f1b8a09b834280e20475078b",
+  "files": {
+    "development.json": "93e1310cd634918b76eb86ca648847afe0defc8737b2e196dc5313bf84d14dcf",
+    "evaluation.json": "4b2d1c8a6b801175a313bd09bb3e4f2525d5428c68e2aa14beb2262707fdcd99"
+  },
+  "counts": {
+    "development": {
+      "qa": 12,
+      "extraction": 6
+    },
+    "evaluation": {
+      "qa": 48,
+      "extraction": 16
+    }
+  }
+}

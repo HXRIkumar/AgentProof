@@ -16,6 +16,8 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from . import __version__
+from .answers import AnswerService
+from .answers import create_router as create_answer_router
 from .comparison import ComparisonError, compare_reports
 from .engine import ApprovalConflict, Engine, now
 from .evidence import EvidenceError, EvidenceLibrary
@@ -41,7 +43,8 @@ def runtime_configuration(adapter) -> dict:
 
 
 def create_app(
-    db_path: str | Path | None = None, provider_factory=None, *, evidence_root: Path | None = None
+    db_path: str | Path | None = None, provider_factory=None, *, evidence_root: Path | None = None,
+    answer_service=None,
 ) -> FastAPI:
     # Snapshot at app construction, not request time; no hostnames, usernames or absolute paths.
     source_hash = hashlib.sha256()
@@ -83,6 +86,15 @@ def create_app(
     engine = Engine(store, provider_factory)
     execution_lock = threading.Lock()
     application.state.store, application.state.engine = store, engine
+    application.state.answer_service = answer_service or AnswerService(
+        os.getenv("ANSWER_LAB_DB", str(Path(store.path).with_name("answers.sqlite3")))
+    )
+    application.include_router(
+        create_answer_router(
+            application.state.answer_service,
+            reports_dir=Path(__file__).resolve().parents[2] / "reports" / "answers",
+        )
+    )
     evidence_library = EvidenceLibrary(evidence_root)
     max_queued = max(1, min(100, int(os.getenv("AGENTPROOF_MAX_QUEUED", "8"))))
 

@@ -1,0 +1,845 @@
+{
+  "version": "answer-suite-v1",
+  "split": "development",
+  "provenance": {
+    "version": "answer-suite-v1",
+    "seed": 20261112,
+    "upstream_url": "https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.json",
+    "upstream_sha256": "80a5225e94905956a6446d296ca1093975c4d3b3260f1d6c8f68bc2ab77182d8",
+    "upstream_license": "CC BY-SA 4.0",
+    "upstream_version": "v2.0",
+    "selection": "SHA256(seed:question_id), topic round-robin, distinct paragraphs across splits, contexts 150-2400 characters. Select 30 answerable and 30 unanswerable; first 6 of each form development and remaining 24 of each evaluation.",
+    "distractors": "Two full 150-650 character paragraphs from different topics, outside selected question paragraphs; exclude occurrences of known reference answer strings. Source order shuffled by per-case hash. Added passages change the official task; alternative answerability is not independently relabeled.",
+    "scope": "SQuAD-derived multi-source public development-set subset, not an official leaderboard evaluation or an unseen-data claim. Authored extraction cases are synthetic and separately reported.",
+    "extractor_sha256": "3602617b748a8f426950ec04f680642c0214e3cdb9e184f5359d3cefb81d54c2",
+    "authored_source_sha256": "1d1fa445fc6685c9fa6ca0702c642d51598b97b7f1b8a09b834280e20475078b"
+  },
+  "cases": [
+    {
+      "id": "squad2-5726249538643c19005ad082",
+      "task": "qa",
+      "category": "answerable",
+      "origin": {
+        "dataset": "SQuAD v2.0 dev",
+        "question_id": "5726249538643c19005ad082",
+        "title": "Packet_switching",
+        "license": "CC BY-SA 4.0"
+      },
+      "request": {
+        "question": "How are Air force messages delivered ",
+        "task": "qa",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          },
+          {
+            "id": "source-2",
+            "title": "Packet switching",
+            "text": "Baran developed the concept of distributed adaptive message block switching during his research at the RAND Corporation for the US Air Force into survivable communications networks, first presented to the Air Force in the summer of 1961 as briefing B-265, later published as RAND report P-2626 in 1962, and finally in report RM 3420 in 1964. Report P-2626 described a general architecture for a large-scale, distributed, survivable communications network. The work focuses on three key ideas: use of a decentralized network with multiple paths between any two points, dividing user messages into message blocks, later called packets, and delivery of these messages by store and forward switching."
+          },
+          {
+            "id": "source-3",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          }
+        ]
+      },
+      "gold": {
+        "answers": [
+          "decentralized network with multiple paths between any two points",
+          "delivery of these messages by store and forward switching",
+          "store and forward switching"
+        ],
+        "answerable": true,
+        "relevant_source_ids": [
+          "source-2"
+        ]
+      }
+    },
+    {
+      "id": "squad2-57377aac1c4567190057447d",
+      "task": "qa",
+      "category": "answerable",
+      "origin": {
+        "dataset": "SQuAD v2.0 dev",
+        "question_id": "57377aac1c4567190057447d",
+        "title": "Force",
+        "license": "CC BY-SA 4.0"
+      },
+      "request": {
+        "question": "What notion keeps it's meaning through both Netonian and Schrodinger physics equations?",
+        "task": "qa",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          },
+          {
+            "id": "source-2",
+            "title": "Force",
+            "text": "The notion \"force\" keeps its meaning in quantum mechanics, though one is now dealing with operators instead of classical variables and though the physics is now described by the Schrödinger equation instead of Newtonian equations. This has the consequence that the results of a measurement are now sometimes \"quantized\", i.e. they appear in discrete portions. This is, of course, difficult to imagine in the context of \"forces\". However, the potentials V(x,y,z) or fields, from which the forces generally can be derived, are treated similar to classical position variables, i.e., ."
+          },
+          {
+            "id": "source-3",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          }
+        ]
+      },
+      "gold": {
+        "answers": [
+          "The notion \"force\"",
+          "force"
+        ],
+        "answerable": true,
+        "relevant_source_ids": [
+          "source-2"
+        ]
+      }
+    },
+    {
+      "id": "squad2-5a1c6968b4fb5d0018714618",
+      "task": "qa",
+      "category": "unanswerable",
+      "origin": {
+        "dataset": "SQuAD v2.0 dev",
+        "question_id": "5a1c6968b4fb5d0018714618",
+        "title": "Jacksonville,_Florida",
+        "license": "CC BY-SA 4.0"
+      },
+      "request": {
+        "question": "What area remained uninhabited for thousands of years? ",
+        "task": "qa",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          },
+          {
+            "id": "source-2",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          },
+          {
+            "id": "source-3",
+            "title": "Jacksonville, Florida",
+            "text": "The area of the modern city of Jacksonville has been inhabited for thousands of years. On Black Hammock Island in the national Timucuan Ecological and Historic Preserve, a University of North Florida team discovered some of the oldest remnants of pottery in the United States, dating to 2500 BC. In the 16th century, the beginning of the historical era, the region was inhabited by the Mocama, a coastal subgroup of the Timucua people. At the time of contact with Europeans, all Mocama villages in present-day Jacksonville were part of the powerful chiefdom known as the Saturiwa, centered around the mouth of the St. Johns River. One early map shows a village called Ossachite at the site of what is now downtown Jacksonville; this may be the earliest recorded name for that area."
+          }
+        ]
+      },
+      "gold": {
+        "answers": [],
+        "answerable": false,
+        "relevant_source_ids": [
+          "source-3"
+        ]
+      }
+    },
+    {
+      "id": "squad2-5ad2467ad7d075001a428af7",
+      "task": "qa",
+      "category": "unanswerable",
+      "origin": {
+        "dataset": "SQuAD v2.0 dev",
+        "question_id": "5ad2467ad7d075001a428af7",
+        "title": "Economic_inequality",
+        "license": "CC BY-SA 4.0"
+      },
+      "request": {
+        "question": "When there are many workers competing for a many jobs its considered as what?",
+        "task": "qa",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          },
+          {
+            "id": "source-2",
+            "title": "Economic inequality",
+            "text": "A job where there are many workers willing to work a large amount of time (high supply) competing for a job that few require (low demand) will result in a low wage for that job. This is because competition between workers drives down the wage. An example of this would be jobs such as dish-washing or customer service. Competition amongst workers tends to drive down wages due to the expendable nature of the worker in relation to his or her particular job. A job where there are few able or willing workers (low supply), but a large need for the positions (high demand), will result in high wages for that job. This is because competition between employers for employees will drive up the wage. Examples of this would include jobs that require highly developed skills, rare abilities, or a high level of risk. Competition amongst employers tends to drive up wages due to the nature of the job, since there is a relative shortage of workers for the particular position. Professional and labor organizations may limit the supply of workers which results in higher demand and greater incomes for members. Members may also receive higher wages through collective bargaining, political influence, or corruption."
+          },
+          {
+            "id": "source-3",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          }
+        ]
+      },
+      "gold": {
+        "answers": [],
+        "answerable": false,
+        "relevant_source_ids": [
+          "source-2"
+        ]
+      }
+    },
+    {
+      "id": "squad2-5ad269a7d7d075001a4292e2",
+      "task": "qa",
+      "category": "unanswerable",
+      "origin": {
+        "dataset": "SQuAD v2.0 dev",
+        "question_id": "5ad269a7d7d075001a4292e2",
+        "title": "Force",
+        "license": "CC BY-SA 4.0"
+      },
+      "request": {
+        "question": "What yields the non original force?",
+        "task": "qa",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Force",
+            "text": "As well as being added, forces can also be resolved into independent components at right angles to each other. A horizontal force pointing northeast can therefore be split into two forces, one pointing north, and one pointing east. Summing these component forces using vector addition yields the original force. Resolving force vectors into components of a set of basis vectors is often a more mathematically clean way to describe forces than using magnitudes and directions. This is because, for orthogonal components, the components of the vector sum are uniquely determined by the scalar addition of the components of the individual vectors. Orthogonal components are independent of each other because forces acting at ninety degrees to each other have no effect on the magnitude or direction of the other. Choosing a set of orthogonal basis vectors is often done by considering what set of basis vectors will make the mathematics most convenient. Choosing a basis vector that is in the same direction as one of the forces is desirable, since that force would then have only one non-zero component. Orthogonal force vectors can be three-dimensional with the third component being at right-angles to the other two."
+          },
+          {
+            "id": "source-2",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          },
+          {
+            "id": "source-3",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          }
+        ]
+      },
+      "gold": {
+        "answers": [],
+        "answerable": false,
+        "relevant_source_ids": [
+          "source-1"
+        ]
+      }
+    },
+    {
+      "id": "squad2-570d4030fed7b91900d45da1",
+      "task": "qa",
+      "category": "answerable",
+      "origin": {
+        "dataset": "SQuAD v2.0 dev",
+        "question_id": "570d4030fed7b91900d45da1",
+        "title": "Victoria_(Australia)",
+        "license": "CC BY-SA 4.0"
+      },
+      "request": {
+        "question": "What entity owns V/Line?",
+        "task": "qa",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          },
+          {
+            "id": "source-2",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          },
+          {
+            "id": "source-3",
+            "title": "Victoria (Australia)",
+            "text": "Rail transport in Victoria is provided by several private and public railway operators who operate over government-owned lines. Major operators include: Metro Trains Melbourne which runs an extensive, electrified, passenger system throughout Melbourne and suburbs; V/Line which is now owned by the Victorian Government, operates a concentrated service to major regional centres, as well as long distance services on other lines; Pacific National, CFCL Australia which operate freight services; Great Southern Rail which operates The Overland Melbourne—Adelaide; and NSW TrainLink which operates XPTs Melbourne—Sydney."
+          }
+        ]
+      },
+      "gold": {
+        "answers": [
+          "Victorian Government",
+          "the Victorian Government"
+        ],
+        "answerable": true,
+        "relevant_source_ids": [
+          "source-3"
+        ]
+      }
+    },
+    {
+      "id": "squad2-5a638ffe68151a001a922383",
+      "task": "qa",
+      "category": "unanswerable",
+      "origin": {
+        "dataset": "SQuAD v2.0 dev",
+        "question_id": "5a638ffe68151a001a922383",
+        "title": "Victoria_(Australia)",
+        "license": "CC BY-SA 4.0"
+      },
+      "request": {
+        "question": "When has Toyota said it will change its Victoria plant into a plane factory?",
+        "task": "qa",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Victoria (Australia)",
+            "text": "Historically, Victoria has been the base for the manufacturing plants of the major car brands Ford, Toyota and Holden; however, closure announcements by all three companies in the 21st century will mean that Australia will no longer be a base for the global car industry, with Toyota's statement in February 2014 outlining a closure year of 2017. Holden's announcement occurred in May 2013, followed by Ford's decision in December of the same year (Ford's Victorian plants—in Broadmeadows and Geelong—will close in October 2016)."
+          },
+          {
+            "id": "source-2",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          },
+          {
+            "id": "source-3",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          }
+        ]
+      },
+      "gold": {
+        "answers": [],
+        "answerable": false,
+        "relevant_source_ids": [
+          "source-1"
+        ]
+      }
+    },
+    {
+      "id": "squad2-5a66a156f038b7001ab0c076",
+      "task": "qa",
+      "category": "unanswerable",
+      "origin": {
+        "dataset": "SQuAD v2.0 dev",
+        "question_id": "5a66a156f038b7001ab0c076",
+        "title": "Civil_disobedience",
+        "license": "CC BY-SA 4.0"
+      },
+      "request": {
+        "question": "If he was arrested, what would happen to the leaflets that were handed out by Carter Wentworth in court",
+        "task": "qa",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          },
+          {
+            "id": "source-2",
+            "title": "Civil disobedience",
+            "text": "Courts have distinguished between two types of civil disobedience: \"Indirect civil disobedience involves violating a law which is not, itself, the object of protest, whereas direct civil disobedience involves protesting the existence of a particular law by breaking that law.\" During the Vietnam War, courts typically refused to excuse the perpetrators of illegal protests from punishment on the basis of their challenging the legality of the Vietnam War; the courts ruled it was a political question. The necessity defense has sometimes been used as a shadow defense by civil disobedients to deny guilt without denouncing their politically motivated acts, and to present their political beliefs in the courtroom. However, court cases such as U.S. v. Schoon have greatly curtailed the availability of the political necessity defense. Likewise, when Carter Wentworth was charged for his role in the Clamshell Alliance's 1977 illegal occupation of the Seabrook Station Nuclear Power Plant, the judge instructed the jury to disregard his competing harms defense, and he was found guilty. Fully Informed Jury Association activists have sometimes handed out educational leaflets inside courthouses despite admonitions not to; according to FIJA, many of them have escaped prosecution because \"prosecutors have reasoned (correctly) that if they arrest fully informed jury leafleters, the leaflets will have to be given to the leafleter's own jury as evidence.\""
+          },
+          {
+            "id": "source-3",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          }
+        ]
+      },
+      "gold": {
+        "answers": [],
+        "answerable": false,
+        "relevant_source_ids": [
+          "source-2"
+        ]
+      }
+    },
+    {
+      "id": "squad2-572a1dbb3f37b319004786f8",
+      "task": "qa",
+      "category": "answerable",
+      "origin": {
+        "dataset": "SQuAD v2.0 dev",
+        "question_id": "572a1dbb3f37b319004786f8",
+        "title": "Economic_inequality",
+        "license": "CC BY-SA 4.0"
+      },
+      "request": {
+        "question": "What is one method of achieving aspirational consumption?",
+        "task": "qa",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          },
+          {
+            "id": "source-2",
+            "title": "Economic inequality",
+            "text": "Firstly, certain costs are difficult to avoid and are shared by everyone, such as the costs of housing, pensions, education and health care. If the state does not provide these services, then for those on lower incomes, the costs must be borrowed and often those on lower incomes are those who are worse equipped to manage their finances. Secondly, aspirational consumption describes the process of middle income earners aspiring to achieve the standards of living enjoyed by their wealthier counterparts and one method of achieving this aspiration is by taking on debt. The result leads to even greater inequality and potential economic instability."
+          },
+          {
+            "id": "source-3",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          }
+        ]
+      },
+      "gold": {
+        "answers": [
+          "taking on debt"
+        ],
+        "answerable": true,
+        "relevant_source_ids": [
+          "source-2"
+        ]
+      }
+    },
+    {
+      "id": "squad2-5728dc2d3acd2414000e0081",
+      "task": "qa",
+      "category": "answerable",
+      "origin": {
+        "dataset": "SQuAD v2.0 dev",
+        "question_id": "5728dc2d3acd2414000e0081",
+        "title": "Civil_disobedience",
+        "license": "CC BY-SA 4.0"
+      },
+      "request": {
+        "question": "What reason is given that you should also protest public companies?",
+        "task": "qa",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          },
+          {
+            "id": "source-2",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          },
+          {
+            "id": "source-3",
+            "title": "Civil disobedience",
+            "text": "Some theories of civil disobedience hold that civil disobedience is only justified against governmental entities. Brownlee argues that disobedience in opposition to the decisions of non-governmental agencies such as trade unions, banks, and private universities can be justified if it reflects \"a larger challenge to the legal system that permits those decisions to be taken\". The same principle, she argues, applies to breaches of law in protest against international organizations and foreign governments."
+          }
+        ]
+      },
+      "gold": {
+        "answers": [
+          "a larger challenge to the legal system",
+          "challenge to the legal system that permits those decisions to be taken",
+          "it reflects \"a larger challenge to the legal system that permits those decisions to be taken"
+        ],
+        "answerable": true,
+        "relevant_source_ids": [
+          "source-3"
+        ]
+      }
+    },
+    {
+      "id": "squad2-57281bb84b864d190016449d",
+      "task": "qa",
+      "category": "answerable",
+      "origin": {
+        "dataset": "SQuAD v2.0 dev",
+        "question_id": "57281bb84b864d190016449d",
+        "title": "Jacksonville,_Florida",
+        "license": "CC BY-SA 4.0"
+      },
+      "request": {
+        "question": "Who voted against Jacksonville's annexation?",
+        "task": "qa",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          },
+          {
+            "id": "source-2",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          },
+          {
+            "id": "source-3",
+            "title": "Jacksonville, Florida",
+            "text": "Much of the city's tax base dissipated, leading to problems with funding education, sanitation, and traffic control within the city limits. In addition, residents in unincorporated suburbs had difficulty obtaining municipal services, such as sewage and building code enforcement. In 1958, a study recommended that the city of Jacksonville begin annexing outlying communities in order to create the needed tax base to improve services throughout the county. Voters outside the city limits rejected annexation plans in six referendums between 1960 and 1965."
+          }
+        ]
+      },
+      "gold": {
+        "answers": [
+          "Voters outside the city limits"
+        ],
+        "answerable": true,
+        "relevant_source_ids": [
+          "source-3"
+        ]
+      }
+    },
+    {
+      "id": "squad2-5a552252134fea001a0e1964",
+      "task": "qa",
+      "category": "unanswerable",
+      "origin": {
+        "dataset": "SQuAD v2.0 dev",
+        "question_id": "5a552252134fea001a0e1964",
+        "title": "Packet_switching",
+        "license": "CC BY-SA 4.0"
+      },
+      "request": {
+        "question": "KPN referred to Datanet 1 as ",
+        "task": "qa",
+        "sources": [
+          {
+            "id": "source-1",
+            "title": "Immune system",
+            "text": "Clearly, some tumors evade the immune system and go on to become cancers. Tumor cells often have a reduced number of MHC class I molecules on their surface, thus avoiding detection by killer T cells. Some tumor cells also release products that inhibit the immune response; for example by secreting the cytokine TGF-β, which suppresses the activity of macrophages and lymphocytes. In addition, immunological tolerance may develop against tumor antigens, so the immune system no longer attacks the tumor cells."
+          },
+          {
+            "id": "source-2",
+            "title": "Rhine",
+            "text": "The mouth of the Rhine into Lake Constance forms an inland delta. The delta is delimited in the West by the Alter Rhein (\"Old Rhine\") and in the East by a modern canalized section. Most of the delta is a nature reserve and bird sanctuary. It includes the Austrian towns of Gaißau, Höchst and Fußach. The natural Rhine originally branched into at least two arms and formed small islands by precipitating sediments. In the local Alemannic dialect, the singular is pronounced \"Isel\" and this is also the local pronunciation of Esel (\"Donkey\"). Many local fields have an official name containing this element."
+          },
+          {
+            "id": "source-3",
+            "title": "Packet switching",
+            "text": "Datanet 1 was the public switched data network operated by the Dutch PTT Telecom (now known as KPN). Strictly speaking Datanet 1 only referred to the network and the connected users via leased lines (using the X.121 DNIC 2041), the name also referred to the public PAD service Telepad (using the DNIC 2049). And because the main Videotex service used the network and modified PAD devices as infrastructure the name Datanet 1 was used for these services as well. Although this use of the name was incorrect all these services were managed by the same people within one department of KPN contributed to the confusion."
+          }
+        ]
+      },
+      "gold": {
+        "answers": [],
+        "answerable": false,
+        "relevant_source_ids": [
+          "source-3"
+        ]
+      }
+    },
+    {
+      "id": "dev-incident",
+      "task": "extraction",
+      "category": "structured_record",
+      "origin": {
+        "dataset": "AgentProof authored extraction v1",
+        "license": "MIT",
+        "synthetic": true
+      },
+      "request": {
+        "question": "Extract only the requested record from the source. Fields: incident_id, service, severity, owner, data_loss (boolean). Use null for explicitly unspecified nullable values; never invent a value. Return data conforming to the schema, with verbatim evidence quotes.",
+        "task": "extraction",
+        "sources": [
+          {
+            "id": "record",
+            "title": "Dev Incident",
+            "text": "Incident INC-104 affected the search API. It began on 2026-09-14 at 10:05 UTC and was resolved at 10:23 UTC. Severity was SEV2. The owner was Priya. No customer data was lost."
+          }
+        ],
+        "schema": {
+          "type": "object",
+          "properties": {
+            "incident_id": {
+              "type": "string"
+            },
+            "service": {
+              "type": "string"
+            },
+            "severity": {
+              "type": "string"
+            },
+            "owner": {
+              "type": "string"
+            },
+            "data_loss": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "incident_id",
+            "service",
+            "severity",
+            "owner",
+            "data_loss"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "gold": {
+        "data": {
+          "incident_id": "INC-104",
+          "service": "search API",
+          "severity": "SEV2",
+          "owner": "Priya",
+          "data_loss": false
+        }
+      }
+    },
+    {
+      "id": "dev-ticket",
+      "task": "extraction",
+      "category": "structured_record",
+      "origin": {
+        "dataset": "AgentProof authored extraction v1",
+        "license": "MIT",
+        "synthetic": true
+      },
+      "request": {
+        "question": "Extract only the requested record from the source. Fields: ticket_id, company, priority, status, agent, follow_up_date (nullable string). Use null for explicitly unspecified nullable values; never invent a value. Return data conforming to the schema, with verbatim evidence quotes.",
+        "task": "extraction",
+        "sources": [
+          {
+            "id": "record",
+            "title": "Dev Ticket",
+            "text": "Ticket SUP-81 belongs to Cedar Labs and has high priority. Status: pending. Assigned agent: Leo. The follow-up date has not been set."
+          }
+        ],
+        "schema": {
+          "type": "object",
+          "properties": {
+            "ticket_id": {
+              "type": "string"
+            },
+            "company": {
+              "type": "string"
+            },
+            "priority": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "agent": {
+              "type": "string"
+            },
+            "follow_up_date": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "ticket_id",
+            "company",
+            "priority",
+            "status",
+            "agent",
+            "follow_up_date"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "gold": {
+        "data": {
+          "ticket_id": "SUP-81",
+          "company": "Cedar Labs",
+          "priority": "high",
+          "status": "pending",
+          "agent": "Leo",
+          "follow_up_date": null
+        }
+      }
+    },
+    {
+      "id": "dev-experiment",
+      "task": "extraction",
+      "category": "structured_record",
+      "origin": {
+        "dataset": "AgentProof authored extraction v1",
+        "license": "MIT",
+        "synthetic": true
+      },
+      "request": {
+        "question": "Extract only the requested record from the source. Fields: experiment_id, samples (integer), batch_size (integer), accuracy (number), baseline_trained_on_eval (boolean). Use null for explicitly unspecified nullable values; never invent a value. Return data conforming to the schema, with verbatim evidence quotes.",
+        "task": "extraction",
+        "sources": [
+          {
+            "id": "record",
+            "title": "Dev Experiment",
+            "text": "Experiment EXP-7 used 48 samples and a batch size of 8. The reported accuracy was 0.875. The baseline was not trained on the evaluation split."
+          }
+        ],
+        "schema": {
+          "type": "object",
+          "properties": {
+            "experiment_id": {
+              "type": "string"
+            },
+            "samples": {
+              "type": "integer"
+            },
+            "batch_size": {
+              "type": "integer"
+            },
+            "accuracy": {
+              "type": "number"
+            },
+            "baseline_trained_on_eval": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "experiment_id",
+            "samples",
+            "batch_size",
+            "accuracy",
+            "baseline_trained_on_eval"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "gold": {
+        "data": {
+          "experiment_id": "EXP-7",
+          "samples": 48,
+          "batch_size": 8,
+          "accuracy": 0.875,
+          "baseline_trained_on_eval": false
+        }
+      }
+    },
+    {
+      "id": "dev-action-list",
+      "task": "extraction",
+      "category": "structured_record",
+      "origin": {
+        "dataset": "AgentProof authored extraction v1",
+        "license": "MIT",
+        "synthetic": true
+      },
+      "request": {
+        "question": "Extract only the requested record from the source. Fields: release, owners (array of names in source order), due_date. Use null for explicitly unspecified nullable values; never invent a value. Return data conforming to the schema, with verbatim evidence quotes.",
+        "task": "extraction",
+        "sources": [
+          {
+            "id": "record",
+            "title": "Dev Action List",
+            "text": "For release R-19, Mina owns the documentation and Omar owns the load test. Both tasks are due 2026-10-09. Do not include the completed design review."
+          }
+        ],
+        "schema": {
+          "type": "object",
+          "properties": {
+            "release": {
+              "type": "string"
+            },
+            "owners": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "due_date": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "release",
+            "owners",
+            "due_date"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "gold": {
+        "data": {
+          "release": "R-19",
+          "owners": [
+            "Mina",
+            "Omar"
+          ],
+          "due_date": "2026-10-09"
+        }
+      }
+    },
+    {
+      "id": "dev-correction",
+      "task": "extraction",
+      "category": "correction",
+      "origin": {
+        "dataset": "AgentProof authored extraction v1",
+        "license": "MIT",
+        "synthetic": true
+      },
+      "request": {
+        "question": "Extract only the requested record from the source. Use only the final approved values. Fields: deployment_id, rollout_time, region. Use null for explicitly unspecified nullable values; never invent a value. Return data conforming to the schema, with verbatim evidence quotes.",
+        "task": "extraction",
+        "sources": [
+          {
+            "id": "record",
+            "title": "Dev Correction",
+            "text": "Update for DEP-14: the originally announced rollout time was 09:00 UTC. The final approved rollout time is 11:30 UTC. Region remains ap-south-1."
+          }
+        ],
+        "schema": {
+          "type": "object",
+          "properties": {
+            "deployment_id": {
+              "type": "string"
+            },
+            "rollout_time": {
+              "type": "string"
+            },
+            "region": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "deployment_id",
+            "rollout_time",
+            "region"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "gold": {
+        "data": {
+          "deployment_id": "DEP-14",
+          "rollout_time": "11:30 UTC",
+          "region": "ap-south-1"
+        }
+      }
+    },
+    {
+      "id": "dev-document",
+      "task": "extraction",
+      "category": "structured_record",
+      "origin": {
+        "dataset": "AgentProof authored extraction v1",
+        "license": "MIT",
+        "synthetic": true
+      },
+      "request": {
+        "question": "Extract only the requested record from the source. Fields: title, author, year (integer), doi (nullable string). Use null for explicitly unspecified nullable values; never invent a value. Return data conforming to the schema, with verbatim evidence quotes.",
+        "task": "extraction",
+        "sources": [
+          {
+            "id": "record",
+            "title": "Dev Document",
+            "text": "The report is titled Cache Evaluation Notes. Its author is Nila Sen. Publication year: 2025. The DOI has not been assigned."
+          }
+        ],
+        "schema": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "author": {
+              "type": "string"
+            },
+            "year": {
+              "type": "integer"
+            },
+            "doi": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "title",
+            "author",
+            "year",
+            "doi"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "gold": {
+        "data": {
+          "title": "Cache Evaluation Notes",
+          "author": "Nila Sen",
+          "year": 2025,
+          "doi": null
+        }
+      }
+    }
+  ]
+}
