@@ -229,6 +229,15 @@ This experiment accepts only a local inference endpoint. It is not a release
 comparison or an equal-compute test. Existing reports retain aggregate-only usage
 limitations; newer diagnostics make unknown per-response accounting explicit.
 
+A separate 16-trial diagnostic probe examined three known failures and one
+successful control. It distinguished incomplete JSON at the output limit from
+normally terminated, valid proposals with incorrect amounts. More output tokens
+alone would not explain all failures. This was selected post-hoc diagnosis,
+not an accuracy benchmark. [Response-level findings](reports/DIAGNOSTIC_FINDINGS.md).
+
+[Reproducible evidence figures](docs/EVIDENCE_FIGURES.md) keep development,
+independent verification and rules-only controls visually separate.
+
 ## Cross a real service boundary
 
 ```sh

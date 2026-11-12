@@ -1149,6 +1149,8 @@ export default function App() {
                     Inspect recorded challenge failures
                   </button>
                   <a href="https://github.com/HXRIkumar/AgentProof#run-it" target="_blank" rel="noreferrer">Run the full local application <ArrowRight size={13} /></a>
+                  <a href="https://github.com/HXRIkumar/AgentProof/blob/codex/agentproof-v1/reports/RULES_REFERENCE_FINDINGS.md" target="_blank" rel="noreferrer">When ordinary rules performed better <ArrowRight size={13} /></a>
+                  <a href="https://github.com/HXRIkumar/AgentProof/blob/codex/agentproof-v1/reports/ABLATION_FINDINGS.md" target="_blank" rel="noreferrer">The cost of extra retries <ArrowRight size={13} /></a>
                 </div>
               </div>
             </section>
