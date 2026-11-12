@@ -80,6 +80,9 @@ test("API cost never renders missing or tiny positive amounts as zero", () => {
   assert.equal(usd(0), "$0.00");
   assert.equal(usd(0.0000001), "<$0.000001");
   assert.equal(usd(0.00125), "$0.00125");
+  // Equivalent accumulated policy/study totals must round identically.
+  assert.equal(usd(0.053503499999999996), "$0.053504");
+  assert.equal(usd(0.05350350000000001), "$0.053504");
 });
 
 test("study cost requires matching ledger identity and complete monotonic snapshots", () => {

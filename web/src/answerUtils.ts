@@ -38,7 +38,7 @@ export const usd = (value: number | null | undefined) =>
       ? "$0.00"
       : value < 0.000001
         ? "<$0.000001"
-        : `$${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`;
+        : `$${(value + Number.EPSILON).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`;
 export function budgetDelta(
   before: AnswerBudgetSnapshot | undefined,
   after: AnswerBudgetSnapshot | undefined,
