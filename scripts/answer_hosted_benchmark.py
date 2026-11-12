@@ -58,11 +58,14 @@ def main():
     args = parser.parse_args()
     if not args.allow_paid:
         parser.error("No API calls: --allow-paid is required for a hosted experiment")
-    if args.output_dir.exists():
+    if args.output_dir.exists() or args.output_dir.is_symlink():
         parser.error("Output directory already exists; retained evidence will not be overwritten")
     runtime_db = args.output_dir.with_name(args.output_dir.name + ".sqlite3")
-    if runtime_db.exists():
+    if runtime_db.exists() or runtime_db.is_symlink():
         parser.error("Study database already exists; choose a new output directory")
+    audit_path = args.output_dir.with_name(args.output_dir.name + ".budget.json")
+    if audit_path.exists() or audit_path.is_symlink():
+        parser.error("Budget audit already exists; choose a new output directory")
     try:
         selected = route_environment(args.mode, dict(os.environ))
     except ValueError as exc:

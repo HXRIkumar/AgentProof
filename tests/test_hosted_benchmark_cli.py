@@ -85,3 +85,15 @@ def test_budget_audit_survives_study_failure(hosted, monkeypatch, tmp_path):
     audit = json.loads((tmp_path / "study.budget.json").read_text())
     assert audit["budget_before"] == {"spent": 0}
     assert audit["budget_after"] == {"spent": 0.01}
+
+
+def test_prior_budget_audit_is_preserved(hosted, monkeypatch, tmp_path, capsys):
+    audit = tmp_path / "study.budget.json"
+    audit.write_text("retained audit")
+    monkeypatch.setattr(sys, "argv", ["hosted", "--allow-paid", "--mode", "hosted",
+                                    "--suite", "unused.json", "--output-dir", str(tmp_path / "study")])
+    monkeypatch.setattr(hosted, "AnswerService", lambda *_: pytest.fail("Must not construct provider"))
+    with pytest.raises(SystemExit):
+        hosted.main()
+    assert "Budget audit already exists" in capsys.readouterr().err
+    assert audit.read_text() == "retained audit"
