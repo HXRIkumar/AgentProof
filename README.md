@@ -4,7 +4,7 @@
 
 Ask questions from documents or extract typed records. Inspect the initial answer, the exact evidence, the critic’s feedback and each revision. Compare the final answer against independent reference labels, then see what the improvement cost.
 
-[Recorded experiment console](https://hxrikumar.github.io/AgentProof/) · [Research](docs/ANSWER_LAB_RESEARCH.md) · [Evaluation protocol](docs/ANSWER_EVALUATION_PLAN.md) · [Frozen evaluation data](examples/answer-suite-v1/README.md) · [Earlier tool-action laboratory](README.v0.4.md)
+[Recorded experiment console](https://hxrikumar.github.io/AgentProof/) · [Demo and architecture guide](docs/ANSWER_LAB_GUIDE.md) · [Research](docs/ANSWER_LAB_RESEARCH.md) · [Evaluation protocol](docs/ANSWER_EVALUATION_PLAN.md) · [Frozen evaluation data](examples/answer-suite-v1/README.md) · [Earlier tool-action laboratory](README.v0.4.md)
 
 ## The workflow
 
@@ -31,7 +31,7 @@ The runtime does not see benchmark reference answers. A separate evaluator grade
 - **Two useful tasks:** source-grounded question answering, including abstention; and JSON Schema extraction from incident reports, tickets or other documents.
 - **Hybrid retrieval:** BM25 and local Sentence Transformer embeddings rank source passages. A lexical fallback is explicitly labelled when embeddings are absent.
 - **Bounded self-correction:** deterministic feedback and a separately prompted critic identify defects. Revision stops when checks pass or the attempt budget is exhausted; every attempt and returned candidate is retained.
-- **Local or hybrid inference:** run both roles locally, or pair a local generator with an efficient hosted critic. Model identities, critic calls, reasoning tokens and API cost estimates remain inspectable.
+- **Local or hybrid inference:** run both roles locally, or pair a local generator with an efficient hosted critic. Optional escalation sends only the final failed retry to the distinct critic model for generation, within the same attempt budget. Model identities, critic calls, reasoning tokens and API cost estimates remain inspectable.
 - **Selective SQLite cache:** only critic-accepted, non-abstaining responses are stored. Keys include source, schema, namespace, model and prompt fingerprints. Semantic candidates require compatibility checks and a fresh critique.
 - **Experiment console:** source editing, question/extraction controls, attempt traces, citations, saved runs, per-case reference grading and downloadable JSON.
 - **Fair comparisons:** one shared initial model response per case across direct, validation-only and critic-assisted policies. Logical standalone costs and actual experiment calls are counted separately.
@@ -50,7 +50,17 @@ npm --prefix web ci
 npm --prefix web run build
 ```
 
-On Apple Silicon, after caching the free pinned model, double-click `scripts/open-answer-lab.command`. The launcher starts the model and application, opens the workspace and stops its own processes when closed with Ctrl+C. It never configures a paid endpoint. See its message for the one-time model download command.
+On Apple Silicon, cache the free pinned generation and embedding weights once:
+
+```sh
+uv run --extra embeddings hf download mlx-community/Qwen3.5-4B-MLX-4bit \
+  --revision 32f3e8ecf65426fc3306969496342d504bfa13f3
+uv run --extra embeddings hf download sentence-transformers/all-MiniLM-L6-v2 \
+  --revision 1110a243fdf4706b3f48f1d95db1a4f5529b4d41
+./scripts/open-answer-lab.command
+```
+
+You can also double-click `scripts/open-answer-lab.command`. The launcher starts the model and application, opens the workspace and stops its own processes when closed with Ctrl+C. It never configures a paid endpoint. Installing the embeddings dependency alone does not download its weights; if they are unavailable, the UI explicitly reports lexical retrieval.
 
 Alternatively, use an existing local OpenAI-compatible model server:
 
