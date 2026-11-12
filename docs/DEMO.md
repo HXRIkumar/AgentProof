@@ -2,6 +2,9 @@
 
 Start the application using [the README](../README.md#run-it). The first route
 below works with an empty experiment database and no configured model.
+It also works in the [public recorded-evidence viewer](https://hxrikumar.github.io/AgentProof/),
+which runs no backend or inference. The scripted action demonstration requires
+the full local application.
 
 ## Recorded evidence: inspect a real failure in about one minute
 

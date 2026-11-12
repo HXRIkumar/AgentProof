@@ -1,0 +1,38 @@
+{
+  "status": "passed",
+  "verified_at_utc": "2026-11-12T04:35:13.576743+00:00",
+  "url": "https://hxrikumar.github.io/AgentProof/",
+  "build": {
+    "mode": "recorded-only",
+    "source_commit": "6455237d12f1291f0c289a962f1341d360bfea36",
+    "verified_ci_run": "https://github.com/HXRIkumar/AgentProof/actions/runs/43155026104",
+    "models_executed_by_site": false
+  },
+  "ci_conclusion": "success",
+  "raw_download_sha256": {
+    "challenge-v02": "df2f8062a6202444bbfbea908bbaff7a7bf6d5c04e892d6507e5e4610771223f",
+    "challenge-v01": "4350df2a927427b391c077722705107d5680cd1f4997092439363fd5a7e09ea8",
+    "original-v02": "2bc665369b0e943663485a3255cb4ddd5c503ff3997b77559c64d0604a985bad",
+    "original-v01": "3e8fb9dc2889b13de703a8c4b0c9979f59a982db86bb49e10df754d2edc218e7",
+    "independent-v03": "6ce7c8c54e49279fdc1cd6c9cff003a54955282323e85208d96c4ab7f093e797"
+  },
+  "browser": "Google Chrome headless",
+  "desktop": "1440x1100",
+  "mobile": "390x844",
+  "mobile_overflow": false,
+  "page_errors": [],
+  "failed_site_responses": [],
+  "api_requests": [],
+  "mutation_requests": [],
+  "model_calls": 0,
+  "request_count": 25,
+  "checks": [
+    "actual public HTTPS page",
+    "exact CI source and successful push run",
+    "five direct and browser download hashes",
+    "read-only controls",
+    "visible rules and retry-cost findings",
+    "recorded failure checks and empty ledger",
+    "desktop/mobile"
+  ]
+}

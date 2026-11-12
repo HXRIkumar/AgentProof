@@ -2,7 +2,39 @@
 
 Checked on 12 November 2026, Apple M4, 24 GB unified memory, macOS 26.5.1.
 
-## Version 0.4 integration checks
+## Final version 0.4 engineering checkpoint
+
+Commit `6455237` passed **597 Python tests**, Ruff, **eight web tests**, the
+production build, four application browser workflows, two static browser checks,
+fixture/release gates and the Linux production-container job in
+[Actions run 43155026104](https://github.com/HXRIkumar/AgentProof/actions/runs/43155026104).
+The container was built and exercised, including persistence across restart.
+
+On the Mac, the same integrated source passed all 597 tests, the eight web tests
+and production build. Fresh-database archive QA verified actual scripted actions,
+historical isolation, selection races, exact downloads and mobile layout. A
+separate static build passed the nested-path/reload/download check. The local
+editable package needed reinstalling before test collection; reinstalling with
+`uv sync --frozen --reinstall-package agentproof` restored imports without a
+source change. The local application was then restarted and `/api/ready` returned
+200 with both database and worker available.
+
+Both free local-model families completed their studies. The later Phi study
+contains 96 original and 120 challenge trials, with 46/48 and 60/60 guarded
+correct outcomes respectively. The original threshold failure occurs twice and
+is retained. An independent standard-library audit reconciled all 216 trial
+records, ledger grades, source hashes, 226 HTTP attempts and reported usage;
+the separate warm-up is excluded. See [results and limits](../reports/MODEL_PORTABILITY_FINDINGS.md).
+The inference server was stopped after completion to release memory.
+
+The 216-trial proposal-budget study and 16-trial focused probe are also complete
+and independently reconciled in [the evidence audit](EVIDENCE_AUDIT.md).
+Extra retries fail the declared challenge token-efficiency rule. These are
+separate experiments; test counts and correlated model trials are not combined
+into an accuracy claim. Original v0.1 raw evidence remains byte-identical to
+the published v0.1 tag.
+
+## Earlier version 0.4 integration checkpoint
 
 [GitHub Actions run 43122576001](https://github.com/HXRIkumar/AgentProof/actions/runs/43122576001)
 passed for `60ff899`: **494 Python tests**, Ruff, four web test groups and production

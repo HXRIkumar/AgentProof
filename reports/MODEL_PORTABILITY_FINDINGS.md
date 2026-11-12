@@ -68,6 +68,12 @@ a composite workflow comparison, not an equal-compute model-quality test.
 [challenge summary](phi4-mini-challenge-v1.summary.json), and
 [exact file hashes](phi4-mini-SHA256SUMS).
 
+A separate [read-only consistency audit](phi4-mini-independent-check.json)
+recomputed all 216 trial records and reconciled 226 trial HTTP attempts plus the
+excluded warm-up against the local server log. It found no discrepancies in
+ledger grades, counts, hashes or usage totals. This is an audit of saved evidence,
+not independent attestation of model identity or generalization.
+
 Original raw SHA-256:
 `c5ca8558567aba63c2fad3502025de8d45a4ba2b65afc1b796e75e7ee650f642`.
 Challenge raw SHA-256:

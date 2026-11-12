@@ -5,6 +5,21 @@ server, database, inference endpoint or credentials. It is suitable for a
 GitHub Pages project URL such as `/AgentProof/`. It does not run experiments.
 The ordinary application build and API remain available for local execution.
 
+Published viewer: **https://hxrikumar.github.io/AgentProof/**.
+The initial deployment from `6455237` followed successful
+[engineering CI](https://github.com/HXRIkumar/AgentProof/actions/runs/43155026104)
+and [Pages validation/deployment](https://github.com/HXRIkumar/AgentProof/actions/runs/43155584726).
+Its `build.json` identifies the exact deployed source and preceding CI run.
+Future pushes publish only after successful push CI on the current branch tip;
+the build has read-only repository/Pages access and the isolated deployment job
+receives Pages write/OIDC permissions.
+
+The [initial public-site verification](../reports/public-demo-verification-v04.json)
+checked actual HTTPS responses, all five downloads directly and through Chrome,
+the failed-case inspector, negative-finding links and desktop/mobile layouts.
+It recorded no JavaScript errors, failed site responses, API calls or mutations.
+This is a dated deployment check; `build.json` is the current source record.
+
 ## Build and inspect locally
 
 From the repository root:

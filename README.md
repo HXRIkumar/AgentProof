@@ -4,6 +4,10 @@
 
 **A release-testing workbench for policy-gated AI agent workflows.**
 
+[Open the recorded-evidence demo](https://hxrikumar.github.io/AgentProof/) ·
+[Run the full application locally](#run-it) ·
+[Download a release](https://github.com/HXRIkumar/AgentProof/releases/latest)
+
 An agent can produce a convincing answer and still take the wrong action.
 AgentProof compares a baseline and a guarded refund workflow against the actual
 transaction ledger, then shows exactly where each run failed or recovered.
