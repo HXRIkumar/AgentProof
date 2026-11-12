@@ -42,6 +42,14 @@ jobs:
           uv run --with playwright==1.64.0 python web/qa/async_smoke.py
           uv run --with playwright==1.64.0 python web/qa/comparison_smoke.py
           uv run --with playwright==1.64.0 python web/qa/archive_smoke.py
+      - name: Recorded-only static build and browser checks
+        env:
+          PLAYWRIGHT_CHANNEL: chromium
+        run: |
+          npm --prefix web run build:recorded
+          uv run python scripts/build_static_evidence.py
+          uv run --with playwright==1.64.0 python web/qa/static_smoke.py
+          uv run --with playwright==1.64.0 python web/qa/static_review.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

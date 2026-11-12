@@ -2745,3 +2745,24 @@ pre {
   .comparison-evidence-pane + .comparison-evidence-pane { border-left: 0; border-top: 2px solid var(--steel); }
   .comparison-metrics th, .comparison-metrics td { padding: 10px 5px; font-size: 9px; }
 }
+
+.static-demo-notice {
+  display: flex;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid #00838a;
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 24px;
+  background: #e9f5f6;
+  color: #254f66;
+}
+.static-demo-notice > svg { flex-shrink: 0; margin-top: 2px; }
+.static-demo-notice strong { font-size: 14px; }
+.static-demo-notice p { font-size: 12px; line-height: 1.65; margin: 8px 0 14px; }
+.static-demo-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.static-demo-actions a { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; }
+@media (max-width: 600px) {
+  .static-demo-notice { padding: 16px; gap: 10px; }
+  .static-demo-actions .button { white-space: normal; text-align: left; }
+}
