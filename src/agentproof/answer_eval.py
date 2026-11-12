@@ -164,6 +164,47 @@ def paired_interval(deltas: list[float], seed: int = 20261112, draws: int = 2000
     return [percentile(estimates, 0.025), percentile(estimates, 0.975)]
 
 
+def cost_summary(usages: list[dict], *, actual: bool = False, correct: int | None = None) -> dict:
+    """Aggregate recorded API estimates, retaining unknown charges and reservations.
+
+    Local-only historical records intentionally retain their previous summary shape.
+    Actual mode excludes reused initial responses; logical mode charges each policy.
+    These are provider-price estimates, never a claim about an account invoice.
+    """
+    if not any("paid_calls" in item or "blocked_calls" in item for item in usages):
+        return {}
+    prefix = "actual_" if actual else ""
+    paid = sum(item.get(prefix + "paid_calls", 0) for item in usages)
+    blocked = sum(item.get("blocked_calls", 0) for item in usages)
+    estimated = accounted = 0.0
+    known = accounted_known = True
+    for item in usages:
+        if not item.get(prefix + "paid_calls", 0):
+            continue
+        estimate = item.get(prefix + "estimated_cost_usd")
+        reservation = item.get(prefix + "accounted_cost_usd")
+        for value in (estimate, reservation):
+            if value is not None and (type(value) not in (int, float)
+                                      or not math.isfinite(value) or value < 0):
+                raise ValueError("Recorded API costs must be finite and nonnegative")
+        known = known and item.get(prefix + "cost_known") is True and estimate is not None
+        accounted_known = accounted_known and reservation is not None
+        estimated += estimate or 0
+        accounted += reservation or 0
+    summary = {
+        "paid_calls": paid, "blocked_calls": blocked,
+        "estimated_cost_usd": estimated if known else None,
+        "accounted_cost_usd": accounted if accounted_known else None,
+        "cost_known": known,
+        "cost_label": "Standard-price estimate / conservative reservations, not invoice total",
+    }
+    if not actual:
+        summary["actual_paid_calls"] = sum(item.get("actual_paid_calls", 0) for item in usages)
+    if correct is not None:
+        summary["cost_per_correct_usd"] = ratio(estimated, correct) if known else None
+    return summary
+
+
 def strategy_summary(trials: list[dict]) -> dict:
     count = len(trials)
     correct = sum(t["grade"]["correct"] for t in trials)
@@ -222,6 +263,7 @@ def strategy_summary(trials: list[dict]) -> dict:
         "latency_p95_ms": percentile(latencies, 0.95),
         "cache_statuses": dict(cache_statuses),
         "error_count": sum(t["result"].get("status") == "error" for t in trials),
+        **cost_summary([t["result"].get("usage", {}) for t in trials], correct=correct),
     }
 
 
@@ -301,7 +343,10 @@ def summarize_report(report: dict, *, recompute: bool = True) -> dict:
         if recompute:
             trial["grade"] = grade_result(trial["case"], trial["result"])
             trial["initial_grade"] = grade_result(trial["case"], trial["initial_result"])
-    complete = (report["status"] == "completed" and len(trials) == planned
+    blocked = (any(response.get("request_sent", True) is False
+                   for response in initial_generations.values())
+               or any(t["result"].get("usage", {}).get("blocked_calls", 0) for t in trials))
+    complete = (report["status"] == "completed" and len(trials) == planned and not blocked
                 and report.get("source_unchanged", True))
     by_strategy = {
         strategy: strategy_summary([t for t in trials if t["strategy"] == strategy])

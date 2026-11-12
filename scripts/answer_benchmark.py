@@ -20,6 +20,7 @@ from urllib.parse import urlsplit
 
 from agentproof.answer_eval import (
     STRATEGIES,
+    cost_summary,
     evidence_digest,
     grade_result,
     load_suite,
@@ -62,18 +63,56 @@ def request_for(case, *, strategy, max_attempts=3, namespace="benchmark", use_ca
 
 
 def actual_usage(report):
-    initial = [item["response"] for item in report["initial_generations"]]
+    recorded_initial = [item["response"] for item in report["initial_generations"]]
+    initial = [item for item in recorded_initial if item.get("request_sent", True)]
     trial_usage = [trial["result"]["usage"] for trial in report["trials"]]
     known = (all(item["usage_known"] for item in initial)
              and all(item["known"] for item in trial_usage))
     tokens = sum((item.get("prompt_tokens") or 0) + (item.get("completion_tokens") or 0)
                  for item in initial)
     tokens += sum(item.get("actual_total_tokens") or 0 for item in trial_usage)
+    costs = list(trial_usage)
+    for item in recorded_initial:
+        billing = item.get("billing")
+        sent = item.get("request_sent", True)
+        if billing is not None or not sent:
+            costs.append({
+                "paid_calls": int(sent and billing is not None),
+                "actual_paid_calls": int(sent and billing is not None),
+                "blocked_calls": int(not sent),
+                "actual_cost_known": billing is None or billing.get("state") == "settled",
+                "actual_estimated_cost_usd": billing.get("estimated_cost_usd") if billing else 0,
+                "actual_accounted_cost_usd": billing.get("accounted_usd") if billing else 0,
+            })
     return {"calls": len(initial) + sum(item.get("actual_calls", 0) for item in trial_usage),
             "observed_tokens": tokens, "total_tokens": tokens if known else None,
             "usage_known": known,
             "shared_initial_generations": len(initial),
-            "logical_policy_tokens_are_not_actual_study_tokens": True}
+            "logical_policy_tokens_are_not_actual_study_tokens": True,
+            **cost_summary(costs, actual=True)}
+
+
+class StudyBlocked(Exception):
+    """A preflight denial stopped this controlled study without making a request."""
+
+    def __init__(self, response, *, case_id, strategy, stage):
+        allowed = {"budget_exhausted", "credentials", "budget_guard", "paid_disabled", "configuration"}
+        reason = response.get("blocked_reason")
+        self.details = {"code": reason if reason in allowed else "budget_guard",
+                        "case_id": case_id, "strategy": strategy, "stage": stage}
+        super().__init__(self.details["code"])
+
+
+def check_blocked(result, *, case_id, strategy):
+    responses = []
+    for attempt in result.get("attempts", []):
+        responses.extend((attempt.get("generation"), attempt.get("critic_response")))
+    responses.append((result.get("cache", {}).get("verification") or {}).get("response"))
+    for response in responses:
+        if isinstance(response, dict) and response.get("request_sent", True) is False:
+            raise StudyBlocked(response, case_id=case_id, strategy=strategy, stage="policy")
+    if result.get("usage", {}).get("blocked_calls", 0):
+        raise StudyBlocked({}, case_id=case_id, strategy=strategy, stage="policy")
 
 
 def run_benchmark(suite_path: Path, output: Path, *, service=None, strategies=STRATEGIES,
@@ -131,6 +170,9 @@ def run_benchmark(suite_path: Path, output: Path, *, service=None, strategies=ST
                                                    "wall_latency_ms": (time.perf_counter()-initial_start)*1000})
             # Persist the actual response before subsequent work; interruption never erases it.
             save_json(output / "raw.json", report)
+            if getattr(initial, "request_sent", True) is False:
+                raise StudyBlocked(asdict(initial), case_id=case["id"], strategy="baseline",
+                                   stage="initial_generation")
             baseline = service.run(req, initial_response=initial, persist=False)
             initial_grade = grade_result(case, baseline)
             arms = [s for s in strategies if s != "baseline"]
@@ -149,12 +191,16 @@ def run_benchmark(suite_path: Path, output: Path, *, service=None, strategies=ST
                 report["actual_usage"] = actual_usage(report)
                 report["elapsed_seconds"] = time.perf_counter() - started
                 save_json(output / "raw.json", report)
+                check_blocked(result, case_id=case["id"], strategy=strategy)
                 print(json.dumps({"completed": len(report["trials"]),
                                   "planned": len(cases)*len(strategies), "case": case["id"],
                                   "strategy": strategy, "correct": report["trials"][-1]["grade"]["correct"]}), flush=True)
             report["summary"] = summarize_report(report)
             save_json(output / "raw.json", report)
         report["status"] = "completed"
+    except StudyBlocked as exc:
+        report["status"] = "blocked"
+        report["stop_reason"] = exc.details
     except KeyboardInterrupt:
         report["status"] = "interrupted"
     except Exception as exc:

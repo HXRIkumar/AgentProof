@@ -14,7 +14,7 @@ import statistics
 from collections import defaultdict
 from typing import Any
 
-from .answer_eval import evidence_digest, grade_result, normalize_answer
+from .answer_eval import cost_summary, evidence_digest, grade_result, normalize_answer
 
 
 class CacheEvidenceError(ValueError):
@@ -83,6 +83,21 @@ def _response_usage(result):
         if not isinstance(verification.get("response"), dict):
             raise CacheEvidenceError("Cache verification response is missing")
         responses.append(verification["response"])
+    recorded = responses
+    responses = []
+    blocked = 0
+    for response in recorded:
+        sent = response.get("request_sent", True)
+        if type(sent) is not bool:
+            raise CacheEvidenceError("Response request-sent flag must be boolean")
+        if sent:
+            responses.append(response)
+        else:
+            blocked += 1
+            if any(response.get(name) not in (None, 0) for name in ("prompt_tokens", "completion_tokens")):
+                raise CacheEvidenceError("A blocked request cannot report consumed tokens")
+            if response.get("billing") is not None:
+                raise CacheEvidenceError("A blocked request cannot report a billed reservation")
     prompt_tokens = completion_tokens = 0
     known = True
     for response in responses:
@@ -106,13 +121,37 @@ def _response_usage(result):
         "unknown_calls": sum(not response["usage_known"] for response in responses),
     }
     usage = result.get("usage", {})
+    if blocked or "blocked_calls" in usage:
+        expected["blocked_calls"] = blocked
     for key, value in expected.items():
         if type(usage.get(key)) is not type(value) or usage.get(key) != value:
             raise CacheEvidenceError(f"Recorded model accounting disagrees for {key}")
+    if result.get("cache", {}).get("status") in {"exact_hit", "semantic_hit"} and blocked:
+        raise CacheEvidenceError("Blocked verification cannot produce a cache hit")
     if result.get("cache", {}).get("status") == "exact_hit" and responses:
         raise CacheEvidenceError("Exact cache hits must not make inference calls")
     if result.get("cache", {}).get("status") == "semantic_hit" and verification is None:
         raise CacheEvidenceError("Semantic cache hits require a recorded fresh critique")
+    cost_records = []
+    for response in responses:
+        billing = response.get("billing")
+        if billing is not None:
+            cost_records.append({"paid_calls": 1, "actual_paid_calls": 1,
+                                 "cost_known": billing.get("state") == "settled",
+                                 "estimated_cost_usd": billing.get("estimated_cost_usd"),
+                                 "accounted_cost_usd": billing.get("accounted_usd")})
+    if blocked:
+        cost_records.append({"blocked_calls": blocked})
+    costs = cost_summary(cost_records)
+    if costs:
+        costs.update({"actual_cost_known": costs["cost_known"],
+                      "actual_estimated_cost_usd": costs["estimated_cost_usd"],
+                      "actual_accounted_cost_usd": costs["accounted_cost_usd"]})
+    for key in ("paid_calls", "actual_paid_calls", "cost_known", "estimated_cost_usd", "accounted_cost_usd",
+                "actual_cost_known", "actual_estimated_cost_usd", "actual_accounted_cost_usd"):
+        if key in costs and usage.get(key) != costs[key]:
+            raise CacheEvidenceError(f"Recorded model accounting disagrees for {key}")
+    expected.update(costs)
     return expected
 
 
@@ -242,6 +281,7 @@ def summarize_cache(report: dict[str, Any]) -> dict:
     all_rows = [group["cold"] for group in groups] + replays + queries
     observed_tokens = sum(row["audited_usage"]["total_tokens"] for row in all_rows)
     known = all(row["audited_usage"]["known"] for row in all_rows)
+    blocked = sum(row["audited_usage"].get("blocked_calls", 0) for row in all_rows)
     by_kind = defaultdict(list)
     for row in queries:
         by_kind[row["kind"]].append(row)
@@ -255,7 +295,7 @@ def summarize_cache(report: dict[str, Any]) -> dict:
         [row["end_to_end_ms"] for row in group["replays"]]) for group in correct_groups
         if _median([row["end_to_end_ms"] for row in group["replays"]]) > 0]
     return {
-        "complete": report["status"] == "completed" and complete_coverage and source_unchanged,
+        "complete": report["status"] == "completed" and complete_coverage and source_unchanged and not blocked,
         "planned_groups": len(planned), "planned_exact_replays": len(planned) * replay_count,
         "planned_semantic_queries": sum(len(group["queries"]) for group in planned),
         "cold_requests": len(groups), "cold_correct": sum(group["cold"]["correct"] for group in groups),
@@ -286,4 +326,5 @@ def summarize_cache(report: dict[str, Any]) -> dict:
         "correct_pair_scope": "Median per-group cold/warm-median ratio restricted to reference-correct cold and warm outputs; conditional subset with explicit denominator.",
         "negative_scope": "Negative labels mean reuse of the seed answer is not expected; a later cache entry may correctly answer them. False-hit rate uses reference grading, not the label alone.",
         "calls_scope": "Actual adapter inference attempts reconstructed from saved generation/critic responses, including failed calls; no external billing attestation.",
+        **cost_summary([row["audited_usage"] for row in all_rows]),
     }
