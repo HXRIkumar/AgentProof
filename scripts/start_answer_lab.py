@@ -1,4 +1,4 @@
-"""Start the local Mac answer workspace; never configures a paid endpoint."""
+"""Start SupportDesk and its answer runtime on Mac; never enables paid inference."""
 
 import os
 import platform
@@ -29,7 +29,7 @@ def local_environment(environment):
         ANSWER_LAB_MODEL_REVISION=REVISION,
         ANSWER_LAB_EMBEDDING_REVISION=EMBEDDING_REVISION,
         ANSWER_LAB_DISABLE_THINKING="true",
-        ANSWER_LAB_MAX_TOKENS="768",
+        ANSWER_LAB_MAX_TOKENS="1024",
         ANSWER_LAB_ENABLE_PAID="0",
         ANSWER_LAB_API_KEY="",
     )
@@ -145,7 +145,7 @@ def main():
         wait_ready("http://127.0.0.1:8010/api/ready", api, 30)
         webbrowser.open("http://127.0.0.1:8010")
         print(
-            "Answer Lab is ready at http://127.0.0.1:8010. Keep this window open; Ctrl+C stops its services.",
+            "AgentProof SupportDesk is ready at http://127.0.0.1:8010. Keep this window open; Ctrl+C stops its services.",
             flush=True,
         )
         while all(p.poll() is None for p in processes):

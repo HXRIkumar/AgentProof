@@ -1,0 +1,70 @@
+{
+  "format": "agentproof-support-export-v1",
+  "exported_at": "2026-11-12T08:22:46.682119+00:00",
+  "ticket": {
+    "id": "dce8cb73-8988-4ed7-b89a-4a2620a02ee2",
+    "external_id": "HARBOR-103",
+    "title": "Please refund my invoice",
+    "body": "I want a refund of 200 dollars for invoice INV-204 dated 10 November. Please confirm it has been approved and tell me the date the money will arrive.",
+    "revision": 5,
+    "status": "escalated"
+  },
+  "review": {
+    "decision": "escalate",
+    "reply": null,
+    "note": "Demonstration review by build agent against example documentation. Billing handoff: invoice INV-204 dated10 November; customer requested$200. No refund approval, amount or arrival date has been confirmed. Collect the issue description and have billing review.",
+    "reviewed_at": "2026-11-12T08:21:19.434150+00:00",
+    "knowledge_revision": "9c6e6a469441c6154aca9a52416726ff5648c09d03d6f6f6cdef921dc3e12711",
+    "answer_run_id": "43e0d114e74f4248b850ea4a1fff141e"
+  },
+  "reply": null,
+  "resolution": {
+    "summary": "Customer requests a refund of $200 for invoice INV-204 dated 10 November and asks for confirmation of approval and expected arrival date.",
+    "category": "billing",
+    "priority": "normal",
+    "next_action": "escalate",
+    "draft_reply": "",
+    "follow_up_question": ""
+  },
+  "reasons": [
+    "The proposed next action requires clarification or a human handoff",
+    "Financial or account-changing request requires a human handoff; no account facts or actions were verified"
+  ],
+  "document_versions": [
+    {
+      "document_id": "d656dacb-0871-4ef6-aefe-266f301d39d4",
+      "filename": "billing-policy.md",
+      "version": 1,
+      "page": null,
+      "chunk": 1
+    },
+    {
+      "document_id": "e7139626-33a3-4f62-a0af-4b0530cebd09",
+      "filename": "triage-guide.md",
+      "version": 1,
+      "page": null,
+      "chunk": 1
+    },
+    {
+      "document_id": "1f494f9d-ed78-4e8f-b77d-0e916e938d36",
+      "filename": "webhook-delivery.md",
+      "version": 1,
+      "page": null,
+      "chunk": 1
+    }
+  ],
+  "citations": [
+    {
+      "source_id": "ticket-dce8cb73-8988-4ed7-b89a-4a2620a02ee2",
+      "quote": "I want a refund of 200 dollars for invoice INV-204 dated 10 November. Please confirm it has been approved and tell me the date the money will arrive."
+    },
+    {
+      "source_id": "kb-d656dacb-0871-4ef6-aefe-266f301d39d4-p0-c1",
+      "quote": "Refunds and service credits require review by the billing team. A support draft must not approve a refund, promise a specific amount, or promise a processing date."
+    }
+  ],
+  "answer_run_id": "43e0d114e74f4248b850ea4a1fff141e",
+  "job_id": "26995b61-4850-40cf-9c13-e17781e15bc0",
+  "knowledge_revision": "9c6e6a469441c6154aca9a52416726ff5648c09d03d6f6f6cdef921dc3e12711",
+  "customer_message_sent": false
+}

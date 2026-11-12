@@ -1,0 +1,63 @@
+{
+  "format": "agentproof-support-export-v1",
+  "exported_at": "2026-11-12T08:22:46.679908+00:00",
+  "ticket": {
+    "id": "d42b4235-334c-41a6-b3d8-80ec5e08b6da",
+    "external_id": "HARBOR-101",
+    "title": "My workspace invitation expired",
+    "body": "I received an invitation four days ago. Opening it now says the invitation has expired. What should I do to join the workspace?",
+    "revision": 5,
+    "status": "approved"
+  },
+  "review": {
+    "decision": "approve",
+    "reply": "Your workspace invitation expires 72 hours after issuance. Since it has expired, you cannot join using that invitation. Please request a new invitation from the workspace administrator. They can issue a fresh invitation via Settings > Members > Invite member.\n\nUse the most recent invitation email.",
+    "note": "Demonstration review by build agent against example documentation. Confirmed the documented72-hour expiry and administrator invitation path. Added the documented reminder to use the most recent invitation email.",
+    "reviewed_at": "2026-11-12T08:21:18.452179+00:00",
+    "knowledge_revision": "9c6e6a469441c6154aca9a52416726ff5648c09d03d6f6f6cdef921dc3e12711",
+    "answer_run_id": "5201837feecd40279f4176478f054ff2"
+  },
+  "reply": "Your workspace invitation expires 72 hours after issuance. Since it has expired, you cannot join using that invitation. Please request a new invitation from the workspace administrator. They can issue a fresh invitation via Settings > Members > Invite member.\n\nUse the most recent invitation email.",
+  "resolution": {
+    "summary": "Customer reports that a workspace invitation received four days ago is now expired and asks how to join the workspace.",
+    "category": "account",
+    "priority": "normal",
+    "next_action": "reply",
+    "draft_reply": "Your workspace invitation expires 72 hours after issuance. Since it has expired, you cannot join using that invitation. Please request a new invitation from the workspace administrator. They can issue a fresh invitation via Settings > Members > Invite member.",
+    "follow_up_question": ""
+  },
+  "reasons": [],
+  "document_versions": [
+    {
+      "document_id": "4164b805-690f-4ff7-8f40-ca59622ecae1",
+      "filename": "account-access.md",
+      "version": 1,
+      "page": null,
+      "chunk": 1
+    },
+    {
+      "document_id": "e7139626-33a3-4f62-a0af-4b0530cebd09",
+      "filename": "triage-guide.md",
+      "version": 1,
+      "page": null,
+      "chunk": 1
+    },
+    {
+      "document_id": "d656dacb-0871-4ef6-aefe-266f301d39d4",
+      "filename": "billing-policy.md",
+      "version": 1,
+      "page": null,
+      "chunk": 1
+    }
+  ],
+  "citations": [
+    {
+      "source_id": "kb-4164b805-690f-4ff7-8f40-ca59622ecae1-p0-c1",
+      "quote": "Workspace invitations expire 72 hours after they are issued. An expired invitation cannot be reactivated by the recipient. A workspace administrator can open Settings > Members > Invite member and issue a new invitation to the same email."
+    }
+  ],
+  "answer_run_id": "5201837feecd40279f4176478f054ff2",
+  "job_id": "94d145c0-da76-423c-8628-dd8135b3796d",
+  "knowledge_revision": "9c6e6a469441c6154aca9a52416726ff5648c09d03d6f6f6cdef921dc3e12711",
+  "customer_message_sent": false
+}

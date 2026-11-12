@@ -1,0 +1,66 @@
+{
+  "format": "agentproof-support-export-v1",
+  "exported_at": "2026-11-12T08:22:46.681099+00:00",
+  "ticket": {
+    "id": "a09b497c-db3a-4490-9a7d-cab0ef7249b7",
+    "external_id": "HARBOR-102",
+    "title": "Webhook 401 after secret rotation",
+    "body": "Our endpoint started returning 401 after we rotated the signing secret. We parse the JSON and serialize it again before checking X-Harbor-Signature. Will Harbor retry these deliveries, and what should we check?",
+    "revision": 5,
+    "status": "escalated"
+  },
+  "review": {
+    "decision": "escalate",
+    "reply": null,
+    "note": "Demonstration review by build agent against example documentation. Escalated because all3 runtime attempts failed verbatim citation validation. The model combined separate policy sentences in one quote. No reply approved; a reviewer should verify the webhook guidance and provide properly sourced wording.",
+    "reviewed_at": "2026-11-12T08:21:18.951477+00:00",
+    "knowledge_revision": "9c6e6a469441c6154aca9a52416726ff5648c09d03d6f6f6cdef921dc3e12711",
+    "answer_run_id": "6b891c7f12ba4f0599cbd6f2582f7f6c"
+  },
+  "reply": null,
+  "resolution": {
+    "summary": "Customer reports receiving 401 errors after rotating the signing secret. They parse and re-serialize JSON before verifying the X-Harbor-Signature header. They ask if Harbor retries these deliveries and what to check.",
+    "category": "technical",
+    "priority": "normal",
+    "next_action": "reply",
+    "draft_reply": "After rotating a signing secret, update the receiver's configured secret. A 401 response is not retried; first check the configured signing secret and verify the original request-body bytes. Please confirm you have updated the secret and are verifying the unmodified request bytes.",
+    "follow_up_question": "Have you updated the receiver's configured signing secret following the rotation?"
+  },
+  "reasons": [
+    "No accepted structured resolution; review the actual model trace",
+    "The runtime did not accept a valid resolution"
+  ],
+  "document_versions": [
+    {
+      "document_id": "1f494f9d-ed78-4e8f-b77d-0e916e938d36",
+      "filename": "webhook-delivery.md",
+      "version": 1,
+      "page": null,
+      "chunk": 1
+    },
+    {
+      "document_id": "4164b805-690f-4ff7-8f40-ca59622ecae1",
+      "filename": "account-access.md",
+      "version": 1,
+      "page": null,
+      "chunk": 1
+    },
+    {
+      "document_id": "e7139626-33a3-4f62-a0af-4b0530cebd09",
+      "filename": "triage-guide.md",
+      "version": 1,
+      "page": null,
+      "chunk": 1
+    }
+  ],
+  "citations": [
+    {
+      "source_id": "kb-1f494f9d-ed78-4e8f-b77d-0e916e938d36-p0-c1",
+      "quote": "After rotating a signing secret, update the receiver's configured secret. A 401 response is not retried: first check the configured signing secret and verification of the original request-body bytes."
+    }
+  ],
+  "answer_run_id": "6b891c7f12ba4f0599cbd6f2582f7f6c",
+  "job_id": "0c9c3e1d-84c7-4ca2-86be-eeb0c9b2b58c",
+  "knowledge_revision": "9c6e6a469441c6154aca9a52416726ff5648c09d03d6f6f6cdef921dc3e12711",
+  "customer_message_sent": false
+}
