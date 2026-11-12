@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from agentproof.answers import AnswerService, OpenAIAdapter
+from agentproof.answers import AnswerRequest, AnswerService, OpenAIAdapter
 from agentproof.api import create_app
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,6 +65,7 @@ def test_cache_probe_does_not_grade_failed_empty_answer_as_correct_abstention():
         def run(self, request):
             return {"status": "failed", "abstained": False, "answer": ""}
 
-    row = probe.execute(FailedService(), None, [""])
+    request = AnswerRequest(question="When?", sources=[{"id": "s", "text": "No date given."}])
+    row = probe.execute(FailedService(), request, [""])
     assert row["correct"] is False
     assert row["exact_match"] == 0

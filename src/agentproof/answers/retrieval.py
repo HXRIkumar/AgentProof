@@ -46,7 +46,10 @@ class SentenceEmbedder:
                     from sentence_transformers import SentenceTransformer
 
                     self._model = SentenceTransformer(
-                        self.name, local_files_only=True, device="cpu"
+                        self.name,
+                        local_files_only=True,
+                        device="cpu",
+                        revision=None if self.revision == "unrecorded" else self.revision,
                     )
                 missing = list(dict.fromkeys(text for text in texts if text not in self._cache))
                 if missing:

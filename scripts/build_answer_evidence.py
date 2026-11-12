@@ -7,11 +7,12 @@ import json
 import re
 from pathlib import Path
 
+from agentproof.answer_cache_eval import summarize_cache
 from agentproof.answer_eval import summarize_report
 from agentproof.answers.models import parse_json
 
 
-def build_answer_evidence(source: Path, output: Path) -> dict:
+def build_answer_evidence(source: Path, output: Path, *, cache=False) -> dict:
     if output.exists() and any(output.iterdir()):
         raise ValueError("Output must be empty; rebuild the web distribution first")
     packaged = []
@@ -23,9 +24,15 @@ def build_answer_evidence(source: Path, output: Path) -> dict:
         if len(raw) > 30_000_000:
             raise ValueError("Evidence exceeds the 30 MB limit")
         report = parse_json(raw.decode())
-        if report.get("format_version") != "answer-lab-study-v1":
+        if not cache and report.get("format_version") != "answer-lab-study-v1":
             continue
-        recalculated = summarize_report(copy.deepcopy(report))
+        if cache and report.get("format") != "answer-cache-probe-v1":
+            continue
+        recalculated = (
+            summarize_cache(copy.deepcopy(report))
+            if cache
+            else summarize_report(copy.deepcopy(report))
+        )
         if not recalculated["complete"]:
             raise ValueError(f"Incomplete answer study: {path.name}")
         if report["summary"] != recalculated:
@@ -34,8 +41,11 @@ def build_answer_evidence(source: Path, output: Path) -> dict:
         packaged.append(
             {
                 "id": path.stem,
-                "title": report["title"],
-                "model": report["model"],
+                "title": report.get("title", "Exact replay and semantic cache study"),
+                "model": report.get(
+                    "model",
+                    report.get("configuration", {}).get("provider", {}).get("model", "unrecorded"),
+                ),
                 "created_at": report["created_at"],
                 "summary": recalculated,
                 "sha256": hashlib.sha256(raw).hexdigest(),
@@ -46,7 +56,7 @@ def build_answer_evidence(source: Path, output: Path) -> dict:
         json.dumps(packaged, ensure_ascii=False, allow_nan=False) + "\n"
     ).encode()
     manifest = {
-        "format": "answer-lab-static-v1",
+        "format": "answer-cache-static-v1" if cache else "answer-lab-static-v1",
         "models_executed_by_site": False,
         "reports": {entry["id"]: entry["sha256"] for entry in packaged},
     }
@@ -61,6 +71,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, default=Path("reports/answers"))
     parser.add_argument("--output", type=Path, default=Path("web/dist/answers"))
+    parser.add_argument("--cache-source", type=Path, default=Path("reports/answers-cache"))
+    parser.add_argument("--cache-output", type=Path, default=Path("web/dist/answers-cache"))
     args = parser.parse_args()
     result = build_answer_evidence(args.source, args.output)
-    print(f"Packaged {len(result['reports'])} completed answer studies, no model calls")
+    cache_result = build_answer_evidence(args.cache_source, args.cache_output, cache=True)
+    print(
+        f"Packaged {len(result['reports'])} answer and {len(cache_result['reports'])} cache studies, no model calls"
+    )

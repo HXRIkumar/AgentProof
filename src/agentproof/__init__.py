@@ -1,3 +1,3 @@
-"""AgentProof: reproducible, synthetic agent release tests."""
+"""AgentProof: measured LLM answer reliability and agent workflow experiments."""
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"

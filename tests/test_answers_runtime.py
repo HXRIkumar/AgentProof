@@ -345,6 +345,96 @@ def test_extraction_schema_feedback_and_repair(tmp_path):
     assert "year: type" in result["attempts"][0]["feedback"]
 
 
+@pytest.mark.parametrize("strategy", ["baseline", "validated", "adaptive"])
+def test_extraction_auxiliary_answer_never_discards_valid_data(tmp_path, strategy):
+    schema = {
+        "type": "object",
+        "properties": {"year": {"type": "integer"}},
+        "required": ["year"],
+        "additionalProperties": False,
+    }
+    candidate = answer("Launched in 2023", data={"year": 2023})
+    runtime = service(tmp_path, [candidate, critic()] if strategy == "adaptive" else [candidate])
+    result = runtime.run(request(task="extraction", schema=schema, strategy=strategy))
+    assert result["status"] == "accepted"
+    assert result["data"] == {"year": 2023}
+    assert result["answer"] == ""
+    assert result["retries"] == 0
+    assert not result["abstained"]
+    assert result["normalizations"] == [
+        "Ignored auxiliary answer text; extraction data is unchanged"
+    ]
+    assert json.loads(result["attempts"][0]["output_text"])["answer"] == "Launched in 2023"
+    assert result["usage"]["calls"] == (2 if strategy == "adaptive" else 1)
+
+
+def test_failed_extraction_preserves_typed_data_over_unverified_abstention(tmp_path):
+    schema = {"type": "object", "properties": {"year": {"type": "integer"}}, "required": ["year"]}
+    candidate = answer("Launch year", "Invented quote", data={"year": 2023})
+    refusal = {"answer": "", "data": None, "abstained": True, "citations": []}
+    runtime = service(
+        tmp_path, [candidate, refusal, critic(supported=False, responsive=False, answerable=True)]
+    )
+    result = runtime.run(request(task="extraction", schema=schema, max_attempts=2))
+    assert result["status"] == "failed"
+    assert result["data"] == {"year": 2023}
+    assert not result["abstained"]
+    assert result["final_attempt_index"] == 1
+    assert not next(c for c in result["quality"]["checks"] if c["name"] == "citations")["passed"]
+
+
+def test_extraction_critic_still_corrects_factual_field_error(tmp_path):
+    schema = {
+        "type": "object",
+        "properties": {"revenue": {"type": "integer"}},
+        "required": ["revenue"],
+    }
+    wrong = answer("2023", data={"revenue": 2023})
+    corrected = answer("50", "Revenue was 50.", data={"revenue": 50})
+    runtime = service(
+        tmp_path,
+        [
+            wrong,
+            critic(
+                supported=False,
+                responsive=False,
+                feedback="revenue is 50; 2023 is the launch year.",
+            ),
+            corrected,
+            critic(),
+        ],
+    )
+    result = runtime.run(request(task="extraction", schema=schema))
+    assert result["status"] == "accepted"
+    assert result["data"] == {"revenue": 50}
+    assert result["retries"] == 1
+    assert result["usage"]["calls"] == 4
+    refinement = json.loads(runtime.adapter.calls[2][1][1]["content"])
+    assert refinement["previous_candidate"]["data"] == {"revenue": 2023}
+    assert "revenue is 50" in refinement["feedback"]
+
+
+def test_extraction_missing_field_repaired_without_abstaining(tmp_path):
+    schema = {
+        "type": "object",
+        "properties": {"year": {"type": "integer"}, "revenue": {"type": "integer"}},
+        "required": ["year", "revenue"],
+    }
+    incomplete = answer("2023", data={"year": 2023})
+    corrected = answer(
+        "2023, 50",
+        "The service launched in 2023. Revenue was 50.",
+        data={"year": 2023, "revenue": 50},
+    )
+    runtime = service(tmp_path, [incomplete, corrected, critic()])
+    result = runtime.run(request(task="extraction", schema=schema))
+    assert result["status"] == "accepted"
+    assert result["data"] == {"year": 2023, "revenue": 50}
+    assert result["retries"] == 1
+    assert "required" in result["attempts"][0]["feedback"]
+    assert result["attempts"][0]["data"] == {"year": 2023}
+
+
 @pytest.mark.parametrize(
     "schema",
     [
