@@ -1,0 +1,5 @@
+external_id,title,body
+HARBOR-101,My workspace invitation expired,"I received an invitation four days ago. Opening it now says the invitation has expired. What should I do to join the workspace?"
+HARBOR-102,Webhook 401 after secret rotation,"Our endpoint started returning 401 after we rotated the signing secret. We parse the JSON and serialize it again before checking X-Harbor-Signature. Will Harbor retry these deliveries, and what should we check?"
+HARBOR-103,Please refund my invoice,"I want a refund of 200 dollars for invoice INV-204 dated 10 November. Please confirm it has been approved and tell me the date the money will arrive."
+HARBOR-104,Something is not working,"It is not working today. Can you fix it?"

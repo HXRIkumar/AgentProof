@@ -12,13 +12,18 @@ class BodyTooLarge(HTTPException):
 
 
 class RequestBodyLimitMiddleware:
-    def __init__(self, app, max_bytes=MAX_REQUEST_BYTES):
+    def __init__(self, app, max_bytes=MAX_REQUEST_BYTES, post_path_limits=None):
         self.app = app
         self.max_bytes = max_bytes
+        self.post_path_limits = dict(post_path_limits or {})
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
+        limit = (
+            self.post_path_limits.get(scope.get("path"), self.max_bytes)
+            if scope.get("method") == "POST" else self.max_bytes
+        )
         for name, value in scope.get("headers", []):
             if name.lower() == b"content-length":
                 try:
@@ -31,9 +36,9 @@ class RequestBodyLimitMiddleware:
                     return await JSONResponse(
                         {"detail": "Invalid Content-Length"}, status_code=400
                     )(scope, receive, send)
-                if declared > self.max_bytes:
+                if declared > limit:
                     return await JSONResponse(
-                        {"detail": f"Request body exceeds {self.max_bytes} bytes"}, status_code=413
+                        {"detail": f"Request body exceeds {limit} bytes"}, status_code=413
                     )(scope, receive, send)
         consumed = 0
 
@@ -42,8 +47,8 @@ class RequestBodyLimitMiddleware:
             message = await receive()
             if message["type"] == "http.request":
                 consumed += len(message.get("body", b""))
-                if consumed > self.max_bytes:
-                    raise BodyTooLarge(self.max_bytes)
+                if consumed > limit:
+                    raise BodyTooLarge(limit)
             return message
 
         try:

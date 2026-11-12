@@ -76,7 +76,10 @@ def create_app(
         description="Local synthetic agent release-testing workbench. No real payment tools.",
         lifespan=lifespan,
     )
-    application.add_middleware(RequestBodyLimitMiddleware)
+    application.add_middleware(
+        RequestBodyLimitMiddleware,
+        post_path_limits={"/api/support/documents": 8 * 1024 * 1024},
+    )
     application.add_middleware(
         TrustedHostMiddleware,
         allowed_hosts=["localhost", "127.0.0.1", "[::1]", "testserver"],
