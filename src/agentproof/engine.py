@@ -27,7 +27,7 @@ from .providers import (
     provider_for,
 )
 from .store import Store
-from .telemetry import tracer
+from .telemetry import execution_span, final_run_attributes, trace_identity
 
 
 class State(TypedDict):
@@ -99,7 +99,7 @@ class Engine:
 
     def stage(self, name, method):
         def wrapped(state):
-            with tracer().start_as_current_span(
+            with execution_span(
                 "agentproof." + name,
                 attributes={
                     "agentproof.run_id": state["run"]["id"],
@@ -170,23 +170,38 @@ class Engine:
                 else "Scripted faults — harness test, not model accuracy"
             ),
         }
-        self.store.save_run(run, scenario.model_dump())
-        initial = State(
-            run=run,
-            scenario=scenario,
-            observation={},
-            provider_object=adapter,
-            proposal=None,
-            feedback=None,
-            attempts=0,
-            disposition="continue",
-        )
-        started = time.perf_counter()
-        state = self.graph.invoke(initial, {"recursion_limit": 20})
-        result = state["run"]
-        result["latency_ms"] = round((time.perf_counter() - started) * 1000, 3)
-        self.store.save_run(result, scenario.model_dump())
-        return result
+        with execution_span(
+            "agentproof.run",
+            attributes={
+                "agentproof.run_id": run["id"],
+                "agentproof.variant": variant,
+                "agentproof.provider": provider,
+                "agentproof.proposal_budget": self.options.max_proposals,
+            },
+        ) as span:
+            run["trace_context"] = trace_identity(span)
+            try:
+                self.store.save_run(run, scenario.model_dump())
+                initial = State(
+                    run=run,
+                    scenario=scenario,
+                    observation={},
+                    provider_object=adapter,
+                    proposal=None,
+                    feedback=None,
+                    attempts=0,
+                    disposition="continue",
+                )
+                started = time.perf_counter()
+                state = self.graph.invoke(initial, {"recursion_limit": 20})
+                result = state["run"]
+                result["latency_ms"] = round((time.perf_counter() - started) * 1000, 3)
+                self.store.save_run(result, scenario.model_dump())
+            except BaseException:
+                final_run_attributes(span, run, completed=False)
+                raise
+            final_run_attributes(span, result, completed=True)
+            return result
 
     def observe(self, state):
         scenario, run = state["scenario"], state["run"]
