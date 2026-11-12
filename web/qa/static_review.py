@@ -67,7 +67,7 @@ def main():
                         route.continue_()
 
                 page.route("**/*", route_request)
-                page.goto(origin + BASE)
+                page.goto(origin + BASE + "?workspace=legacy")
                 expect(page.get_by_role("heading", name="Independent verification · v0.3",
                                         exact=True)).to_be_visible()
                 fail_next = True

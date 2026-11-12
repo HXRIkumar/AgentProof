@@ -22,7 +22,7 @@ with sync_playwright() as p:
     assert experiment["status"] == "completed", experiment["status"]
     assert experiment["provider"] == "openai"
     assert len(experiment["runs"]) == 144
-    page.goto(origin)
+    page.goto(origin + "/legacy")
     page.wait_for_load_state("networkidle")
     history = page.request.get(f"{origin}/api/experiments").json()
     index = next(i for i, e in enumerate(history) if e["id"] == experiment_id)

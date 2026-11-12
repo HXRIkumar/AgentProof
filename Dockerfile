@@ -11,6 +11,8 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 COPY src/ ./src/
 COPY reports/qwen35-4b-live-v1.json reports/qwen35-4b-live-v02.json reports/challenge-v1-before.json reports/challenge-v1-after.json reports/independent-verification-v1.json ./reports/
+COPY reports/answers/ ./reports/answers/
+COPY reports/answers-cache/ ./reports/answers-cache/
 RUN uv sync --frozen --no-dev
 COPY --from=web /web/dist /app/web/dist
 RUN useradd --uid 10001 --create-home app && mkdir /data && chown app:app /data

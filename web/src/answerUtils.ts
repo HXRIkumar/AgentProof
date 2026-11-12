@@ -1,0 +1,130 @@
+import type { AnswerReport, AnswerStrategy, AnswerTrial } from "./answerTypes";
+
+export const STRATEGIES: AnswerStrategy[] = [
+  "baseline",
+  "validated",
+  "adaptive",
+];
+export const STRATEGY_LABELS = {
+  baseline: "Direct answer",
+  validated: "Validate + retry",
+  adaptive: "Critique + refine",
+};
+export const ANSWER_RECORDED_ONLY =
+  import.meta.env?.VITE_RECORDED_ONLY === "true";
+export const percent = (value: number | null | undefined) =>
+  value == null || !Number.isFinite(value)
+    ? "—"
+    : `${(value * 100).toFixed(1)}%`;
+export const number = (value: number | null | undefined, digits = 0) =>
+  value == null || !Number.isFinite(value)
+    ? "—"
+    : value.toLocaleString(undefined, { maximumFractionDigits: digits });
+export const duration = (value: number | null | undefined) =>
+  value == null || !Number.isFinite(value)
+    ? "—"
+    : value < 1000
+      ? `${number(value, 1)} ms`
+      : `${number(value / 1000, 2)} s`;
+export const human = (value: string) =>
+  value.replaceAll("_", " ").replaceAll("-", " ");
+export const date = (value: string) => {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.valueOf())
+    ? "Unrecorded"
+    : parsed.toLocaleString(undefined, {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+};
+export type CaseRow = {
+  id: string;
+  question: string;
+  task: string;
+  category: string;
+  trials: Partial<Record<AnswerStrategy, AnswerTrial>>;
+};
+export function groupCases(report: AnswerReport): CaseRow[] {
+  const grouped = new Map<string, CaseRow>();
+  for (const trial of report.trials) {
+    if (!STRATEGIES.includes(trial.strategy)) continue;
+    const row = grouped.get(trial.case_id) ?? {
+      id: trial.case_id,
+      question: trial.question,
+      task: trial.task,
+      category: trial.category,
+      trials: {},
+    };
+    row.trials[trial.strategy] = trial;
+    grouped.set(trial.case_id, row);
+  }
+  return [...grouped.values()];
+}
+export function caseChange(
+  row: CaseRow,
+): "recovered" | "regressed" | "unchanged" | "incomplete" {
+  const first = row.trials.baseline,
+    last = row.trials.adaptive;
+  if (!first || !last) return "incomplete";
+  if (!first.grade.correct && last.grade.correct) return "recovered";
+  if (first.grade.correct && !last.grade.correct) return "regressed";
+  return "unchanged";
+}
+export async function answerFetch<T>(
+  path: string,
+  init?: RequestInit,
+): Promise<T> {
+  if (ANSWER_RECORDED_ONLY && init?.method && init.method !== "GET")
+    throw new Error(
+      "This viewer shows recorded experiments. Run Answer Lab locally to generate new answers.",
+    );
+  if (ANSWER_RECORDED_ONLY && path === "/config")
+    return {
+      configured: false,
+      model: "",
+      embedding_model: null,
+      strategies: STRATEGIES,
+      max_attempts: 3,
+      provider_kind: "recorded",
+    } as T;
+  if (ANSWER_RECORDED_ONLY && path === "/runs") return [] as T;
+  const url = ANSWER_RECORDED_ONLY
+    ? path === "/reports"
+      ? `${import.meta.env.BASE_URL}answers/catalog.json`
+      : path.startsWith("/reports/")
+        ? `${import.meta.env.BASE_URL}answers/${path.slice("/reports/".length)}.json`
+        : path === "/cache-reports"
+          ? `${import.meta.env.BASE_URL}answers-cache/catalog.json`
+          : path.startsWith("/cache-reports/")
+            ? `${import.meta.env.BASE_URL}answers-cache/${path.slice("/cache-reports/".length)}.json`
+            : ""
+    : `/api/answers${path}`;
+  if (!url)
+    throw new Error("This record is not available in the public viewer.");
+  const response = await fetch(url, init);
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message =
+      typeof payload?.detail === "string"
+        ? payload.detail
+        : typeof payload?.error === "string"
+          ? payload.error
+          : `Request failed (${response.status}).`;
+    throw new Error(message);
+  }
+  return payload as T;
+}
+export function downloadJson(value: unknown, filename: string) {
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify(value, null, 2)], { type: "application/json" }),
+  );
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

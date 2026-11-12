@@ -74,7 +74,7 @@ def check():
                     )
                     errors = []
                     page.on("pageerror", lambda error: errors.append(str(error)))
-                    page.goto(origin)
+                    page.goto(origin + "/legacy")
                     page.wait_for_load_state("networkidle")
 
                     def start(name, trials, repeats=None):

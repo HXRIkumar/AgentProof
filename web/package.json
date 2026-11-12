@@ -1,12 +1,12 @@
 {
   "name": "agentproof-console",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
-    "test": "node --experimental-strip-types --test src/scenarioImport.test.ts src/transport.test.ts",
+    "test": "node --experimental-strip-types --test src/scenarioImport.test.ts src/transport.test.ts src/answerUtils.test.ts",
     "preview": "vite preview --host 127.0.0.1",
     "build:recorded": "tsc -b && vite build --mode recorded --base /AgentProof/"
   },

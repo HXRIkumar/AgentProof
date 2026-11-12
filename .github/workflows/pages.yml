@@ -56,6 +56,7 @@ jobs:
         run: |
           npm --prefix web run build:recorded
           uv run python scripts/build_static_evidence.py
+          uv run python scripts/build_answer_evidence.py
       - name: Record the deployed source
         env:
           VERIFIED_COMMIT: ${{ github.event.workflow_run.head_sha }}

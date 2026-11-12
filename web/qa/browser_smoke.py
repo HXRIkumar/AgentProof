@@ -22,7 +22,7 @@ with sync_playwright() as p:
     page = context.new_page()
     errors = []
     page.on("pageerror", lambda error: errors.append(str(error)))
-    page.goto(origin)
+    page.goto(origin + "/legacy")
     page.wait_for_load_state("networkidle")
     expect(page.get_by_role("heading", name="Experiment workbench")).to_be_visible()
 

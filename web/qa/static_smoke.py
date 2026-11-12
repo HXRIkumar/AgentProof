@@ -61,7 +61,7 @@ with tempfile.TemporaryDirectory(prefix="agentproof-static-") as folder:
                 context.on("request", capture)
                 page = context.new_page()
                 page.on("pageerror", lambda error: errors.append(str(error)))
-                page.goto(ORIGIN + "/AgentProof/")
+                page.goto(ORIGIN + "/AgentProof/?workspace=legacy")
                 expect(page.get_by_role("heading", name="Independent verification · v0.3",
                                         exact=True)).to_be_visible()
                 assert_read_only(page)
@@ -103,7 +103,7 @@ with tempfile.TemporaryDirectory(prefix="agentproof-static-") as folder:
                 context.on("request", capture)
                 page = context.new_page()
                 page.on("pageerror", lambda error: errors.append(str(error)))
-                page.goto(ORIGIN + "/AgentProof/")
+                page.goto(ORIGIN + "/AgentProof/?workspace=legacy")
                 expect(page.get_by_role("heading", name="Independent verification · v0.3",
                                         exact=True)).to_be_visible()
                 assert_read_only(page)
@@ -114,6 +114,9 @@ with tempfile.TemporaryDirectory(prefix="agentproof-static-") as folder:
                 assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
                 context.close()
                 browser.close()
+            subprocess.run([sys.executable, str(ROOT / "web/qa/answer_smoke.py"),
+                            "--recorded", "--base", ORIGIN + "/AgentProof/",
+                            "--output", str(OUTPUT / "answers")], check=True)
         finally:
             server.terminate()
             try:

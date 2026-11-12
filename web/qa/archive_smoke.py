@@ -136,7 +136,7 @@ def check():
                                 else None
                             ),
                         )
-                        page.goto(origin)
+                        page.goto(origin + "/legacy")
                         page.wait_for_load_state("networkidle")
                         page.screenshot(path=str(output / "archive-fresh.png"))
                         expect(
