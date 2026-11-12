@@ -29,6 +29,7 @@ uv sync --frozen
 npm --prefix web ci
 npm --prefix web run build:recorded
 uv run python scripts/build_static_evidence.py
+uv run python scripts/build_answer_evidence.py
 uv run --with playwright==1.64.0 python web/qa/static_smoke.py
 uv run --with playwright==1.64.0 python web/qa/static_review.py
 ```
@@ -52,22 +53,28 @@ the client uses that build's `BASE_URL` for assets, report reads and downloads.
 
 ## What a visitor sees
 
-The initial selection is **Independent verification · v0.3**. A persistent
-notice says this is a recorded demonstration with no backend or model running.
-**Inspect recorded challenge failures** opens the challenge v0.2 report with
-its failure filter selected. The visitor can inspect traces, checks and final
-ledgers, switch among all five reports and download the original JSON.
+The default workspace is **Answer Lab**, with recorded model experiments, their
+per-case comparisons, source citations, correction traces and cache measurements.
+The source editor shows example inputs, but generating an answer requires the
+local application. The public viewer sends no model requests. It does not invent
+saved history or live connection status.
 
-Model badges describe the historical decision provider. They do not claim
-inference is running in the page. Limitations remain visible: the orders and
-refund effects are synthetic; the studies are small and are not general model
-benchmarks or production safety certifications. The page links to instructions
-for running the full local application.
+The answer catalog reads completed quality studies from `reports/answers/` and
+cache studies from `reports/answers-cache/`. Development experiments stay separate
+in `reports/answer-development/`; they are not presented as final evaluation.
+Each raw report retains the exact model identities, source hashes and measurements.
+The UI export preserves JSON content; the static raw report URL preserves original
+file bytes and can be verified against the catalog SHA-256.
 
-Workspace history, experiment setup, replay, approvals, cancellation, release
-comparison and API connection claims are absent. The transport allows only
-curated evidence GET requests; mutation payloads and workspace paths are rejected
-before fetch. There is no mock API server and no invented config/history result.
+**Tool-action lab** opens the earlier recorded-evidence workspace at `/legacy`.
+That workspace still contains all five historical reports, including challenge
+failures and their ledger traces. Its synthetic order/refund results answer a
+different question and are not pooled with answer-quality results.
+
+Model labels describe the recorded provider, not inference running in the page.
+The studies are small and do not establish general model accuracy or production
+safety. The transport permits read-only evidence requests; mutations and workspace
+API requests are rejected before fetch. There is no mock API server.
 
 ## Evidence integrity and boundaries
 
@@ -88,3 +95,11 @@ A fresh-process test denies network sockets, confirms the builder never imports
 the API, Store, worker or provider modules, and checks that it creates no database.
 Only the curated catalog is packaged; arbitrary local experiment records are
 not scanned, uploaded or imported.
+
+Answer studies use a separate builder which recomputes grades and summaries from
+the recorded trials, rejects incomplete or mismatched evidence, and copies raw
+bytes unchanged. Cache studies additionally regrade each cold request, replay and
+changed query. The independent offline answer auditor provides a second grading
+implementation. The release manifest pins the expected report IDs and hashes for
+static and container checks. These checks establish artifact consistency, not
+independent attestation of the hosted provider or the truth of every source.
