@@ -243,7 +243,11 @@ export default function SupportDeskTicket({
                   </div>
                 )}
                 <label className="sd-field">
-                  {final ? "Reviewed reply" : "Reply for review"}
+                  {ticket.review?.decision === "escalate"
+                    ? "Draft retained for handoff · not approved"
+                    : final
+                      ? "Reviewed reply"
+                      : "Reply for review"}
                   <textarea
                     aria-label="Reply for review"
                     value={reply}

@@ -98,11 +98,11 @@ export type SupportTicketDetail = SupportTicket & {
   active_job: SupportJob | null;
   review: {
     decision: "approve" | "escalate";
-    reply: string;
+    reply: string | null;
     note: string;
     reviewed_at: string;
     knowledge_revision: string;
-    answer_run_id: string;
+    answer_run_id: string | null;
   } | null;
 };
 export type SupportDemo = {
