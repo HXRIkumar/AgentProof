@@ -22,6 +22,13 @@ ORIGIN = f"http://127.0.0.1:{PORT}"
 errors, requests, mutations = [], [], []
 catalog = json.loads((DIST / "evidence/catalog.json").read_text())
 assert len(catalog) == 5
+support_manifest = json.loads((DIST / "support/manifest.json").read_text())
+support_raw = (ROOT / "reports/support-demo-v1.json").read_bytes()
+support_hash = hashlib.sha256(support_raw).hexdigest()
+assert support_manifest["recorded_only"] is True
+assert support_manifest["models_executed_by_site"] is False
+assert support_manifest["files"]["demo.json"] == support_hash
+assert (DIST / "support/demo.json").read_bytes() == support_raw
 
 
 def capture(request):
@@ -54,6 +61,8 @@ with tempfile.TemporaryDirectory(prefix="agentproof-static-") as folder:
                     time.sleep(0.1)
             else:
                 raise AssertionError("Static server did not start")
+            with urllib.request.urlopen(ORIGIN + "/AgentProof/support/demo.json") as response:
+                assert response.read() == support_raw
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True,
                                             channel=os.getenv("PLAYWRIGHT_CHANNEL", "chrome"))
@@ -117,6 +126,9 @@ with tempfile.TemporaryDirectory(prefix="agentproof-static-") as folder:
             subprocess.run([sys.executable, str(ROOT / "web/qa/answer_smoke.py"),
                             "--recorded", "--base", ORIGIN + "/AgentProof/",
                             "--output", str(OUTPUT / "answers")], check=True)
+            subprocess.run([sys.executable, str(ROOT / "web/qa/support_smoke.py"),
+                            "--recorded", "--base", ORIGIN + "/AgentProof/",
+                            "--output", str(OUTPUT / "support")], check=True)
             archive_command = [sys.executable, str(ROOT / "web/qa/answer_static_archives.py"),
                                "--base", ORIGIN + "/AgentProof/", "--dist", str(DIST),
                                "--output", str(OUTPUT / "answer-archives")]
@@ -139,5 +151,7 @@ assert all(url.startswith(ORIGIN + "/AgentProof/") for url in local), local
     "status": "passed", "archive_count": len(catalog), "exact_download_hashes": True,
     "api_requests": 0, "mutation_requests": 0, "model_calls": 0, "page_errors": errors,
     "project_subpath": "/AgentProof/", "mobile_overflow": False,
+    "support_recording_sha256": support_hash,
+    "support_tickets": support_manifest["ticket_count"],
 }, indent=2) + "\n")
 print("Static subpath browser checks passed: five reports, exact downloads, failure, historical approval, mobile.")

@@ -42,6 +42,10 @@ def main():
              "--cache-output", str(dist / "answers-cache")],
             cwd=ROOT, check=True, stdout=subprocess.DEVNULL,
         )
+        subprocess.run(
+            [sys.executable, "scripts/build_support_demo.py", "--output", str(dist / "support")],
+            cwd=ROOT, check=True, stdout=subprocess.DEVNULL,
+        )
         catalog = json.loads((dist / "evidence/catalog.json").read_text())
         server = ThreadingHTTPServer(("127.0.0.1", 0), partial(QuietHandler, directory=str(site)))
         worker = threading.Thread(target=server.serve_forever, daemon=True)
@@ -104,6 +108,11 @@ def main():
             subprocess.run(
                 [sys.executable, "web/qa/answer_static_archives.py", "--base", origin + BASE,
                  "--dist", str(dist), "--output", "artifacts/answer-static-nested"],
+                cwd=ROOT, check=True,
+            )
+            subprocess.run(
+                [sys.executable, "web/qa/support_smoke.py", "--recorded", "--base", origin + BASE,
+                 "--output", "artifacts/support-static-nested"],
                 cwd=ROOT, check=True,
             )
         finally:

@@ -43,6 +43,7 @@ jobs:
           uv run --with playwright==1.64.0 python web/qa/comparison_smoke.py
           uv run --with playwright==1.64.0 python web/qa/archive_smoke.py
           uv run --with playwright==1.64.0 python web/qa/answer_smoke.py
+          uv run --with playwright==1.64.0 python web/qa/support_smoke.py
       - name: Recorded-only static build and browser checks
         env:
           PLAYWRIGHT_CHANNEL: chromium
@@ -50,6 +51,7 @@ jobs:
           npm --prefix web run build:recorded
           uv run python scripts/build_static_evidence.py
           uv run python scripts/build_answer_evidence.py
+          uv run python scripts/build_support_demo.py
           uv run --with playwright==1.64.0 python web/qa/static_smoke.py
           uv run --with playwright==1.64.0 python web/qa/static_review.py
       - uses: actions/upload-artifact@v4
@@ -95,6 +97,7 @@ jobs:
           print('Empty container database can inspect all five hash-verified historical reports without a model')
           PY
           python3 web/qa/answer_container_archives.py
+          python3 web/qa/support_container.py prepare
           docker exec agentproof-ci /app/.venv/bin/python -c "import os,sqlite3; db=sqlite3.connect(os.environ['AGENTPROOF_DB']); assert db.execute('SELECT COUNT(*) FROM runs').fetchone()[0] == 0; assert db.execute('SELECT COUNT(*) FROM experiments').fetchone()[0] == 0; print('Archive inspection left the container run journal empty')"
           python3 scripts/benchmark.py --background --output artifacts/container-fixture --require-gate
           python3 scripts/benchmark.py --background --suite examples/challenge-suite-v1.json --output artifacts/container-challenge --require-gate
@@ -113,6 +116,7 @@ jobs:
           assert before['runs'] == after['runs']
           print('Container restart preserved all 60 challenge trial records')
           PY
+          python3 web/qa/support_container.py verify
       - name: Save container logs
         if: always()
         run: |

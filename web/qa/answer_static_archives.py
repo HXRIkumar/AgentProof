@@ -91,8 +91,11 @@ def main():
                     page.get_by_role("button", name="Cache performance", exact=True).click()
                     page.get_by_label("Cache study report").select_option(item["id"])
                     expect(page.locator(".al-cache-latency")).to_be_visible()
-                    expect(page.locator(".al-cache-table tbody tr")).to_have_count(len(report["groups"]))
-                    page.locator(".al-cache-table tbody th button").first.click()
+                    exact_replays = page.get_by_role("table").filter(
+                        has=page.get_by_role("columnheader", name="Seed question", exact=True)
+                    )
+                    expect(exact_replays.locator("tbody tr")).to_have_count(len(report["groups"]))
+                    exact_replays.locator("tbody th button").first.click()
                     expect(page.get_by_role("complementary", name="Cache result detail")).to_be_visible()
                     page.get_by_role("button", name="Close cache result detail").click()
                     page.set_viewport_size({"width": 390, "height": 844})
