@@ -9,6 +9,7 @@ import {
   usd,
   budgetDelta,
   criticFlag,
+  reportLabel,
 } from "./answerUtils.ts";
 import type { AnswerReport, AnswerResult, AnswerTrial } from "./answerTypes.ts";
 
@@ -139,4 +140,22 @@ test("abstention flags use applicability without rewriting the raw critic respon
   };
   assert.equal(criticFlag(historical, "supported").state, "fail");
   assert.equal(criticFlag(historical, "supported").value, "No");
+});
+
+test("identically titled formal configurations have distinct accessible report labels", () => {
+  const ids = [
+    "qwen-local-v1",
+    "qwen-mini-critic-v1",
+    "qwen-mini-cascade-v1",
+    "mini-hosted-v1",
+  ];
+  const labels = ids.map((id) =>
+    reportLabel({ id, title: "Paired policy comparison" }),
+  );
+  assert.equal(new Set(labels).size, 4);
+  ids.forEach((id, index) => assert.ok(labels[index].includes(id)));
+  assert.equal(
+    reportLabel({ id: "future-study", title: "Another run" }),
+    "Another run · future-study",
+  );
 });

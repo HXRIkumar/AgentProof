@@ -94,6 +94,7 @@ jobs:
           }, indent=2))
           print('Empty container database can inspect all five hash-verified historical reports without a model')
           PY
+          python3 web/qa/answer_container_archives.py
           docker exec agentproof-ci /app/.venv/bin/python -c "import os,sqlite3; db=sqlite3.connect(os.environ['AGENTPROOF_DB']); assert db.execute('SELECT COUNT(*) FROM runs').fetchone()[0] == 0; assert db.execute('SELECT COUNT(*) FROM experiments').fetchone()[0] == 0; print('Archive inspection left the container run journal empty')"
           python3 scripts/benchmark.py --background --output artifacts/container-fixture --require-gate
           python3 scripts/benchmark.py --background --suite examples/challenge-suite-v1.json --output artifacts/container-challenge --require-gate

@@ -29,6 +29,7 @@ import {
   STRATEGIES,
   STRATEGY_LABELS,
   usd,
+  reportLabel,
 } from "./answerUtils";
 import type { CaseRow } from "./answerUtils";
 import { ResultInspector } from "./AnswerLabResult";
@@ -346,7 +347,7 @@ export default function Experiments({
               >
                 {entries.map((entry) => (
                   <option key={entry.id} value={entry.id}>
-                    {entry.title || entry.id}
+                    {reportLabel(entry)}
                   </option>
                 ))}
               </select>

@@ -2,6 +2,7 @@ import type {
   AnswerBudgetSnapshot,
   AnswerAttempt,
   AnswerReport,
+  AnswerReportEntry,
   AnswerStrategy,
   AnswerTrial,
 } from "./answerTypes";
@@ -16,6 +17,17 @@ export const STRATEGY_LABELS = {
   validated: "Validate + retry",
   adaptive: "Critique + refine",
 };
+export function reportLabel(
+  entry: Pick<AnswerReportEntry, "id" | "title">,
+): string {
+  const labels: Record<string, string> = {
+    "qwen-local-v1": "Qwen · local draft and critic",
+    "qwen-mini-critic-v1": "Qwen draft · mini critic",
+    "qwen-mini-cascade-v1": "Qwen draft · mini critic + final escalation",
+    "mini-hosted-v1": "GPT-5.4 mini · hosted draft and critic",
+  };
+  return `${labels[entry.id] || entry.title || "Experiment"} · ${entry.id}`;
+}
 export const ANSWER_RECORDED_ONLY =
   import.meta.env?.VITE_RECORDED_ONLY === "true";
 export const percent = (value: number | null | undefined) =>

@@ -117,6 +117,12 @@ with tempfile.TemporaryDirectory(prefix="agentproof-static-") as folder:
             subprocess.run([sys.executable, str(ROOT / "web/qa/answer_smoke.py"),
                             "--recorded", "--base", ORIGIN + "/AgentProof/",
                             "--output", str(OUTPUT / "answers")], check=True)
+            archive_command = [sys.executable, str(ROOT / "web/qa/answer_static_archives.py"),
+                               "--base", ORIGIN + "/AgentProof/", "--dist", str(DIST),
+                               "--output", str(OUTPUT / "answer-archives")]
+            if os.getenv("REQUIRE_ANSWER_RELEASE_MANIFEST") == "1":
+                archive_command.append("--require-release-manifest")
+            subprocess.run(archive_command, check=True)
         finally:
             server.terminate()
             try:

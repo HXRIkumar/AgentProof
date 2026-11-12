@@ -75,6 +75,7 @@ jobs:
       - name: Verify the exact static build before upload
         env:
           PLAYWRIGHT_CHANNEL: chromium
+          REQUIRE_ANSWER_RELEASE_MANIFEST: '1'
         run: |
           uv run --with playwright==1.64.0 python -m playwright install --with-deps chromium
           uv run --with playwright==1.64.0 python web/qa/static_smoke.py
