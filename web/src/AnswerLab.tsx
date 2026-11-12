@@ -269,6 +269,31 @@ function Method() {
   );
 }
 
+function CollectionUnavailable({
+  title,
+  message,
+  onRetry,
+}: {
+  title: string;
+  message: string;
+  onRetry: () => void;
+}) {
+  return (
+    <>
+      <div className="al-page-heading">
+        <div>
+          <h1>{title}</h1>
+        </div>
+      </div>
+      <div className="al-error" role="alert">
+        <XCircle size={17} />
+        <span>{message}</span>
+        <button onClick={onRetry}>Retry</button>
+      </div>
+    </>
+  );
+}
+
 export default function AnswerLab() {
   const [view, setView] = useState<View>(
     ANSWER_RECORDED_ONLY ? "experiments" : "workspace",
@@ -280,6 +305,9 @@ export default function AnswerLab() {
   const [selected, setSelected] = useState<AnswerResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [connectionError, setConnectionError] = useState("");
+  const [collectionErrors, setCollectionErrors] = useState<
+    Partial<Record<View, string>>
+  >({});
   async function refresh() {
     setLoading(true);
     setConnectionError("");
@@ -294,14 +322,23 @@ export default function AnswerLab() {
       setConnectionError(
         "Answer Lab could not reach the server. Start the application, then retry.",
       );
-    if (values[1].status === "fulfilled") setRuns(values[1].value);
-    if (values[2].status === "fulfilled") setReports(values[2].value);
-    else if (ANSWER_RECORDED_ONLY)
-      setConnectionError(
-        "Recorded experiments could not be loaded. Check your connection, then retry.",
-      );
+    const errors: Partial<Record<View, string>> = {};
+    if (values[1].status === "fulfilled" && Array.isArray(values[1].value))
+      setRuns(values[1].value);
+    else
+      errors.history =
+        "Run history could not be loaded. Retry to read saved runs.";
+    if (values[2].status === "fulfilled" && Array.isArray(values[2].value))
+      setReports(values[2].value);
+    else
+      errors.experiments =
+        "Experiment reports could not be loaded. Retry to read the evidence.";
     if (values[3].status === "fulfilled" && Array.isArray(values[3].value))
       setCacheReports(values[3].value);
+    else
+      errors.cache =
+        "Cache reports could not be loaded. Retry to read the evidence.";
+    setCollectionErrors(errors);
     setLoading(false);
   }
   useEffect(() => {
@@ -327,6 +364,14 @@ export default function AnswerLab() {
     { id: "history", label: "Run history", icon: History, count: runs.length },
     { id: "method", label: "Measurements", icon: BookOpen },
   ];
+  const hasRecords =
+    view === "experiments"
+      ? reports.length > 0
+      : view === "cache"
+        ? cacheReports.length > 0
+        : view === "history"
+          ? runs.length > 0
+          : false;
   return (
     <div className="answer-lab">
       <a className="al-skip" href="#answer-main">
@@ -444,6 +489,15 @@ export default function AnswerLab() {
               <button onClick={refresh}>Retry</button>
             </div>
           )}
+          {collectionErrors[view] && hasRecords && (
+            <div className="al-error" role="alert">
+              <XCircle size={17} />
+              <span>
+                {collectionErrors[view]} Showing the last loaded records.
+              </span>
+              <button onClick={refresh}>Retry</button>
+            </div>
+          )}
           {view === "workspace" && (
             <Workspace
               config={config}
@@ -455,26 +509,47 @@ export default function AnswerLab() {
               }}
             />
           )}
-          {view === "experiments" && (
-            <Experiments
-              entries={reports}
-              loading={loading}
-              onRefresh={refresh}
-            />
-          )}
-          {view === "cache" && (
-            <CachePerformance entries={cacheReports} onRefresh={refresh} />
-          )}
-          {view === "history" && (
-            <RunHistory
-              runs={runs}
-              onRefresh={refresh}
-              onSelect={(run) => {
-                setSelected(run);
-                setView("workspace");
-              }}
-            />
-          )}
+          {view === "experiments" &&
+            (collectionErrors.experiments && !reports.length ? (
+              <CollectionUnavailable
+                title="Experiments"
+                message={collectionErrors.experiments}
+                onRetry={refresh}
+              />
+            ) : (
+              <Experiments
+                entries={reports}
+                loading={loading}
+                onRefresh={refresh}
+              />
+            ))}
+          {view === "cache" &&
+            (collectionErrors.cache && !cacheReports.length ? (
+              <CollectionUnavailable
+                title="Cache performance"
+                message={collectionErrors.cache}
+                onRetry={refresh}
+              />
+            ) : (
+              <CachePerformance entries={cacheReports} onRefresh={refresh} />
+            ))}
+          {view === "history" &&
+            (collectionErrors.history && !runs.length ? (
+              <CollectionUnavailable
+                title="Run history"
+                message={collectionErrors.history}
+                onRetry={refresh}
+              />
+            ) : (
+              <RunHistory
+                runs={runs}
+                onRefresh={refresh}
+                onSelect={(run) => {
+                  setSelected(run);
+                  setView("workspace");
+                }}
+              />
+            ))}
           {view === "method" && <Method />}
         </main>
         <footer className="al-app-footer">

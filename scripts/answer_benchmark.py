@@ -35,10 +35,11 @@ def utc_now():
     return datetime.now(UTC).isoformat()
 
 
-def source_manifest():
+def source_manifest(extra_files=()):
     paths = sorted((ROOT / "src/agentproof/answers").glob("*.py")) + [
         ROOT / "src/agentproof/answer_eval.py", Path(__file__).resolve(),
     ]
+    paths += [Path(path).resolve() for path in extra_files]
     return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
@@ -76,7 +77,7 @@ def actual_usage(report):
 
 
 def run_benchmark(suite_path: Path, output: Path, *, service=None, strategies=STRATEGIES,
-                  seed=20261112, max_attempts=3, limit=None):
+                  seed=20261112, max_attempts=3, limit=None, extra_source_files=()):
     suite, suite_hash = load_suite(suite_path)
     if "baseline" not in strategies or len(set(strategies)) != len(strategies):
         raise ValueError("Unique strategies including baseline are required")
@@ -107,7 +108,7 @@ def run_benchmark(suite_path: Path, output: Path, *, service=None, strategies=ST
                   "limited": limit is not None, "provenance": suite.get("provenance", {})},
         "configuration": {"strategies": list(strategies), "max_attempts": max_attempts,
                           "seed": seed, "cache_enabled": False,
-                          "runtime": service.configuration(), "source_files": source_manifest(),
+                          "runtime": service.configuration(), "source_files": source_manifest(extra_source_files),
                           "python": platform.python_version(), "machine": platform.machine(),
                           "system": platform.system(),
                           "initial_generation": "One shared first response; each policy logically pays its full initial cost, actual study usage counts it once."},
@@ -164,7 +165,7 @@ def run_benchmark(suite_path: Path, output: Path, *, service=None, strategies=ST
     finally:
         report["finished_at"] = utc_now()
         report["elapsed_seconds"] = time.perf_counter() - started
-        report["source_unchanged"] = source_manifest() == report["configuration"]["source_files"]
+        report["source_unchanged"] = source_manifest(extra_source_files) == report["configuration"]["source_files"]
         report["actual_usage"] = actual_usage(report)
         report["summary"] = summarize_report(report)
         if not report["source_unchanged"]:
@@ -262,8 +263,11 @@ def main():
         save_json(args.output, summary)
         print(json.dumps(summary, indent=2))
         return 0
-    endpoint = urlsplit(os.getenv("ANSWER_LAB_BASE_URL", ""))
-    if endpoint.hostname not in {"127.0.0.1", "localhost", "::1"}:
+    endpoints = [os.getenv("ANSWER_LAB_BASE_URL", "")]
+    if os.getenv("ANSWER_LAB_CRITIC_BASE_URL"):
+        endpoints.append(os.environ["ANSWER_LAB_CRITIC_BASE_URL"])
+    if any(urlsplit(endpoint).hostname not in {"127.0.0.1", "localhost", "::1"}
+           for endpoint in endpoints):
         parser.error("This runner permits only local inference endpoints; no paid API calls")
     if args.command == "run":
         report = run_benchmark(args.suite, args.output_dir, strategies=args.strategies,

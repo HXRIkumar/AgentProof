@@ -128,6 +128,26 @@ def main():
         expect(page.get_by_role("heading", name="What we measure")).to_be_visible()
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth"), "Mobile method overflow"
         evidence["responsive"] = "1440x1100 and 390x844 passed"
+        # Read failures must be visible, not presented as an empty collection.
+        # The controlled response is a browser-only fault; saved reports remain untouched.
+        for label, endpoint, message, empty_heading in (
+            ("Experiments", "reports", "Experiment reports could not be loaded", "No benchmark reports yet"),
+            ("Cache performance", "cache-reports", "Cache reports could not be loaded", "No cache study yet"),
+        ):
+            resource = (
+                "**/answers/catalog.json" if endpoint == "reports" else "**/answers-cache/catalog.json"
+            ) if args.recorded else f"**/api/answers/{endpoint}"
+            page.route(resource, lambda route: route.fulfill(
+                status=503, content_type="application/json", body='{"detail":"Controlled report read failure"}'
+            ))
+            page.get_by_role("button", name=label, exact=False).first.click()
+            page.get_by_role("button", name="Refresh connection", exact=True).click()
+            expect(page.get_by_role("alert")).to_contain_text(message)
+            expect(page.get_by_role("heading", name=empty_heading, exact=True)).to_have_count(0)
+            page.unroute(resource)
+            page.get_by_role("button", name="Retry", exact=True).click()
+            expect(page.get_by_role("alert")).to_have_count(0)
+        evidence["collection_error_recovery"] = "reports and cache reports passed"
         assert not errors, errors
         if args.recorded:
             assert not api_calls, api_calls
