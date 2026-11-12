@@ -46,6 +46,39 @@ temperature and thinking settings. The [Chat Completions reference](https://deve
 defines `max_completion_tokens` as covering visible output and reasoning tokens.
 Reported completion tokens are counted once; reasoning tokens are not added again.
 
+## Reproduce the recorded hosted comparisons
+
+First use the local model and embedding configuration in the
+[README](../README.md#run-locally), then configure the private key with
+`python scripts/configure_openai_key.py`. This helper makes no request. The commands
+below explicitly enable paid inference under the existing shared ceiling; every
+output directory must be new. The final studies used medium reasoning.
+
+```sh
+# Local generation with the mini critic, without generation escalation.
+ANSWER_LAB_ESCALATE_FINAL=0 .venv/bin/python scripts/answer_hosted_benchmark.py \
+  --allow-paid --mode hybrid --reasoning-effort medium \
+  --suite examples/answer-suite-v1/evaluation.json --output-dir artifacts/my-hybrid
+
+# Same local generation, with only the last failed retry eligible for escalation.
+ANSWER_LAB_ESCALATE_FINAL=1 .venv/bin/python scripts/answer_hosted_benchmark.py \
+  --allow-paid --mode hybrid --reasoning-effort medium \
+  --suite examples/answer-suite-v1/evaluation.json --output-dir artifacts/my-cascade
+
+# The same efficient mini model for both generation and criticism.
+ANSWER_LAB_ESCALATE_FINAL=0 .venv/bin/python scripts/answer_hosted_benchmark.py \
+  --allow-paid --mode hosted --reasoning-effort medium \
+  --suite examples/answer-suite-v1/evaluation.json --output-dir artifacts/my-mini
+```
+
+Each command compares all three policies on one shared first response per case.
+The hosted study has no local language-model calls, but still uses local retrieval.
+Run local-generator studies sequentially to avoid model-server contention. These
+commands reproduce the protocol, not guaranteed identical hosted outputs or
+timings. Raw reports retain the exact runtime files, model snapshots and settings;
+the [study environment](../reports/answer-study-environment-v05.json) records the
+machine's actual dependency versions.
+
 ## One durable USD 1.50 ceiling
 
 Every production adapter shares:
