@@ -1,0 +1,148 @@
+{
+  "format": "agentproof-evidence-figures-v1",
+  "generator": {
+    "script": "scripts/plot_evidence.py",
+    "sha256": "5fea904d15433f2c3f9861066db5980d530f1585a9d36738805023ed246aa238",
+    "python": "3.12.13",
+    "matplotlib": "3.10.7"
+  },
+  "input_sha256": {
+    "reports/qwen35-4b-live-v1.json": "3e8fb9dc2889b13de703a8c4b0c9979f59a982db86bb49e10df754d2edc218e7",
+    "reports/qwen35-4b-live-v02.json": "2bc665369b0e943663485a3255cb4ddd5c503ff3997b77559c64d0604a985bad",
+    "reports/challenge-v1-before.json": "4350df2a927427b391c077722705107d5680cd1f4997092439363fd5a7e09ea8",
+    "reports/challenge-v1-after.json": "df2f8062a6202444bbfbea908bbaff7a7bf6d5c04e892d6507e5e4610771223f",
+    "reports/independent-verification-v1.json": "6ce7c8c54e49279fdc1cd6c9cff003a54955282323e85208d96c4ab7f093e797",
+    "reports/rules-original-v1/raw.json": "faf4c140bcdf15743ba9eab647a25bb361ee8d2128cd7c39919962c0ed8d5158",
+    "reports/rules-original-v1/summary.json": "faecbbad2335e0e01ebfbccd753b3a103237a5c46486c230ed406ee2ffdfac7b",
+    "reports/rules-challenge-v1/raw.json": "3aea13e5b4b280f361fe1e6a84ed4ca38db4351f59c29fea77b67a3e0e35de2c",
+    "reports/rules-challenge-v1/summary.json": "1a3f3581815ac70ed9493f6d3cf91d3ea08600c3fb44ac5a46178b834cef1724"
+  },
+  "executed_backend_sha256": {
+    "reports/qwen35-4b-live-v1.json": "8a995e17a1e487c371d98331dca84d5e94ce2a6b93babae53cdf2ebf30cbc853",
+    "reports/qwen35-4b-live-v02.json": "160874be9243d56bfacf04fd43fc36d7b67a5c620c2ee28e6e2b9f4927d0d9c3",
+    "reports/challenge-v1-before.json": "8a995e17a1e487c371d98331dca84d5e94ce2a6b93babae53cdf2ebf30cbc853",
+    "reports/challenge-v1-after.json": "160874be9243d56bfacf04fd43fc36d7b67a5c620c2ee28e6e2b9f4927d0d9c3",
+    "reports/independent-verification-v1.json": "7c4e4df8592047ffc2eaffd41b225e1dc6233cce1e503c33ff6a66e6531c5dba"
+  },
+  "metrics": {
+    "recovery": {
+      "original": {
+        "before": {
+          "trials": 72,
+          "distinct_cases": 24,
+          "correct": 66,
+          "effect_invariants": 72,
+          "model_calls": 72,
+          "reported_tokens": 28434
+        },
+        "after": {
+          "trials": 72,
+          "distinct_cases": 24,
+          "correct": 72,
+          "effect_invariants": 72,
+          "model_calls": 78,
+          "reported_tokens": 31371
+        },
+        "repeats": 3,
+        "correct_delta": 6,
+        "reported_token_delta": 2937,
+        "reported_token_delta_percent": 10.329183372019413
+      },
+      "challenge": {
+        "before": {
+          "trials": 60,
+          "distinct_cases": 30,
+          "correct": 32,
+          "effect_invariants": 60,
+          "model_calls": 78,
+          "reported_tokens": 36708
+        },
+        "after": {
+          "trials": 60,
+          "distinct_cases": 30,
+          "correct": 54,
+          "effect_invariants": 60,
+          "model_calls": 100,
+          "reported_tokens": 47658
+        },
+        "repeats": 2,
+        "correct_delta": 22,
+        "reported_token_delta": 10950,
+        "reported_token_delta_percent": 29.830009807126512
+      }
+    },
+    "independent": {
+      "baseline": {
+        "trials": 48,
+        "distinct_cases": 24,
+        "correct": 20,
+        "effect_invariants": 38,
+        "model_calls": 30,
+        "reported_tokens": 12068
+      },
+      "guarded": {
+        "trials": 48,
+        "distinct_cases": 24,
+        "correct": 48,
+        "effect_invariants": 48,
+        "model_calls": 48,
+        "reported_tokens": 20004
+      },
+      "repeats": 2
+    },
+    "rules": {
+      "original": {
+        "live_guarded": {
+          "trials": 66,
+          "distinct_cases": 22,
+          "correct": 66,
+          "effect_invariants": 66,
+          "model_calls": 75,
+          "reported_tokens": 30138
+        },
+        "rules_guarded": {
+          "trials": 66,
+          "distinct_cases": 22,
+          "correct": 66,
+          "effect_invariants": 66,
+          "model_calls": 0,
+          "reported_tokens": 0
+        },
+        "suite_cases": 24,
+        "excluded_cases": 2,
+        "repeats": 3,
+        "rules_source_sha256": "fdadeb6d095bebbab3d18b91dc9749b5d2f731180dadb8c2ac48ff854084a7f5"
+      },
+      "challenge": {
+        "live_guarded": {
+          "trials": 56,
+          "distinct_cases": 28,
+          "correct": 50,
+          "effect_invariants": 56,
+          "model_calls": 100,
+          "reported_tokens": 47658
+        },
+        "rules_guarded": {
+          "trials": 56,
+          "distinct_cases": 28,
+          "correct": 56,
+          "effect_invariants": 56,
+          "model_calls": 0,
+          "reported_tokens": 0
+        },
+        "suite_cases": 30,
+        "excluded_cases": 2,
+        "repeats": 2,
+        "rules_source_sha256": "fdadeb6d095bebbab3d18b91dc9749b5d2f731180dadb8c2ac48ff854084a7f5"
+      }
+    },
+    "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+    "model_revision": "32f3e8ecf65426fc3306969496342d504bfa13f3"
+  },
+  "output_sha256": {
+    "guarded-recovery.svg": "5a8c83d9247e6c26b584bc8ffadcaaffd12535f641c2a47ef51059f1ed240ea2",
+    "guarded-recovery.png": "7fc506ac4df3793c44039f9c10ebdd2ee7783fe17fb325c5b214086050718347",
+    "separate-verification-and-rules.svg": "cf1e67f2d941e2caef2cbb3911f9012e60e26b8f14e303371fd78f03ae2f4907",
+    "separate-verification-and-rules.png": "29054a47a3dd16f33a6e1ed9a675061319107ae3e1a3931983a318a6c5bd9e1f"
+  }
+}
