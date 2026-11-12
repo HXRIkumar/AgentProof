@@ -273,6 +273,7 @@ class AnswerService:
         *,
         cache_ttl=86400,
         semantic_threshold=0.94,
+        escalate_final=None,
     ):
         if not math.isfinite(cache_ttl) or not 1 <= cache_ttl <= 30 * 86400:
             raise ValueError("Cache TTL must be between one second and 30 days")
@@ -283,7 +284,17 @@ class AnswerService:
         self.embedder = embedder if embedder is not None else SentenceEmbedder()
         self.cache_ttl = cache_ttl
         self.semantic_threshold = semantic_threshold
+        if escalate_final is not None and type(escalate_final) is not bool:
+            raise ValueError("Final-attempt escalation must be a boolean")
+        self.escalate_final = (
+            os.getenv("ANSWER_LAB_ESCALATE_FINAL", "") == "1"
+            if escalate_final is None
+            else escalate_final
+        )
         self._lock = threading.Lock()
+
+    def _escalation_available(self):
+        return bool(getattr(self.adapter, "has_distinct_critic", False))
 
     def configuration(self):
         config = (
@@ -299,6 +310,8 @@ class AnswerService:
             "embedding_status": getattr(self.embedder, "status", "injected"),
             "semantic_threshold": self.semantic_threshold,
             "retrieval_limit": 4,
+            "escalate_final": self.escalate_final,
+            "escalation_available": self._escalation_available(),
         }
 
     def public_config(self):
@@ -312,6 +325,8 @@ class AnswerService:
             "embedding_status": getattr(self.embedder, "status", "injected"),
             "strategies": ["baseline", "validated", "adaptive"],
             "max_attempts": 3,
+            "escalate_final": self.escalate_final,
+            "escalation_available": self._escalation_available(),
             "critic": (
                 "Same configured model, separately prompted; not external ground truth"
                 if critic_model == self.adapter.model
@@ -339,7 +354,7 @@ class AnswerService:
         if getattr(self.embedder, "status", None) == "lazy":
             self.embedder.encode([])
 
-    def _generate(self, context, fingerprint, previous=None, feedback=None):
+    def _generate(self, context, fingerprint, previous=None, feedback=None, *, escalate=False):
         body = dict(context)
         if previous is not None:
             body.update(previous_candidate=previous, feedback=feedback)
@@ -348,7 +363,7 @@ class AnswerService:
                 {"role": "system", "content": GENERATOR_PROMPTS[context["task"]]},
                 {"role": "user", "content": json.dumps(body, ensure_ascii=False)},
             ],
-            purpose="generate" if previous is None else "refine",
+            purpose="escalate" if escalate else "generate" if previous is None else "refine",
         )
         return response.for_request(fingerprint)
 
@@ -396,10 +411,17 @@ class AnswerService:
             # typed critic response is still required, and its independent source
             # answerability assessment is the only applicable semantic check.
             # Deterministic abstention shape checks have already passed upstream.
-            return critique.model_dump(), [check(
-                "critic_answerability", not critique.answerable,
-                "Explicit abstention requires the critic to find no source-supported answer",
-            )], response
+            return (
+                critique.model_dump(),
+                [
+                    check(
+                        "critic_answerability",
+                        not critique.answerable,
+                        "Explicit abstention requires the critic to find no source-supported answer",
+                    )
+                ],
+                response,
+            )
         checks = [
             check("critic_supported", critique.supported, critique.feedback),
             check("critic_responsive", critique.responsive, critique.feedback),
@@ -462,6 +484,12 @@ class AnswerService:
             "source_hash": source_hash,
             "config_hash": config_hash,
             "final_attempt_index": None,
+            "escalation": {
+                "enabled": self.escalate_final,
+                "available": self._escalation_available(),
+                "attempts": 0,
+                "sent_calls": 0,
+            },
         }
 
         def finish():
@@ -561,11 +589,28 @@ class AnswerService:
         limit = 1 if request.strategy == "baseline" else request.max_attempts
         for index in range(limit):
             attempt_start = time.perf_counter()
+            escalate = (
+                self.escalate_final
+                and self._escalation_available()
+                and request.strategy == "adaptive"
+                and index > 0
+                and index == limit - 1
+            )
+            escalation_reason = (
+                "Final permitted generation after earlier validation or critic failure"
+                if escalate
+                else None
+            )
             if index == 0 and initial_response is not None:
                 response, reused = initial_response, True
             else:
-                response = self._generate(context, fingerprint, previous, feedback)
+                response = self._generate(
+                    context, fingerprint, previous, feedback, escalate=escalate
+                )
                 reused = False
+            if escalate:
+                result["escalation"]["attempts"] += 1
+                result["escalation"]["sent_calls"] += int(response.request_sent)
             current_calls = [(response, reused)]
             calls.append((response, reused))
             candidate, checks = validate_candidate(request, response, retrieval)
@@ -585,6 +630,8 @@ class AnswerService:
             feedback = "; ".join(dict.fromkeys(c["detail"] for c in checks if not c["passed"]))
             attempt = {
                 "index": index + 1,
+                "route": "critic_escalation" if escalate else "draft",
+                "escalation_reason": escalation_reason,
                 "answer": candidate.answer if candidate else "",
                 "data": candidate.data if candidate else None,
                 "abstained": candidate.abstained if candidate else False,

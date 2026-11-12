@@ -202,7 +202,7 @@ class BudgetLedger:
     def reserve(self, messages, max_output_tokens, purpose):
         if type(max_output_tokens) is not int or not 64 <= max_output_tokens <= 4096:
             raise BudgetError("Hosted output budget must be 64–4096 tokens including reasoning")
-        if purpose not in {"generate", "refine", "critic"}:
+        if purpose not in {"generate", "refine", "critic", "escalate"}:
             raise BudgetError("Unsupported hosted request purpose")
         input_bound = input_token_bound(messages)
         amount = estimate_nanodollars(input_bound, max_output_tokens)

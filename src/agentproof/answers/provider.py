@@ -184,6 +184,14 @@ class OpenAIAdapter:
             self.base_url and self.model and (self._generator_kind != "openai" or self.enable_paid)
         )
 
+    @property
+    def has_distinct_critic(self):
+        return bool(
+            self.critic_base_url
+            and self.critic_model
+            and (self.critic_base_url, self.critic_model) != (self.base_url, self.model)
+        )
+
     def configuration(self):
         return {
             "model": self.model,
@@ -201,6 +209,7 @@ class OpenAIAdapter:
             "critic_endpoint_hash": hashlib.sha256(self.critic_base_url.encode()).hexdigest(),
             "generator_provider": self._generator_kind,
             "critic_provider": self._critic_kind,
+            "has_distinct_critic": self.has_distinct_critic,
             "hosted": {
                 "enabled": self.enable_paid,
                 "reasoning_effort": self.openai_reasoning_effort,
@@ -217,8 +226,9 @@ class OpenAIAdapter:
         }
 
     def complete(self, messages: list[dict], *, purpose: str) -> ModelResponse:
-        selected_url = self.critic_base_url if purpose == "critic" else self.base_url
-        selected_model = self.critic_model if purpose == "critic" else self.model
+        use_critic_route = purpose in {"critic", "escalate"}
+        selected_url = self.critic_base_url if use_critic_route else self.base_url
+        selected_model = self.critic_model if use_critic_route else self.model
         try:
             kind = self._endpoint_kind(selected_url)
             if kind == "openai" and selected_model != OPENAI_MODEL:
@@ -233,7 +243,7 @@ class OpenAIAdapter:
         if kind == "openai":
             return self._complete_hosted(messages, purpose=purpose)
         start = time.perf_counter()
-        is_critic = purpose == "critic"
+        is_critic = use_critic_route
         selected_model = self.critic_model if is_critic else self.model
         if not self.configured:
             return ModelResponse(
@@ -343,7 +353,9 @@ class OpenAIAdapter:
             )
         try:
             ledger = self._ledger()
-            maximum = self.critic_max_tokens if purpose == "critic" else self.max_tokens
+            maximum = (
+                self.critic_max_tokens if purpose in {"critic", "escalate"} else self.max_tokens
+            )
             reservation = ledger.reserve(messages, maximum, purpose)
         except (BudgetError, OSError, ValueError) as exc:
             return ModelResponse(
