@@ -1,0 +1,93 @@
+name: Publish recorded evidence
+
+on:
+  workflow_run:
+    workflows: [Agent release checks]
+    types: [completed]
+    branches: [codex/agentproof-v1]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: recorded-evidence-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.head_branch == 'codex/agentproof-v1'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse a superseded successful CI run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERIFIED_COMMIT: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          recorded_demo_head=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/codex/agentproof-v1" --jq .object.sha)
+          if [ "$recorded_demo_head" != "$VERIFIED_COMMIT" ]; then
+            echo "::error::This successful CI commit is no longer the branch tip; refusing to publish an older version."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.11.19'
+          python-version: '3.12'
+          enable-cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - uses: actions/configure-pages@v5
+      - run: uv sync --frozen
+      - run: npm --prefix web ci
+      - name: Build the recorded-only distribution
+        run: |
+          npm --prefix web run build:recorded
+          uv run python scripts/build_static_evidence.py
+      - name: Record the deployed source
+        env:
+          VERIFIED_COMMIT: ${{ github.event.workflow_run.head_sha }}
+          VERIFIED_RUN: ${{ github.event.workflow_run.html_url }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          Path('web/dist/build.json').write_text(json.dumps({
+              'mode': 'recorded-only',
+              'source_commit': os.environ['VERIFIED_COMMIT'],
+              'verified_ci_run': os.environ['VERIFIED_RUN'],
+              'models_executed_by_site': False,
+          }, indent=2) + '\n')
+          PY
+      - name: Verify the exact static build before upload
+        env:
+          PLAYWRIGHT_CHANNEL: chromium
+        run: |
+          uv run --with playwright==1.64.0 python -m playwright install --with-deps chromium
+          uv run --with playwright==1.64.0 python web/qa/static_smoke.py
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish verified recorded evidence
+        id: deployment
+        uses: actions/deploy-pages@v4
