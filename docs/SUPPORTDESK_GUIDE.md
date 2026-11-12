@@ -55,4 +55,4 @@ The public GitHub Pages site uses saved JSON only. It cannot upload documents, r
 
 ## Integrate or extend
 
-Use the [Python SDK guide](SUPPORT_INTEGRATION.md) and `examples/support_sdk.py`. The REST API is available through `/docs` on the local server. The product is single-user and should bind to localhost. Authentication, tenant isolation, external messaging and CRM adapters are future integration work.
+Use the [Python SDK guide](SUPPORT_INTEGRATION.md) and `examples/support_sdk.py`. The REST API is available through `/api/docs` on the local server. The product is single-user and should bind to localhost. Authentication, tenant isolation, external messaging and CRM adapters are future integration work. The latest review is retained separately from immutable model output; previous human reply edits are not yet a versioned review history.
