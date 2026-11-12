@@ -117,6 +117,36 @@ def plot(records, directory):
     figure.text(.08, .09, "Intervals resample paired cases (2,000 draws). Latency reflects this Mac and network; it is not a hardware-isolated ranking.", fontsize=9, color="#586b80")
     save(figure, directory, "answer-tradeoffs")
 
+    paid = [(item["label"].replace("\n", " "), strategy, metrics)
+            for item in records for strategy, metrics in item["summary"]["strategies"].items()
+            if metrics.get("cost_known") is True and metrics.get("cost_per_correct_usd") is not None
+            and metrics.get("paid_calls", 0) > 0]
+    if paid:
+        figure, axis = plt.subplots(figsize=(11.5, max(5.7, 2.7 + len(paid) * .52)))
+        figure.subplots_adjust(left=.35, right=.86, top=.75, bottom=.23)
+        figure.text(.08, .94, "API spend per successful task", fontsize=19, weight="bold")
+        figure.text(.08, .89, scope, color="#586b80", fontsize=10)
+        positions = list(range(len(paid)))
+        values = [metrics["cost_per_correct_usd"] for _, _, metrics in paid]
+        axis.barh(positions, values, height=.5, color=[COLORS[strategy] for _, strategy, _ in paid])
+        axis.set_yticks(positions, [f"{label}\n{LABELS[strategy]}" for label, strategy, _ in paid])
+        axis.invert_yaxis()
+        axis.set_xlabel("Estimated policy API dollars / reference-correct delivered task")
+        axis.set_xlim(0, max(values) * 1.18 if max(values) else .001)
+        axis.xaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"${value:.3f}"))
+        for position, (_, _, metrics) in enumerate(paid):
+            axis.text(metrics["cost_per_correct_usd"] + max(values) * .02, position,
+                      f"${metrics['cost_per_correct_usd']:.4f}", va="center", fontsize=9)
+            axis.text(1.09, position, f"{metrics['correct']}/{metrics['trials']}",
+                      transform=axis.get_yaxis_transform(), va="center", ha="center", fontsize=9)
+        axis.text(1.09, 1.04, "Tasks\nsucceeded", transform=axis.transAxes, ha="center", fontsize=9)
+        style(axis)
+        axis.grid(axis="y", visible=False)
+        axis.grid(axis="x", color="#e8edf2", linewidth=.7)
+        figure.text(.08, .11, "Paid policies only. Local computation, electricity and hardware are excluded; these are token-price estimates, not invoices.", fontsize=9, color="#586b80")
+        figure.text(.08, .065, "Each policy includes its initial call. Actual study spending counts shared initial calls once and is recorded separately.", fontsize=9, color="#586b80")
+        save(figure, directory, "answer-api-cost")
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
