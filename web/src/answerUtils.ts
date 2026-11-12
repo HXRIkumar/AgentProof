@@ -1,5 +1,6 @@
 import type {
   AnswerBudgetSnapshot,
+  AnswerAttempt,
   AnswerReport,
   AnswerStrategy,
   AnswerTrial,
@@ -71,6 +72,27 @@ export const date = (value: string) => {
         minute: "2-digit",
       });
 };
+export function criticFlag(
+  attempt: Pick<AnswerAttempt, "critic" | "checks" | "abstained">,
+  field: "supported" | "responsive" | "answerable",
+): { state: "na" | "pass" | "fail"; value: string; detail: string } {
+  const checkName =
+    field === "answerable" ? "critic_answerability" : `critic_${field}`;
+  const check = attempt.checks.find((item) => item.name === checkName);
+  const raw = attempt.critic?.[field];
+  if (attempt.abstained && field !== "answerable" && !check) {
+    return {
+      state: "na",
+      value: "N/A",
+      detail: `Not scored for this abstention. Raw critic response: ${String(raw)}.`,
+    };
+  }
+  return {
+    state: (check ? check.passed : raw) ? "pass" : "fail",
+    value: raw ? "Yes" : "No",
+    detail: check?.detail || "Raw critic response; no separate check recorded.",
+  };
+}
 export type CaseRow = {
   id: string;
   question: string;

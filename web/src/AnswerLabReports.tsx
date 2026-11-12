@@ -384,6 +384,7 @@ export default function Experiments({
               <ModelMetadata
                 provider={report.configuration.runtime?.provider}
                 model={report.model}
+                runtime={report.configuration.runtime}
               />
               <QualityChart metrics={metrics} />
               <div className="al-metrics-table-wrap">

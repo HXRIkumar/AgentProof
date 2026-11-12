@@ -27,6 +27,7 @@ import {
   human,
   number,
   percent,
+  criticFlag,
 } from "./answerUtils";
 
 export function Status({ result }: { result: AnswerResult }) {
@@ -111,6 +112,20 @@ function AttemptPanel({
         <ChevronDown size={15} />
       </summary>
       <div className="al-attempt-body">
+        <div className="al-attempt-model">
+          <span>Generation model</span>
+          <code>{attempt.generation?.model || "Unrecorded"}</code>
+          {attempt.route === "draft" && <small>Draft route</small>}
+        </div>
+        {attempt.route === "critic_escalation" && (
+          <div className="al-escalation-note">
+            <b>Escalated generation</b>
+            <p>
+              {attempt.escalation_reason ||
+                "This generation used the configured critic model route."}
+            </p>
+          </div>
+        )}
         <div className="al-trace-answer">
           {attempt.abstained ? (
             <em>No answer supported by the sources.</em>
@@ -139,16 +154,27 @@ function AttemptPanel({
             <div className="al-overline">Critic feedback</div>
             <p>{attempt.critic.feedback || "No additional feedback."}</p>
             <div className="al-critic-flags">
-              {[
-                ["Supported", attempt.critic.supported],
-                ["Responsive", attempt.critic.responsive],
-                ["Answerable", attempt.critic.answerable],
-              ].map(([label, pass]) => (
-                <span key={String(label)} className={pass ? "pass" : "fail"}>
-                  {pass ? <Check size={12} /> : <X size={12} />}
-                  {label}
-                </span>
-              ))}
+              {(["supported", "responsive", "answerable"] as const).map(
+                (field) => {
+                  const flag = criticFlag(attempt, field);
+                  return (
+                    <span
+                      key={field}
+                      className={flag.state}
+                      title={flag.detail}
+                    >
+                      {flag.state === "na" ? (
+                        <Circle size={10} />
+                      ) : flag.state === "pass" ? (
+                        <Check size={12} />
+                      ) : (
+                        <X size={12} />
+                      )}
+                      {field[0].toUpperCase() + field.slice(1)} · {flag.value}
+                    </span>
+                  );
+                },
+              )}
             </div>
           </div>
         )}

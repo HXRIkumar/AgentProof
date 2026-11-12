@@ -28,6 +28,8 @@ export type AnswerProviderMetadata = {
 };
 export type AnswerRuntimeMetadata = {
   provider?: AnswerProviderMetadata;
+  escalate_final?: boolean;
+  escalation_available?: boolean;
 };
 export type AnswerBudgetSnapshot = {
   ledger_id?: string;
@@ -53,6 +55,9 @@ export type AnswerAttempt = {
   usage: AnswerUsage;
   feedback: string;
   output_text?: string;
+  route?: "draft" | "critic_escalation";
+  escalation_reason?: string | null;
+  generation?: { model?: string };
 };
 export type AnswerResult = {
   id: string;

@@ -8,6 +8,7 @@ import {
   percent,
   usd,
   budgetDelta,
+  criticFlag,
 } from "./answerUtils.ts";
 import type { AnswerReport, AnswerResult, AnswerTrial } from "./answerTypes.ts";
 
@@ -101,4 +102,41 @@ test("study cost requires matching ledger identity and complete monotonic snapsh
     null,
   );
   assert.equal(budgetDelta(before, after, "reported_usage_estimate_usd"), null);
+});
+
+test("abstention flags use applicability without rewriting the raw critic response", () => {
+  const attempt = {
+    abstained: true,
+    critic: {
+      supported: false,
+      responsive: false,
+      answerable: false,
+      feedback: "No evidence",
+    },
+    checks: [
+      {
+        name: "critic_answerability",
+        passed: true,
+        detail: "Abstention appropriate",
+      },
+    ],
+  };
+  assert.equal(criticFlag(attempt, "supported").value, "N/A");
+  assert.equal(criticFlag(attempt, "responsive").state, "na");
+  assert.equal(criticFlag(attempt, "answerable").value, "No");
+  assert.equal(criticFlag(attempt, "answerable").state, "pass");
+  assert.equal(attempt.critic.supported, false);
+  assert.equal(
+    criticFlag({ ...attempt, abstained: false }, "supported").state,
+    "fail",
+  );
+  const historical = {
+    ...attempt,
+    checks: [
+      ...attempt.checks,
+      { name: "critic_supported", passed: false, detail: "Historical check" },
+    ],
+  };
+  assert.equal(criticFlag(historical, "supported").state, "fail");
+  assert.equal(criticFlag(historical, "supported").value, "No");
 });

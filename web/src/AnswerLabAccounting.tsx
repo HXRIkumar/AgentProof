@@ -2,15 +2,18 @@ import type {
   AnswerProviderMetadata,
   AnswerReport,
   AnswerResult,
+  AnswerRuntimeMetadata,
 } from "./answerTypes";
 import { budgetDelta, number, usd } from "./answerUtils";
 
 export function ModelMetadata({
   provider,
   model,
+  runtime,
 }: {
   provider?: AnswerProviderMetadata;
   model?: string;
+  runtime?: AnswerRuntimeMetadata;
 }) {
   const local =
     provider?.generator_provider === "local" &&
@@ -26,6 +29,23 @@ export function ModelMetadata({
           <dt>Configured critic</dt>
           <dd>{provider?.critic_model || "Unrecorded"}</dd>
         </div>
+        {(runtime?.escalate_final !== undefined ||
+          runtime?.escalation_available !== undefined) && (
+          <div>
+            <dt>Final-attempt escalation</dt>
+            <dd>
+              {runtime.escalate_final === false
+                ? "Off"
+                : runtime.escalate_final === true
+                  ? runtime.escalation_available === true
+                    ? "Enabled · critic route available"
+                    : runtime.escalation_available === false
+                      ? "Enabled · route unavailable"
+                      : "Enabled · availability unrecorded"
+                  : "Unrecorded"}
+            </dd>
+          </div>
+        )}
       </dl>
       <p>
         {local

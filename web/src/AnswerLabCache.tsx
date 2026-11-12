@@ -152,7 +152,10 @@ export default function CachePerformance({
                 <span>{summary.semantic_queries} semantic probes</span>
                 <span>{date(report.created_at)}</span>
               </div>
-              <ModelMetadata provider={report.configuration.provider} />
+              <ModelMetadata
+                provider={report.configuration.provider}
+                runtime={report.configuration}
+              />
               <div className="al-cache-latency">
                 <div className="al-cache-latency-heading">
                   <div>
