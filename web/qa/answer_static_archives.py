@@ -13,9 +13,8 @@ import re
 from pathlib import Path
 from urllib.parse import urlparse
 
-from playwright.sync_api import expect, sync_playwright
-
 from answer_evidence_review import inspect_report
+from playwright.sync_api import expect, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -58,7 +57,7 @@ def main():
         page.on("request", lambda request: requests.append((request.method, request.url)))
         page.route("**/*", lambda route: route.continue_() if route.request.method == "GET" and
                    route.request.url.startswith(base) and "/api/" not in route.request.url else route.abort())
-        page.goto(base)
+        page.goto(base + "?workspace=answers")
         expect(page.get_by_role("heading", name="Experiments", exact=True)).to_be_visible()
         expect(page.get_by_text("Recorded model experiments", exact=True)).to_be_visible()
         if catalogs["answers"]:

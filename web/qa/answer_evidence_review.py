@@ -167,7 +167,7 @@ def main():
                 page.on("pageerror", lambda error: errors.append(str(error)))
                 page.on("request", lambda request: requests.append((request.method, request.url)))
                 page.route("**/*", lambda route: route.continue_() if route.request.url.startswith(origin + BASE) else route.abort())
-                page.goto(origin + BASE)
+                page.goto(origin + BASE + "?workspace=answers")
                 expect(page.get_by_role("heading", name="Experiments", exact=True)).to_be_visible()
                 expect(page.get_by_text("Recorded model experiments", exact=True)).to_be_visible()
                 for path, kind, raw, report in reports:

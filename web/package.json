@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
-    "test": "node --experimental-strip-types --test src/scenarioImport.test.ts src/transport.test.ts src/answerUtils.test.ts",
+    "test": "node --experimental-strip-types --test src/scenarioImport.test.ts src/transport.test.ts src/answerUtils.test.ts src/supportUtils.test.ts",
     "preview": "vite preview --host 127.0.0.1",
     "build:recorded": "tsc -b && vite build --mode recorded --base /AgentProof/"
   },

@@ -11,6 +11,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from playwright.sync_api import expect, sync_playwright
 
@@ -87,7 +88,10 @@ def main():
         page.on("request", lambda request: api_calls.append(request.url) if "/api/" in request.url else None)
         page.on("request", lambda request: mutations.append({"method": request.method, "url": request.url})
                 if request.method not in ("GET", "HEAD", "OPTIONS") else None)
-        page.goto(args.base)
+        url = urlsplit(args.base)
+        query = dict(parse_qsl(url.query))
+        query["workspace"] = "answers"
+        page.goto(urlunsplit(url._replace(query=urlencode(query))))
         page.wait_for_load_state("networkidle")
         expect(page.get_by_role("navigation", name="Answer Lab navigation")).to_be_visible()
         page.get_by_role("button", name="Workspace", exact=True).click()
