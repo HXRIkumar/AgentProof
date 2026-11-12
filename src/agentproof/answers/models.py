@@ -92,6 +92,31 @@ def normalize_space(value: str) -> str:
     return re.sub(r"\s+", " ", value).strip()
 
 
+class DuplicateJSONKeyError(ValueError):
+    """Typed parse failure retaining only safe, fixed protocol field names."""
+
+    SAFE_FIELDS = frozenset({
+        "answer", "data", "abstained", "citations", "source_id", "quote",
+        "supported", "responsive", "answerable", "feedback",
+    })
+
+    def __init__(self, key: str):
+        self.field_name = key if key in self.SAFE_FIELDS else None
+        super().__init__(
+            f"Duplicate JSON key: {self.field_name}" if self.field_name else "Duplicate JSON key"
+        )
+
+    def repair_feedback(self) -> str:
+        if self.field_name == "quote":
+            return (
+                "The quote field is repeated inside one JSON object. Each citation must have "
+                "exactly one source_id and one quote. Put multiple quotes in separate objects "
+                "inside the citations array; retain the extracted data."
+            )
+        field = f" The {self.field_name} field was repeated." if self.field_name else ""
+        return "Each JSON object must contain unique keys." + field + " Return the complete corrected object."
+
+
 def parse_json(text: str):
     """Accept one JSON value; fenced JSON is a common harmless transport wrapper."""
     text = text.strip()
@@ -104,7 +129,7 @@ def parse_json(text: str):
         result = {}
         for key, value in items:
             if key in result:
-                raise ValueError("Duplicate JSON key")
+                raise DuplicateJSONKeyError(key)
             result[key] = value
         return result
 

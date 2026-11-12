@@ -18,7 +18,14 @@ from pathlib import Path
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 
-from .models import AnswerRequest, Candidate, Critique, normalize_space, parse_json
+from .models import (
+    AnswerRequest,
+    Candidate,
+    Critique,
+    DuplicateJSONKeyError,
+    normalize_space,
+    parse_json,
+)
 from .provider import ModelResponse, OpenAIAdapter, digest, usage_for
 from .retrieval import SentenceEmbedder, cosine, critical_signature, retrieve
 from .store import AnswerStore
@@ -87,7 +94,9 @@ Check every named entity, relationship, event, negation and time qualifier. Evid
 a related fact or the opposite relationship does not establish answerability. Do not repair
 false premises or invent implications. A group-level fact does not establish an unmentioned
 individual's membership or action. Set answerable=false when any essential relationship is absent.
-For an abstention, supported and responsive are true ONLY if the question is unanswerable.
+For an abstention there is no answer claim to assess: supported and responsive are
+not applicable; return false for both. The abstention verdict depends ONLY on whether
+the sources are answerable: answerable=false supports abstention, answerable=true rejects it.
 The candidate's abstained flag describes whether the MODEL answered; it says nothing about
 whether a person in the source abstained, voted, declined or acted. An empty answer with
 abstained=true is the REQUIRED correct format for an unanswerable question.
@@ -126,7 +135,7 @@ PROMPT_HASH = digest(
     {
         "generator": GENERATOR_PROMPTS,
         "critic": CRITIC_PROMPTS,
-        "validation_version": 3,
+        "validation_version": 4,
         "retrieval_version": 1,
     }
 )
@@ -191,6 +200,8 @@ def validate_candidate(request, response, retrieval):
         checks.append(check("completion", False, f"Completion ended with {response.finish_reason}"))
     try:
         candidate = Candidate.model_validate(parse_json(response.text))
+    except DuplicateJSONKeyError as exc:
+        return None, [*checks, check("response_schema", False, exc.repair_feedback())]
     except (ValueError, TypeError, ValidationError, RecursionError):
         return None, [
             *checks,
@@ -380,6 +391,15 @@ class AnswerService:
                 [check("critic", False, "Critic did not return a valid complete review")],
                 response,
             )
+        if candidate.abstained:
+            # No answer claim exists to mark supported/responsive. The complete,
+            # typed critic response is still required, and its independent source
+            # answerability assessment is the only applicable semantic check.
+            # Deterministic abstention shape checks have already passed upstream.
+            return critique.model_dump(), [check(
+                "critic_answerability", not critique.answerable,
+                "Explicit abstention requires the critic to find no source-supported answer",
+            )], response
         checks = [
             check("critic_supported", critique.supported, critique.feedback),
             check("critic_responsive", critique.responsive, critique.feedback),
