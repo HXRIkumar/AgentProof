@@ -4,7 +4,7 @@
 
 Ask questions from documents or extract typed records. Inspect the initial answer, the exact evidence, the critic’s feedback and each revision. Compare the final answer against independent reference labels, then see what the improvement cost.
 
-[Recorded experiment console](https://hxrikumar.github.io/AgentProof/) · [Research and evaluation design](docs/ANSWER_LAB_RESEARCH.md) · [Frozen evaluation data](examples/answer-suite-v1/README.md) · [Earlier tool-action laboratory](README.v0.4.md)
+[Recorded experiment console](https://hxrikumar.github.io/AgentProof/) · [Research](docs/ANSWER_LAB_RESEARCH.md) · [Evaluation protocol](docs/ANSWER_EVALUATION_PLAN.md) · [Frozen evaluation data](examples/answer-suite-v1/README.md) · [Earlier tool-action laboratory](README.v0.4.md)
 
 ## The workflow
 
@@ -31,11 +31,12 @@ The runtime does not see benchmark reference answers. A separate evaluator grade
 - **Two useful tasks:** source-grounded question answering, including abstention; and JSON Schema extraction from incident reports, tickets or other documents.
 - **Hybrid retrieval:** BM25 and local Sentence Transformer embeddings rank source passages. A lexical fallback is explicitly labelled when embeddings are absent.
 - **Bounded self-correction:** deterministic feedback and a separately prompted critic identify defects. Revision stops when checks pass or the attempt budget is exhausted; every attempt and returned candidate is retained.
-- **Configurable critic compute:** use separate model/token/thinking settings on the same OpenAI-compatible endpoint. Critic calls count toward total cost.
+- **Local or hybrid inference:** run both roles locally, or pair a local generator with an efficient hosted critic. Model identities, critic calls, reasoning tokens and API cost estimates remain inspectable.
 - **Selective SQLite cache:** only critic-accepted, non-abstaining responses are stored. Keys include source, schema, namespace, model and prompt fingerprints. Semantic candidates require compatibility checks and a fresh critique.
 - **Experiment console:** source editing, question/extraction controls, attempt traces, citations, saved runs, per-case reference grading and downloadable JSON.
 - **Fair comparisons:** one shared initial model response per case across direct, validation-only and critic-assisted policies. Logical standalone costs and actual experiment calls are counted separately.
 - **Auditable evaluation:** frozen public-derived QA and authored extraction suites, per-case regression checks, paired bootstrap intervals, source hashes, atomic checkpoints and preserved failed outputs.
+- **Durable cost control:** optional hosted requests reserve a conservative amount in a shared SQLite ledger before sending. Unknown outcomes retain their reservation, and process restarts do not reset the budget.
 
 Python · FastAPI · Pydantic · JSON Schema · Sentence Transformers · SQLite · React · TypeScript · MLX local inference. The preserved tool-action laboratory also includes LangGraph and OpenTelemetry.
 
@@ -64,7 +65,7 @@ export ANSWER_LAB_MAX_TOKENS=768
 
 Open **http://127.0.0.1:8010**. Model-free recorded experiments are available from the sidebar. The old action workspace is at **/legacy**. SQLite history is local; the service has no tenant authentication and binds to localhost for normal use.
 
-The optional critic overrides are `ANSWER_LAB_CRITIC_MODEL`, `ANSWER_LAB_CRITIC_MAX_TOKENS` and `ANSWER_LAB_CRITIC_DISABLE_THINKING`. Use environment configuration for credentials; never place keys in the UI or Git.
+The optional local critic overrides are `ANSWER_LAB_CRITIC_MODEL`, `ANSWER_LAB_CRITIC_MAX_TOKENS` and `ANSWER_LAB_CRITIC_DISABLE_THINKING`. [Hosted inference setup](docs/HOSTED_INFERENCE.md) explains the separate critic endpoint, efficient pinned model and explicit paid opt-in. Keys stay outside the UI and repository; configuring a key alone does not enable paid calls.
 
 ## Reproduce measurements
 
@@ -85,6 +86,7 @@ The frozen suite has **64 evaluation cases**: 48 SQuAD-derived reading questions
 | Did correction help? | Recovery rate, regression rate, paired confidence interval |
 | Did the runtime mistakenly accept an answer? | False-accept rate against offline references |
 | How much inference did it need? | Calls, retries and tokens per query; tokens per correct result |
+| Is a hosted critic worth using? | Reference success versus estimated API cost per correct result |
 | How long did it take? | End-to-end p50 and p95 latency |
 | Did the cache help safely? | Exact/semantic hit counts, false hits, cold/warm latency |
 
