@@ -57,7 +57,7 @@ Do not fetch the latest revision silently and approve it on behalf of a reviewer
 
 ```python
 with SupportClient() as client:
-    # File uploads are bounded to 5 MiB. PDF text extraction runs on the server.
+    # Documents are bounded to 5 MiB; ticket imports to 1 MiB.
     client.upload_document("manual.pdf")
     client.upload_document_bytes("quickstart.md", b"# Sign-in\nUse the reset link.")
     imported = client.import_tickets("tickets.csv")
@@ -66,7 +66,7 @@ with SupportClient() as client:
 
 Knowledge supports TXT, Markdown, and text PDFs; encrypted/unreadable/scanned-only PDFs are rejected. The server preserves document versions for citations. `archive_document(id)` removes active knowledge without deleting historical evidence. A changed file version may make an existing draft stale.
 
-Ticket imports accept a CSV or JSON list with `title`, `body`, and optional `external_id`, up to 50 rows. Validation occurs before writes. Repeating an external ID with identical content is idempotent; conflicting content is rejected. The client also offers `list_documents`, `get_document`, `list_tickets`, `get_ticket`, and `get_job`.
+Ticket imports accept a CSV or JSON list with `title`, `body`, and optional `external_id`, up to **50 rows and 1 MiB of decoded file content**. Both path-based and bytes-based client methods reject oversized imports before making a request; document uploads retain their separate 5 MiB limit. Validation occurs before writes. Repeating an external ID with identical content is idempotent; conflicting content is rejected. The client also offers `list_documents`, `get_document`, `list_tickets`, `get_ticket`, and `get_job`.
 
 Queued jobs cancel immediately. A running job requests cancellation after its current bounded inference finishes; the client does not pretend to interrupt a provider request. `wait_for_job` polls GET endpoints with a deadline and bounds each request timeout by the remaining time. Network timeout limits apply to HTTP phases; it is not a hard real-time scheduler. A wait timeout leaves the server job running. Call `cancel_job` explicitly if cancellation is intended.
 

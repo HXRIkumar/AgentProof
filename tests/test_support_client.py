@@ -9,6 +9,7 @@ import pytest
 from agentproof import client as module
 from agentproof.client import (
     MAX_FILE_BYTES,
+    MAX_IMPORT_BYTES,
     SupportClient,
     SupportConflictError,
     SupportError,
@@ -158,6 +159,10 @@ def test_bounded_uploads_and_malformed_responses_do_not_expose_body(tmp_path):
     ):
         with pytest.raises(ValueError, match="5 MiB"):
             client.upload_document(oversized)
+        with pytest.raises(ValueError, match="1 MiB"):
+            client.import_tickets(oversized)
+        with pytest.raises(ValueError, match="1 MiB"):
+            client.import_tickets_bytes("tickets.csv", b"x" * (MAX_IMPORT_BYTES + 1))
         assert not seen
         with pytest.raises(SupportProtocolError) as failure:
             client.get_config()

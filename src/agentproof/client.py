@@ -15,6 +15,7 @@ from uuid import UUID, uuid4
 import httpx
 
 MAX_FILE_BYTES = 5 * 1024 * 1024
+MAX_IMPORT_BYTES = 1024 * 1024
 TERMINAL_JOB_STATES = {"completed", "failed", "cancelled"}
 
 
@@ -70,22 +71,22 @@ def _identifier(value: str) -> str:
         raise ValueError("Expected a server UUID") from None
 
 
-def _file_content(path: str | Path) -> tuple[str, bytes]:
+def _file_content(path: str | Path, *, max_bytes=MAX_FILE_BYTES) -> tuple[str, bytes]:
     path = Path(path)
     with path.open("rb") as stream:
-        content = stream.read(MAX_FILE_BYTES + 1)
-    if len(content) > MAX_FILE_BYTES:
-        raise ValueError("Files must not exceed 5 MiB")
+        content = stream.read(max_bytes + 1)
+    if len(content) > max_bytes:
+        raise ValueError(f"File must not exceed {max_bytes // (1024 * 1024)} MiB")
     return path.name, content
 
 
-def _upload(filename: str, content: bytes) -> dict:
+def _upload(filename: str, content: bytes, *, max_bytes=MAX_FILE_BYTES) -> dict:
     if not isinstance(filename, str) or not filename.strip():
         raise ValueError("A filename is required")
     if not isinstance(content, bytes):
         raise TypeError("File content must be bytes")
-    if len(content) > MAX_FILE_BYTES:
-        raise ValueError("Files must not exceed 5 MiB")
+    if len(content) > max_bytes:
+        raise ValueError(f"File must not exceed {max_bytes // (1024 * 1024)} MiB")
     return {"filename": filename, "content_base64": base64.b64encode(content).decode("ascii")}
 
 
@@ -191,11 +192,12 @@ class SupportClient:
         return self._request("POST", "/tickets", body=payload)
 
     def import_tickets(self, path: str | Path) -> dict:
-        """Import a CSV or JSON list, validated atomically by the server (up to 50 rows)."""
-        return self.import_tickets_bytes(*_file_content(path))
+        """Import CSV/JSON up to 1 MiB; the server validates at most 50 rows atomically."""
+        return self.import_tickets_bytes(*_file_content(path, max_bytes=MAX_IMPORT_BYTES))
 
     def import_tickets_bytes(self, filename: str, content: bytes) -> dict:
-        return self._request("POST", "/tickets/import", body=_upload(filename, content))
+        return self._request("POST", "/tickets/import",
+                             body=_upload(filename, content, max_bytes=MAX_IMPORT_BYTES))
 
     def get_ticket(self, ticket_id: str) -> dict:
         return self._request("GET", "/tickets/" + _identifier(ticket_id))
