@@ -1,0 +1,21 @@
+{
+  "started_at": "2026-11-12T00:22:17.688588+00:00",
+  "excluded_from_trial_metrics": true,
+  "model_calls": 1,
+  "model": "mlx-community/Phi-4-mini-instruct-4bit",
+  "model_revision": "ac1c269cb4222a4e136a3d09edad301056c1f36a",
+  "pinning": "Offline server launched using a relative local symlink to the pinned cached snapshot.",
+  "status": "completed",
+  "reported_tokens": 328,
+  "response_diagnostics": {
+    "http_status": 200,
+    "finish_reason": "stop",
+    "usage_present": true,
+    "usage_known": true,
+    "usage_status": "reported",
+    "content_utf8_bytes": 136,
+    "content_sha256": "38ae6992f8e9901c78be8130cb8b6282494ddef139a2f4997f3cffa0c10f4faa",
+    "parse_category": "schema_validation"
+  },
+  "latency_ms": 2656.297
+}

@@ -196,6 +196,12 @@ versus **20/48 baseline**, with all defined guarded effect checks passing.
 This is small synthetic verification, not a public benchmark or broad reliability
 guarantee. [Independent provenance and results](reports/INDEPENDENT_VERIFICATION_FINDINGS.md).
 
+A second free local-model study used **Phi-4-mini-instruct** on the frozen
+workflow: **46/48 guarded original outcomes** and **60/60 guarded challenge
+outcomes**, versus 14/48 and 16/60 baseline. Both original failures remain in
+the report. These are separate existing synthetic suites with two repeats,
+not a cross-model ranking. [Second-family results and limits](reports/MODEL_PORTABILITY_FINDINGS.md).
+
 ![Actual saved live evidence compared in the console](docs/screenshots/live-release-comparison.png)
 
 ## Test the simpler alternative

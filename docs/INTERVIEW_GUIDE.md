@@ -133,6 +133,12 @@ All model results below used a local quantized Qwen3.5-4B model. The orders,
 customers and effects are synthetic. Model-provider and tool faults were also
 deliberately injected in some scenarios. Read each report's fault mapping.
 
+The later [Phi portability study](../reports/MODEL_PORTABILITY_FINDINGS.md)
+is separate: 46/48 guarded original outcomes and 60/60 guarded challenge outcomes.
+Two exact-threshold failures remain. Explain this as a second-family workflow
+check, not proof that one model is generally better. Both models ran locally on
+the Mac without paid inference.
+
 | Comparison | Correct guarded outcomes | What to explain |
 |---|---:|---|
 | Original suite, v0.1 → v0.2 | 66/72 → 72/72 | 24 cases repeated three times; 10.3% more reported tokens |
