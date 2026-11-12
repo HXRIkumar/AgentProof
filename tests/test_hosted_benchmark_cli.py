@@ -46,6 +46,9 @@ def test_hosted_pins_efficient_model(hosted):
     assert configuration["ANSWER_LAB_MODEL"] == "gpt-5.4-mini-2026-03-17"
     assert configuration["ANSWER_LAB_BASE_URL"] == "https://api.openai.com/v1"
     assert configuration["ANSWER_LAB_OPENAI_REASONING_EFFORT"] == "low"
+    assert hosted.route_environment("hosted", {}, "medium")["ANSWER_LAB_OPENAI_REASONING_EFFORT"] == "medium"
+    with pytest.raises(ValueError, match="low or medium"):
+        hosted.route_environment("hosted", {}, "xhigh")
 
 
 def test_explicit_paid_optin_required(hosted, monkeypatch, tmp_path, capsys):

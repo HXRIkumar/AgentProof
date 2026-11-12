@@ -73,6 +73,13 @@ but must not prompt a silent change followed by replacement of the same evaluati
 report. Any later tuned evaluation must be labelled as such and use a fresh suite
 for independent confirmation.
 
+Development extension before any evaluation run: compare the same efficient hosted
+mini with low versus medium reasoning, and test optional final-attempt escalation
+only after earlier local revisions fail. Both remain within the existing three
+generation limit and the shared spending ceiling. These are development hypotheses;
+include an escalation candidate in the final comparison only if development results
+and regression tests justify it, and record its exact configuration separately.
+
 ## Measurements and interpretation
 
 Primary outcome: reference-correct **and delivered** task success. Also report QA

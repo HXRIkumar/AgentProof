@@ -17,13 +17,15 @@ MODEL = "gpt-5.4-mini-2026-03-17"
 ENDPOINT = "https://api.openai.com/v1"
 
 
-def route_environment(mode: str, environment: dict) -> dict:
+def route_environment(mode: str, environment: dict, reasoning_effort: str = "low") -> dict:
     """No credential values enter the route configuration or report."""
     if mode not in {"hybrid", "hosted"}:
         raise ValueError("Choose hybrid or hosted mode")
+    if reasoning_effort not in {"low", "medium"}:
+        raise ValueError("Hosted studies permit low or medium reasoning")
     selected = {
         "ANSWER_LAB_ENABLE_PAID": "1",
-        "ANSWER_LAB_OPENAI_REASONING_EFFORT": "low",
+        "ANSWER_LAB_OPENAI_REASONING_EFFORT": reasoning_effort,
         "ANSWER_LAB_CRITIC_BASE_URL": ENDPOINT,
         "ANSWER_LAB_CRITIC_MODEL": MODEL,
         "ANSWER_LAB_CRITIC_MODEL_REVISION": MODEL,
@@ -51,6 +53,7 @@ def main():
     parser.add_argument("--allow-paid", action="store_true",
                         help="Explicitly authorize this run under the existing total budget")
     parser.add_argument("--mode", choices=("hybrid", "hosted"), required=True)
+    parser.add_argument("--reasoning-effort", choices=("low", "medium"), default="low")
     parser.add_argument("--suite", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--limit", type=int)
@@ -67,7 +70,7 @@ def main():
     if audit_path.exists() or audit_path.is_symlink():
         parser.error("Budget audit already exists; choose a new output directory")
     try:
-        selected = route_environment(args.mode, dict(os.environ))
+        selected = route_environment(args.mode, dict(os.environ), args.reasoning_effort)
     except ValueError as exc:
         parser.error(str(exc))
     os.environ.update(selected)
@@ -85,6 +88,7 @@ def main():
 def run_study(args, service, budget_before):
     billing = {
         "mode": args.mode, "model": MODEL,
+        "reasoning_effort": getattr(args, "reasoning_effort", "low"),
         "budget_before": budget_before,
         "cost_note": "Conservative client-side cost estimates at pinned standard prices; not an invoice. Unknown usage retains its full reservation. No automatic retries.",
     }
